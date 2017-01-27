@@ -1,11 +1,10 @@
 ;;;;; CHANGELOG: ;;;;;;;;
-; - experimental data for variabality treatments inserted
-; - in invest procedure: rounding error in "trembling hand" decision corrected
-; - in calcmetric procedure: round 1 included in calculation of metrics
-
-;;;;; TO-DOS: ;;;;;;;;;;;
+; - loadexpdata: variability treatment data (= round 11-20) can be loaded, but are also simulated as rounds 1-10
+; - variable infrastructure-decline created (for plotting)
 ; - define limcom in the interface
 ; - read in corresponding treatment data for fitness analysis
+
+;;;;; TO-DOS: ;;;;;;;;;;;
 
 
 turtles-own [	
@@ -21,6 +20,7 @@ turtles-own [
 globals [	
   done ; boolean to define whether the batch of runs is finished (used for behaviorsearch)
 	infrastructure ; level of public infrastructure
+  infrastructure-decline ; decline of public infrastructure at the beginning of each round
 	capacity ; capacity of the infrastructure (amount of water that can be processed per second)
 	watersupply ; supply of water per second
 	totalearnings ; amount of earnings by group
@@ -30,7 +30,7 @@ globals [
 	gini-ext ; gini of extraction of water
 	maintenance ; the amount of investment needed to keep the infrastructure at a capacity of 30 units of water (= water supply) 
   sec ; secpnd in game collecting water
-  limcom ; boolean that defines whether agents have limited communication of not
+;  limcom ; boolean that defines whether agents have limited communication of not
   pastinfrastructure ; infrastructure level of previous round
   inf-eff-F inf-eff-L ; infrastructure levels for limited and full communication
   inv-A-F inv-B-F inv-C-F inv-D-F inv-E-F ; data on investment levels per position with full communication
@@ -115,27 +115,25 @@ to setup
   set metric-mult 0
   crt 5 
   set done 0
-  set limcom true
+;  set limcom true
   
   loadexpdata
    
   setupcleardata
-  set list-inf n-values 20 [0]
-  set list-gini-inv n-values 20 [0]
-  set list-gini-ext n-values 20 [0]
-  set list-inv-A n-values 20 [0]
-  set list-inv-B n-values 20 [0]
-  set list-inv-C n-values 20 [0]
-  set list-inv-D n-values 20 [0]
-  set list-inv-E n-values 20 [0]
-  set list-ext-A n-values 20 [0]
-  set list-ext-B n-values 20 [0]
-  set list-ext-C n-values 20 [0]
-  set list-ext-D n-values 20 [0]
-  set list-ext-E n-values 20 [0]
+  set list-inf n-values 10 [0]
+  set list-gini-inv n-values 10 [0]
+  set list-gini-ext n-values 10 [0]
+  set list-inv-A n-values 10 [0]
+  set list-inv-B n-values 10 [0]
+  set list-inv-C n-values 10 [0]
+  set list-inv-D n-values 10 [0]
+  set list-inv-E n-values 10 [0]
+  set list-ext-A n-values 10 [0]
+  set list-ext-B n-values 10 [0]
+  set list-ext-C n-values 10 [0]
+  set list-ext-D n-values 10 [0]
+  set list-ext-E n-values 10 [0]
   set list-change (list 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0)
-  set list-data-change-L (list 0.004830918 0.000966184 0 0.004830918 0.001932367 0.025120773 0.021256039 0.043478261 0.066666667 0.127536232 0.403864734 0.142995169 0.07826087 0.036714976 0.015458937 0.011594203 0.004830918 0.004830918 0.001932367 0 0.002898551)
-  set list-data-change-F (list 0.001058201 0.001058201 0.002116402 0.008465608 0.006349206 0.015873016 0.028571429 0.034920635 0.067724868 0.106878307 0.397883598 0.138624339 0.070899471 0.050793651 0.033862434 0.015873016 0.007407407 0.007407407 0.001058201 0.001058201 0.002116402)
     
   set metric-inv 0 
   set metric-ext 0
@@ -144,157 +142,9 @@ to setup
   set metric-gini-inv 0
   set metric-gini-ext 0
   set metric-mult 0
-  set limcom false ;FJ?? Why is limcom set to "false" again (after being set to "true" above)?!
+;  set limcom false ;FJ?? Why is limcom set to "false" again (after being set to "true" above)?!
 end ; end of setup
 
-to loadexpdata
-  ; input data for treatments
-  set decline-lv-inf (list 25 30 25 20 35 20 15 30 30 25)
-  set decline-hv-inf (list 25 10 10 80 10 5 10 80 10 10)
-  set supply-lv-wa (list 27 31 26 35 33 28 29 25 34 32)
-  set supply-hv-wa (list 27 31 22 36 25 32 38 21 29 39)
-  
-  ; data from experiments - results for first 10 rounds (no variability!), mean across groups with equal treatment
-  set inf-eff-F (list 92.95 83.38 79.14 78.43 78.43 74.19 73.76 74.00 74.24 72.57)
-  set inf-eff-L (list 96.87 90.43 87.04 84.09 82.52 80.61 79.52 78.04 78.35 76.09)
-  set inv-A-F (list 3.81 3.43 4.81 5.57 5.38 4.71 5.19 5.86 5.10 5.24)
-  set inv-B-F (list 4.62 3.52 4.43 4.81 4.95 4.19 4.90 5.76 5.38 5.10)
-  set inv-C-F (list 4.05 3.38 4.48 5.24 5.24 4.76 5.48 5.14 5.86 5.33)
-  set inv-D-F (list 2.81 2.76 4.00 4.71 4.95 3.90 5.05 4.71 4.57 3.90)
-  set inv-E-F (list 3.19 2.86 3.71 4.95 5.33 4.67 4.67 4.14 4.33 3.76)
-  set ext-A-F (list 12.05 11.71 10.00 11.52 10.33 11.05 11.24 10.29 10.24 11.14)
-  set ext-B-F (list 11.86 12.48 11.90 10.14 12.33 13.29 9.57 11.43 10.24 11.90)
-  set ext-C-F (list 11.76 12.33 10.48 12.29 12.14 11.62 10.05 10.10 12.67 10.76)
-  set ext-D-F (list 8.71 8.14 7.71 10.19 9.14 9.43 8.90 9.33 9.67 8.05)
-  set ext-E-F (list 4.67 6.95 7.24 7.19 7.76 7.24 9.10 7.14 7.95 6.71)
-  set inv-A-L (list 5.00 4.04 5.04 5.17 6.09 6.39 6.26 5.74 5.70 5.17)
-  set inv-B-L (list 5.83 5.30 5.43 5.74 6.48 5.70 6.30 6.22 6.30 5.78)
-  set inv-C-L (list 4.87 4.43 5.04 5.26 5.35 5.09 5.91 5.65 5.91 5.13)
-  set inv-D-L (list 4.65 3.09 3.65 3.57 3.48 3.52 3.96 3.87 4.35 3.30)
-  set inv-E-L (list 4.39 2.65 3.00 3.04 2.43 2.96 2.09 2.22 2.00 2.30)
-  set ext-A-L (list 18.52 17.22 17.96 17.61 16.87 16.61 17.00 14.70 14.96 15.30)
-  set ext-B-L (list 18.35 17.00 17.00 16.35 14.87 14.91 15.52 13.48 13.52 12.39)
-  set ext-C-L (list 9.83 11.39 12.30 12.22 13.78 12.13 11.04 12.04 13.57 12.78)
-  set ext-D-L (list 2.52 4.22 3.57 4.13 4.78 5.30 6.39 6.83 7.26 7.48)
-  set ext-E-L (list 0.09 0.70 0.30 0.61 1.57 1.70 1.17 2.52 1.96 3.17)
-  set gini-inv-F (list 0.156 0.179 0.095 0.081 0.067 0.131 0.120 0.089 0.104 0.134)
-  set gini-inv-L (list 0.267 0.352 0.269 0.256 0.244 0.268 0.256 0.224 0.259 0.303)
-  set gini-ext-F (list 0.291 0.283 0.280 0.223 0.249 0.241 0.264 0.182 0.219 0.257)
-  set gini-ext-L (list 0.456 0.426 0.421 0.417 0.392 0.380 0.377 0.372 0.333 0.327)
-  
-  ;FJ create and add lists for treatments
-  ; data for low infrastructure variation
-  set inf-eff-F-lv-inf (list 90.2 73.0 68.6 71.4 68.2 76.4 79.2 74.0 68.2 66.6)
-  set inf-eff-L-lv-inf (list 98.0 82.8 81.0 83.2 78.0 78.6 81.6 74.4 74.8 76.6)
-  set inv-A-F-lv-inf (list 3.0 2.4 4.0 5.8 7.2 4.6 3.8 6.0 5.4 5.0)
-  set inv-B-F-lv-inf (list 3.4 3.2 3.8 5.0 7.2 7.0 3.8 5.0 4.8 4.8)
-  set inv-C-F-lv-inf (list 3.2 2.2 4.2 4.0 6.4 5.4 3.4 4.6 4.6 4.8)
-  set inv-D-F-lv-inf (list 3.4 2.8 5.6 4.8 5.8 6.2 4.4 5.8 5.8 5.0)
-  set inv-E-F-lv-inf (list 2.2 2.2 3.0 3.2 5.2 5.0 2.4 3.4 3.6 3.8)
-  set ext-A-F-lv-inf (list 18.8 11.0 11.0 11.8 14.8 13.0 10.8 13.4 15.6 15.8)
-  set ext-B-F-lv-inf (list 16.8 13.8 12.2 17.0 12.2  9.8 16.0 11.8 13.4 10.2)
-  set ext-C-F-lv-inf (list  8.0  9.8 15.0 16.2  9.0  9.8 10.6 13.6 15.0  2.0)
-  set ext-D-F-lv-inf (list  5.8  6.0 11.6  7.0  8.0 11.0  4.8 10.8  7.0  9.2)
-  set ext-E-F-lv-inf (list  3.8  7.0  4.2  4.2  4.8 12.0 10.6  7.8  0.8  9.4)
-  set inv-A-L-lv-inf (list 4.6 4.6 5.4 6.0 7.0 4.8 5.2 4.6 7.2 7.0)
-  set inv-B-L-lv-inf (list 5.4 4.0 5.4 5.6 7.0 4.4 3.6 5.6 5.8 5.4)
-  set inv-C-L-lv-inf (list 6.4 3.0 6.0 4.0 6.8 5.2 4.4 5.8 8.0 6.6)
-  set inv-D-L-lv-inf (list 4.8 1.8 3.8 4.2 5.0 3.8 2.8 4.8 5.8 4.4)
-  set inv-E-L-lv-inf (list 4.2 1.4 2.6 2.4 4.0 2.4 2.0 2.0 3.6 3.4)
-  set ext-A-L-lv-inf (list 18.0 17.0 13.4 15.2 15.0 12.8 16.0 12.0 17.8 18.0)
-  set ext-B-L-lv-inf (list 10.6 10.8 12.6 12.6 12.6 13.0  9.6 10.2 13.8 15.0)
-  set ext-C-L-lv-inf (list 10.2  7.0 14.8  9.8  8.6 13.2 10.2  7.2  7.0 10.8)
-  set ext-D-L-lv-inf (list 10.4  8.6 11.2 14.6 12.4 12.8 13.8  8.0 10.2  7.6)
-  set ext-E-L-lv-inf (list  4.0 10.4  6.0  7.0  6.0  5.8  5.2  4.6  4.8  4.0)
-  set gini-inv-F-lv-inf (list 0.129 0.157 0.203 0.173 0.094 0.123 0.207 0.099 0.204 0.236)
-  set gini-inv-L-lv-inf (list 0.226 0.294 0.207 0.221 0.185 0.250 0.260 0.279 0.203 0.202)
-  set gini-ext-F-lv-inf (list 0.388 0.456 0.292 0.268 0.357 0.321 0.309 0.298 0.321 0.399)
-  set gini-ext-L-lv-inf (list 0.310 0.298 0.281 0.216 0.240 0.270 0.298 0.289 0.359 0.320)
-  
-  ; data for high infrastructure variation
-  set inf-eff-F-hv-inf (list 84.50 79.67 77.50 41.00 54.83 68.17 66.83 49.83 71.67 74.50)
-  set inf-eff-L-hv-inf (list 92.6 96.2 93.8 35.0 52.0 74.4 83.4 23.6 37.8 49.0)
-  set inv-A-F-hv-inf (list 1.67 1.67 2.00 7.17 4.67 3.50 1.50 9.00 6.17 2.50)
-  set inv-B-F-hv-inf (list 2.67 1.17 2.17 6.67 4.50 4.17 1.67 9.00 6.83 2.83)
-  set inv-C-F-hv-inf (list 2.00 1.83 1.67 7.17 3.33 3.33 1.17 6.67 6.33 2.33)
-  set inv-D-F-hv-inf (list 1.83 0.67 2.33 6.17 5.33 3.33 1.50 9.83 6.50 2.67)
-  set inv-E-F-hv-inf (list 2.17 1.17 1.17 7.17 4.33 3.17 1.33 9.33 6.00 2.50)
-  set ext-A-F-hv-inf (list  9.17 13.17 11.50  1.83  7.33 10.83 10.83  1.67 13.00 11.50)
-  set ext-B-F-hv-inf (list 13.00 12.33  9.33  1.67  6.67  9.17  9.83  2.50 11.50 11.50)
-  set ext-C-F-hv-inf (list 10.00  8.33  9.67  2.50  5.67  9.17  7.50  1.67 10.67  8.17)
-  set ext-D-F-hv-inf (list 11.33 10.00 12.50  1.67  5.00  7.17  8.17  2.33  8.33  9.17)
-  set ext-E-F-hv-inf (list 11.50 10.83  6.83  1.67  5.67 10.83  9.17  4.00  5.83  8.67)
-  set inv-A-L-hv-inf (list 6.2 5.2 2.8 5.6 8.0 8.0 4.8 4.0 7.4 5.4)
-  set inv-B-L-hv-inf (list 5.2 4.6 2.6 4.6 8.0 7.6 4.2 5.6 7.4 5.4)
-  set inv-C-L-hv-inf (list 2.4 3.4 2.0 4.6 6.8 6.6 5.2 6.2 6.4 5.2)
-  set inv-D-L-hv-inf (list 2.2 1.4 1.6 4.2 2.4 2.4 3.4 0.6 1.2 2.0)
-  set inv-E-L-hv-inf (list 1.8 2.0 0.2 2.2 1.8 2.8 1.4 1.4 1.2 1.2)
-  set ext-A-L-hv-inf (list 19.2 19.2 19.0  0.0  3.8 19.0 19.2  0.2  3.8 11.6)
-  set ext-B-L-hv-inf (list 18.0 18.2 18.2  0.0  4.2 17.6 16.4  0.0  3.8 11.2)
-  set ext-C-L-hv-inf (list 11.8 10.2  9.0  0.0  3.2 12.6 13.4  0.0  3.6  8.8)
-  set ext-D-L-hv-inf (list 5.8 6.2 5.8 0.0 2.0 4.4 3.4 0.0 0.0 1.6)
-  set ext-E-L-hv-inf (list 0.4 0.8 0.2 0.0 0.0 0.0 0.8 0.0 0.0 0.0)
-  set gini-inv-F-hv-inf (list 0.079 0.306 0.087 0.046 0.095 0.254 0.095 0.082 0.044 0.027)
-  set gini-inv-L-hv-inf (list 0.414 0.395 0.444 0.426 0.310 0.284 0.287 0.572 0.267 0.502)
-  set gini-ext-F-hv-inf (list 0.137 0.149 0.157 0.145 0.188 0.121 0.131 0.260 0.146 0.263)
-  set gini-ext-L-hv-inf (list 0.368 0.390 0.414 0.000 0.299 0.395 0.380 0.160 0.081 0.237)
-
-  ; data for low water variation
-  set inf-eff-F-lv-wa (list 84.6 78.8 72.6 69.2 69.8 64.6 66.2 64.2 66.6 64.8)
-  set inf-eff-L-lv-wa (list 96.6 89.6 84.8 80.8 77.8 77.0 77.6 76.2 73.8 69.2)
-  set inv-A-F-lv-wa (list 1.4 4.0 4.2 3.2 6.8 5.8 6.8 6.4 7.2 5.0)
-  set inv-B-F-lv-wa (list 1.2 5.2 4.2 3.8 5.6 4.2 4.8 3.0 4.8 5.2)
-  set inv-C-F-lv-wa (list 3.4 3.6 3.6 4.8 5.6 3.8 6.0 6.4 6.8 7.0)
-  set inv-D-F-lv-wa (list 1.8 3.2 3.4 4.0 3.8 2.8 3.4 3.6 4.4 3.2)
-  set inv-E-F-lv-wa (list 1.8 3.2 3.4 5.8 3.8 3.2 5.6 3.6 4.2 2.8)
-  set ext-A-F-lv-wa (list 10.6 12.0  6.8 13.6 11.8  9.0 11.0  8.4 13.4 13.4)
-  set ext-B-F-lv-wa (list 10.8 15.6  7.0 10.0 11.0 10.0  8.2  4.8 11.0 12.8)
-  set ext-C-F-lv-wa (list  7.8 12.8  6.8  9.6 10.0  7.8  6.8  6.8 10.0  9.0)
-  set ext-D-F-lv-wa (list  6.8  7.0  7.8 11.0  6.8  6.8  9.0  6.8  8.8  7.0)
-  set ext-E-F-lv-wa (list  6.6  9.0  6.6 14.0 10.0  5.0  6.8  3.8  8.2  7.8)
-  set inv-A-L-lv-wa (list 5.6 4.0 4.8 5.2 5.0 5.8 6.0 5.4 5.2 4.4)
-  set inv-B-L-lv-wa (list 6.0 5.6 5.8 6.8 6.6 7.6 7.8 7.2 6.8 6.4)
-  set inv-C-L-lv-wa (list 5.6 4.8 5.0 5.2 6.0 6.2 6.8 6.6 5.4 4.4)
-  set inv-D-L-lv-wa (list 4.0 2.6 3.2 2.8 3.4 3.2 3.6 3.2 3.8 3.4)
-  set inv-E-L-lv-wa (list 2.2 1.0 1.4 1.0 1.0 1.4 1.4 1.2 1.4 1.8)
-  set ext-A-L-lv-wa (list 14.4 14.6 15.4 16.8 17.2 17.2 16.8 15.4 16.8 14.6)
-  set ext-B-L-lv-wa (list 15.2 12.6 15.8 16.8 17.0 16.4 14.8 13.6 17.2 13.6)
-  set ext-C-L-lv-wa (list  9.8 11.4 12.4 14.4 16.2 14.0 12.0 12.6 12.6 12.4)
-  set ext-D-L-lv-wa (list  4.8  7.8  2.8 10.4  9.2  2.8  6.0  4.8  8.2  6.0)
-  set ext-E-L-lv-wa (list 2.2 6.0 3.0 5.6 2.8 1.6 3.2 2.0 6.2 4.0)
-  set gini-inv-F-lv-wa (list 0.203 0.153 0.160 0.225 0.122 0.220 0.127 0.200 0.181 0.230)
-  set gini-inv-L-lv-wa (list 0.340 0.411 0.350 0.358 0.340 0.299 0.304 0.317 0.322 0.294)
-  set gini-ext-F-lv-wa (list 0.258 0.204 0.160 0.105 0.121 0.130 0.140 0.211 0.139 0.138)
-  set gini-ext-L-lv-wa (list 0.368 0.331 0.406 0.265 0.283 0.378 0.324 0.371 0.273 0.299)
-
-  ; data for high water variation
-  set inf-eff-F-hv-wa (list 85.8 74.6 67.0 71.0 63.6 64.8 67.4 61.8 57.4 69.8)
-  set inf-eff-L-hv-wa (list 93.38 85.00 78.12 76.00 71.75 72.25 78.88 73.12 74.12 78.75)
-  set inv-A-F-hv-wa (list 1.6 2.6 3.4 6.2 3.0 5.2 5.4 5.2 5.2 8.2)
-  set inv-B-F-hv-wa (list 1.6 2.8 3.2 6.0 5.0 5.0 5.4 3.0 3.2 6.2)
-  set inv-C-F-hv-wa (list 3.4 2.8 4.2 5.2 2.8 5.6 5.8 3.0 3.4 8.2)
-  set inv-D-F-hv-wa (list 1.2 2.6 3.2 5.6 3.6 5.4 5.8 2.2 3.0 8.0)
-  set inv-E-F-hv-wa (list 3.0 3.0 3.4 6.0 3.2 5.0 5.2 2.6 2.8 4.0)
-  set ext-A-F-hv-wa (list  6.2  8.8  4.6 11.2  7.0  7.8 13.4  5.0  7.8 14.2)
-  set ext-B-F-hv-wa (list 10.8  9.8  6.0 12.6  5.6  6.8 11.6  2.6  6.8 13.4)
-  set ext-C-F-hv-wa (list  9.2 10.8  3.8 10.4  3.6 10.0 13.2  4.4  8.8 11.2)
-  set ext-D-F-hv-wa (list  8.8 12.0  4.6 10.0  3.2 10.0 12.6  3.8  9.6 11.6)
-  set ext-E-F-hv-wa (list  5.8 11.8  2.2  9.2  6.0  6.8 12.8  1.6  3.0  7.2)
-  set inv-A-L-hv-wa (list 1.88 4.88 3.88 6.62 5.62 7.00 8.38 3.62 5.75 7.50)
-  set inv-B-L-hv-wa (list 5.38 2.62 3.75 5.00 5.12 6.62 7.62 3.75 6.62 6.50)
-  set inv-C-L-hv-wa (list 5.00 4.38 4.75 6.12 5.75 6.88 7.75 5.25 7.00 7.50)
-  set inv-D-L-hv-wa (list 3.62 3.12 3.12 3.62 3.00 2.75 4.75 4.88 4.62 4.62)
-  set inv-E-L-hv-wa (list 3.00 1.62 2.62 1.50 1.25 2.25 3.25 1.75 2.25 3.62)
-  set ext-A-L-hv-wa (list 16.75 16.75 16.50 14.75 16.12 15.38 18.25 12.25 17.12 17.75)
-  set ext-B-L-hv-wa (list 14.75 16.00 12.75 13.25 15.62 16.38 18.50 10.00 15.38 17.50)
-  set ext-C-L-hv-wa (list 11.62 16.25  8.75 16.75 15.25 16.88 15.75  5.25 13.38 18.12)
-  set ext-D-L-hv-wa (list  4.12  6.25  3.25  9.12  2.50  5.62  7.62  2.88  4.38 10.88)
-  set ext-E-L-hv-wa (list 1.75 1.75 0.12 7.50 0.25 1.88 1.50 1.88 0.25 4.75)
-  set gini-inv-F-hv-wa (list 0.251 0.154 0.057 0.087 0.146 0.159 0.187 0.287 0.202 0.130)
-  set gini-inv-L-hv-wa (list 0.410 0.448 0.341 0.295 0.268 0.309 0.228 0.343 0.303 0.279)
-  set gini-ext-F-hv-wa (list 0.254 0.168 0.348 0.251 0.365 0.100 0.054 0.283 0.181 0.144)
-  set gini-ext-L-hv-wa (list 0.393 0.321 0.469 0.320 0.403 0.384 0.315 0.552 0.371 0.253)
-end
 
 to setupcleardata
   ask turtles
@@ -302,6 +152,7 @@ to setupcleardata
     set inv 0 set earnings 0 set watercol 0 set gate 0
   ]
   set infrastructure 100
+  set infrastructure-decline 25
   set capacity 0
   set watersupply 30
   if scenario = "random" [ask turtles [set strategy 0]]
@@ -329,7 +180,7 @@ to batch ; batch is used for calibration where 1000 simulations for the same par
   if sharerandom + shareselfish > 1 [stop] ; One cannot have more than 100%
   let iter 0
   set metric-mult 0
-  set limcom true
+;  set limcom true
   while [iter < 1000]
   [
    setupcleardata
@@ -370,7 +221,7 @@ to batch ; batch is used for calibration where 1000 simulations for the same par
   set metric-gini-ext 0
   
   set iter 0
-  set limcom true ; since we calculate the fit for two different treatments we now run the 1000 times the other treatment 
+;  set limcom true ; since we calculate the fit for two different treatments we now run the 1000 times the other treatment 
   while [iter < 1000]
   [
    setupcleardata
@@ -392,24 +243,23 @@ to batch ; batch is used for calibration where 1000 simulations for the same par
 end ; of batch
 
 to go
-  ifelse phase2? 
-  [if ticks = 20 [stop]]
-  [if ticks = 10 [stop]] ; 10 rounds in the experiment
+  if ticks = 10 [stop] ; 10 rounds in the experiment
 
-  if ticks = 10 [set infrastructure 100] ; has to be set to 100 because it will still depreciate afterwards
+;obsolete  if ticks = 10 [set infrastructure 100] ; has to be set to 100 because it will still depreciate afterwards
   createdata ; MJ: translate data list to time series of data
 
-  ifelse ticks >= 10 and (Variability = "LV-inf" or Variability = "HV-inf")
+  ifelse phase2? and (Variability = "lv-inf" or Variability = "hv-inf")
   [
-    if Variability = "LV-inf" [
-      set infrastructure infrastructure - item (ticks - 10) decline-lv-inf
+    if Variability = "lv-inf" [
+      set infrastructure-decline item ticks decline-lv-inf
     ]
-    if Variability = "HV-inf" [
-      set infrastructure infrastructure - item (ticks - 10) decline-hv-inf
+    if Variability = "hv-inf" [
+      set infrastructure-decline item ticks decline-hv-inf
     ]
   ][
-    set infrastructure infrastructure - 25 ; 25 is the round based reduction of the infrastructure (which cannot go below 0)
+    set infrastructure-decline 25 ; 25 is the round based reduction of the infrastructure (which cannot go below 0)
   ]
+  set infrastructure infrastructure - infrastructure-decline
   if infrastructure < 0 [set infrastructure 0]
   set maintenance 66 - infrastructure 
   if maintenance > 50 [set maintenance 50] ; if more than 50 units is needed for repair, the maximum investment is still 50
@@ -430,11 +280,11 @@ to go
   ; water extraction 
   set sec 0
 
-  ifelse ticks >= 10 and (Variability = "LV-wa" or Variability = "HV-wa")
+  ifelse phase2? and (Variability = "lv-wa" or Variability = "hv-wa")
   [
-    if Variability = "LV-wa" [set watersupply item (ticks - 10) supply-lv-wa
+    if Variability = "lv-wa" [set watersupply item ticks supply-lv-wa
     ]
-    if Variability = "HV-wa" [set watersupply item (ticks - 10) supply-hv-wa
+    if Variability = "hv-wa" [set watersupply item ticks supply-hv-wa
     ]
   ][set watersupply 30]
   
@@ -668,10 +518,6 @@ end
 
 to createdata ; read in the experiment data for a given time step
   ifelse limcom  [ ; limited communication
-    if Variability = "LV-inf" [] ;FJ insert exp data for that tick here!
-    if Variability = "HV-inf" []
-    if Variability = "LV-wa" []
-    if Variability = "HV-wa" []
     set data-inf item ticks inf-eff-L
     set data-gini-inv item ticks gini-inv-L
     set data-gini-ext item ticks gini-ext-L
@@ -687,10 +533,6 @@ to createdata ; read in the experiment data for a given time step
     set data-ext-E item ticks ext-E-L
     set list-data-change list-data-change-L
   ][ ; full communication
-  if Variability = "LV-inf" []
-  if Variability = "HV-inf" []
-  if Variability = "LV-wa" []
-  if Variability = "HV-wa" []
   set data-inf item ticks inf-eff-F
   set data-gini-inv item ticks gini-inv-F
   set data-gini-ext item ticks gini-ext-F
@@ -719,9 +561,9 @@ to calcmetrics ; calculating the metrics to evaluate the fit between data and si
    clear-all-plots 
    reset-ticks
 
-   while [ticks < 10] ; "simulate" data from experiment
+   while [ticks < 10] 
    [
-     createdata
+     createdata ; "simulate" data from experiment g
      
      ; calculate the mean for that round across all 1000 iterations
      set infrastructure (item ticks list-inf / 1000) 
@@ -762,6 +604,274 @@ to calcmetrics ; calculating the metrics to evaluate the fit between data and si
    
    set metric-mult metric-mult + ((1 - metric-inv) * (1 - metric-ext) * (1 - metric-inf) * (1 - metric-change)  * (1 - metric-gini-inv) * (1 - metric-gini-ext))
 end  
+
+
+to loadexpdata
+  ; input data for treatments
+  set decline-lv-inf (list 25 30 25 20 35 20 15 30 30 25)
+  set decline-hv-inf (list 25 10 10 80 10 5 10 80 10 10)
+  set supply-lv-wa (list 27 31 26 35 33 28 29 25 34 32)
+  set supply-hv-wa (list 27 31 22 36 25 32 38 21 29 39)
+  
+  ; data from experiments - results for first 10 rounds (no variability!), mean across groups with equal treatment
+  set inf-eff-F (list 92.95 83.38 79.14 78.43 78.43 74.19 73.76 74.00 74.24 72.57)
+  set inf-eff-L (list 96.87 90.43 87.04 84.09 82.52 80.61 79.52 78.04 78.35 76.09)
+  set inv-A-F (list 3.81 3.43 4.81 5.57 5.38 4.71 5.19 5.86 5.10 5.24)
+  set inv-B-F (list 4.62 3.52 4.43 4.81 4.95 4.19 4.90 5.76 5.38 5.10)
+  set inv-C-F (list 4.05 3.38 4.48 5.24 5.24 4.76 5.48 5.14 5.86 5.33)
+  set inv-D-F (list 2.81 2.76 4.00 4.71 4.95 3.90 5.05 4.71 4.57 3.90)
+  set inv-E-F (list 3.19 2.86 3.71 4.95 5.33 4.67 4.67 4.14 4.33 3.76)
+  set ext-A-F (list 12.05 11.71 10.00 11.52 10.33 11.05 11.24 10.29 10.24 11.14)
+  set ext-B-F (list 11.86 12.48 11.90 10.14 12.33 13.29 9.57 11.43 10.24 11.90)
+  set ext-C-F (list 11.76 12.33 10.48 12.29 12.14 11.62 10.05 10.10 12.67 10.76)
+  set ext-D-F (list 8.71 8.14 7.71 10.19 9.14 9.43 8.90 9.33 9.67 8.05)
+  set ext-E-F (list 4.67 6.95 7.24 7.19 7.76 7.24 9.10 7.14 7.95 6.71)
+  set inv-A-L (list 5.00 4.04 5.04 5.17 6.09 6.39 6.26 5.74 5.70 5.17)
+  set inv-B-L (list 5.83 5.30 5.43 5.74 6.48 5.70 6.30 6.22 6.30 5.78)
+  set inv-C-L (list 4.87 4.43 5.04 5.26 5.35 5.09 5.91 5.65 5.91 5.13)
+  set inv-D-L (list 4.65 3.09 3.65 3.57 3.48 3.52 3.96 3.87 4.35 3.30)
+  set inv-E-L (list 4.39 2.65 3.00 3.04 2.43 2.96 2.09 2.22 2.00 2.30)
+  set ext-A-L (list 18.52 17.22 17.96 17.61 16.87 16.61 17.00 14.70 14.96 15.30)
+  set ext-B-L (list 18.35 17.00 17.00 16.35 14.87 14.91 15.52 13.48 13.52 12.39)
+  set ext-C-L (list 9.83 11.39 12.30 12.22 13.78 12.13 11.04 12.04 13.57 12.78)
+  set ext-D-L (list 2.52 4.22 3.57 4.13 4.78 5.30 6.39 6.83 7.26 7.48)
+  set ext-E-L (list 0.09 0.70 0.30 0.61 1.57 1.70 1.17 2.52 1.96 3.17)
+  set gini-inv-F (list 0.156 0.179 0.095 0.081 0.067 0.131 0.120 0.089 0.104 0.134)
+  set gini-inv-L (list 0.267 0.352 0.269 0.256 0.244 0.268 0.256 0.224 0.259 0.303)
+  set gini-ext-F (list 0.291 0.283 0.280 0.223 0.249 0.241 0.264 0.182 0.219 0.257)
+  set gini-ext-L (list 0.456 0.426 0.421 0.417 0.392 0.380 0.377 0.372 0.333 0.327)
+  set list-data-change-L (list 0.004830918 0.000966184 0 0.004830918 0.001932367 0.025120773 0.021256039 0.043478261 0.066666667 0.127536232 0.403864734 0.142995169 0.07826087 0.036714976 0.015458937 0.011594203 0.004830918 0.004830918 0.001932367 0 0.002898551)
+  set list-data-change-F (list 0.001058201 0.001058201 0.002116402 0.008465608 0.006349206 0.015873016 0.028571429 0.034920635 0.067724868 0.106878307 0.397883598 0.138624339 0.070899471 0.050793651 0.033862434 0.015873016 0.007407407 0.007407407 0.001058201 0.001058201 0.002116402)
+  
+  ;create and add lists for treatments
+  
+  if phase2? [ ; extend experimental data by treatment
+               ; data for low infrastructure variation
+    set inf-eff-F-lv-inf (list 90.2 73.0 68.6 71.4 68.2 76.4 79.2 74.0 68.2 66.6)
+    set inf-eff-L-lv-inf (list 98.0 82.8 81.0 83.2 78.0 78.6 81.6 74.4 74.8 76.6)
+    set inv-A-F-lv-inf (list 3.0 2.4 4.0 5.8 7.2 4.6 3.8 6.0 5.4 5.0)
+    set inv-B-F-lv-inf (list 3.4 3.2 3.8 5.0 7.2 7.0 3.8 5.0 4.8 4.8)
+    set inv-C-F-lv-inf (list 3.2 2.2 4.2 4.0 6.4 5.4 3.4 4.6 4.6 4.8)
+    set inv-D-F-lv-inf (list 3.4 2.8 5.6 4.8 5.8 6.2 4.4 5.8 5.8 5.0)
+    set inv-E-F-lv-inf (list 2.2 2.2 3.0 3.2 5.2 5.0 2.4 3.4 3.6 3.8)
+    set ext-A-F-lv-inf (list 18.8 11.0 11.0 11.8 14.8 13.0 10.8 13.4 15.6 15.8)
+    set ext-B-F-lv-inf (list 16.8 13.8 12.2 17.0 12.2  9.8 16.0 11.8 13.4 10.2)
+    set ext-C-F-lv-inf (list  8.0  9.8 15.0 16.2  9.0  9.8 10.6 13.6 15.0  2.0)
+    set ext-D-F-lv-inf (list  5.8  6.0 11.6  7.0  8.0 11.0  4.8 10.8  7.0  9.2)
+    set ext-E-F-lv-inf (list  3.8  7.0  4.2  4.2  4.8 12.0 10.6  7.8  0.8  9.4)
+    set inv-A-L-lv-inf (list 4.6 4.6 5.4 6.0 7.0 4.8 5.2 4.6 7.2 7.0)
+    set inv-B-L-lv-inf (list 5.4 4.0 5.4 5.6 7.0 4.4 3.6 5.6 5.8 5.4)
+    set inv-C-L-lv-inf (list 6.4 3.0 6.0 4.0 6.8 5.2 4.4 5.8 8.0 6.6)
+    set inv-D-L-lv-inf (list 4.8 1.8 3.8 4.2 5.0 3.8 2.8 4.8 5.8 4.4)
+    set inv-E-L-lv-inf (list 4.2 1.4 2.6 2.4 4.0 2.4 2.0 2.0 3.6 3.4)
+    set ext-A-L-lv-inf (list 18.0 17.0 13.4 15.2 15.0 12.8 16.0 12.0 17.8 18.0)
+    set ext-B-L-lv-inf (list 10.6 10.8 12.6 12.6 12.6 13.0  9.6 10.2 13.8 15.0)
+    set ext-C-L-lv-inf (list 10.2  7.0 14.8  9.8  8.6 13.2 10.2  7.2  7.0 10.8)
+    set ext-D-L-lv-inf (list 10.4  8.6 11.2 14.6 12.4 12.8 13.8  8.0 10.2  7.6)
+    set ext-E-L-lv-inf (list  4.0 10.4  6.0  7.0  6.0  5.8  5.2  4.6  4.8  4.0)
+    set gini-inv-F-lv-inf (list 0.129 0.157 0.203 0.173 0.094 0.123 0.207 0.099 0.204 0.236)
+    set gini-inv-L-lv-inf (list 0.226 0.294 0.207 0.221 0.185 0.250 0.260 0.279 0.203 0.202)
+    set gini-ext-F-lv-inf (list 0.388 0.456 0.292 0.268 0.357 0.321 0.309 0.298 0.321 0.399)
+    set gini-ext-L-lv-inf (list 0.310 0.298 0.281 0.216 0.240 0.270 0.298 0.289 0.359 0.320)
+    
+    ; data for high infrastructure variation
+    set inf-eff-F-hv-inf (list 84.50 79.67 77.50 41.00 54.83 68.17 66.83 49.83 71.67 74.50)
+    set inf-eff-L-hv-inf (list 92.6 96.2 93.8 35.0 52.0 74.4 83.4 23.6 37.8 49.0)
+    set inv-A-F-hv-inf (list 1.67 1.67 2.00 7.17 4.67 3.50 1.50 9.00 6.17 2.50)
+    set inv-B-F-hv-inf (list 2.67 1.17 2.17 6.67 4.50 4.17 1.67 9.00 6.83 2.83)
+    set inv-C-F-hv-inf (list 2.00 1.83 1.67 7.17 3.33 3.33 1.17 6.67 6.33 2.33)
+    set inv-D-F-hv-inf (list 1.83 0.67 2.33 6.17 5.33 3.33 1.50 9.83 6.50 2.67)
+    set inv-E-F-hv-inf (list 2.17 1.17 1.17 7.17 4.33 3.17 1.33 9.33 6.00 2.50)
+    set ext-A-F-hv-inf (list  9.17 13.17 11.50  1.83  7.33 10.83 10.83  1.67 13.00 11.50)
+    set ext-B-F-hv-inf (list 13.00 12.33  9.33  1.67  6.67  9.17  9.83  2.50 11.50 11.50)
+    set ext-C-F-hv-inf (list 10.00  8.33  9.67  2.50  5.67  9.17  7.50  1.67 10.67  8.17)
+    set ext-D-F-hv-inf (list 11.33 10.00 12.50  1.67  5.00  7.17  8.17  2.33  8.33  9.17)
+    set ext-E-F-hv-inf (list 11.50 10.83  6.83  1.67  5.67 10.83  9.17  4.00  5.83  8.67)
+    set inv-A-L-hv-inf (list 6.2 5.2 2.8 5.6 8.0 8.0 4.8 4.0 7.4 5.4)
+    set inv-B-L-hv-inf (list 5.2 4.6 2.6 4.6 8.0 7.6 4.2 5.6 7.4 5.4)
+    set inv-C-L-hv-inf (list 2.4 3.4 2.0 4.6 6.8 6.6 5.2 6.2 6.4 5.2)
+    set inv-D-L-hv-inf (list 2.2 1.4 1.6 4.2 2.4 2.4 3.4 0.6 1.2 2.0)
+    set inv-E-L-hv-inf (list 1.8 2.0 0.2 2.2 1.8 2.8 1.4 1.4 1.2 1.2)
+    set ext-A-L-hv-inf (list 19.2 19.2 19.0  0.0  3.8 19.0 19.2  0.2  3.8 11.6)
+    set ext-B-L-hv-inf (list 18.0 18.2 18.2  0.0  4.2 17.6 16.4  0.0  3.8 11.2)
+    set ext-C-L-hv-inf (list 11.8 10.2  9.0  0.0  3.2 12.6 13.4  0.0  3.6  8.8)
+    set ext-D-L-hv-inf (list 5.8 6.2 5.8 0.0 2.0 4.4 3.4 0.0 0.0 1.6)
+    set ext-E-L-hv-inf (list 0.4 0.8 0.2 0.0 0.0 0.0 0.8 0.0 0.0 0.0)
+    set gini-inv-F-hv-inf (list 0.079 0.306 0.087 0.046 0.095 0.254 0.095 0.082 0.044 0.027)
+    set gini-inv-L-hv-inf (list 0.414 0.395 0.444 0.426 0.310 0.284 0.287 0.572 0.267 0.502)
+    set gini-ext-F-hv-inf (list 0.137 0.149 0.157 0.145 0.188 0.121 0.131 0.260 0.146 0.263)
+    set gini-ext-L-hv-inf (list 0.368 0.390 0.414 0.000 0.299 0.395 0.380 0.160 0.081 0.237)
+    
+    ; data for low water variation
+    set inf-eff-F-lv-wa (list 84.6 78.8 72.6 69.2 69.8 64.6 66.2 64.2 66.6 64.8)
+    set inf-eff-L-lv-wa (list 96.6 89.6 84.8 80.8 77.8 77.0 77.6 76.2 73.8 69.2)
+    set inv-A-F-lv-wa (list 1.4 4.0 4.2 3.2 6.8 5.8 6.8 6.4 7.2 5.0)
+    set inv-B-F-lv-wa (list 1.2 5.2 4.2 3.8 5.6 4.2 4.8 3.0 4.8 5.2)
+    set inv-C-F-lv-wa (list 3.4 3.6 3.6 4.8 5.6 3.8 6.0 6.4 6.8 7.0)
+    set inv-D-F-lv-wa (list 1.8 3.2 3.4 4.0 3.8 2.8 3.4 3.6 4.4 3.2)
+    set inv-E-F-lv-wa (list 1.8 3.2 3.4 5.8 3.8 3.2 5.6 3.6 4.2 2.8)
+    set ext-A-F-lv-wa (list 10.6 12.0  6.8 13.6 11.8  9.0 11.0  8.4 13.4 13.4)
+    set ext-B-F-lv-wa (list 10.8 15.6  7.0 10.0 11.0 10.0  8.2  4.8 11.0 12.8)
+    set ext-C-F-lv-wa (list  7.8 12.8  6.8  9.6 10.0  7.8  6.8  6.8 10.0  9.0)
+    set ext-D-F-lv-wa (list  6.8  7.0  7.8 11.0  6.8  6.8  9.0  6.8  8.8  7.0)
+    set ext-E-F-lv-wa (list  6.6  9.0  6.6 14.0 10.0  5.0  6.8  3.8  8.2  7.8)
+    set inv-A-L-lv-wa (list 5.6 4.0 4.8 5.2 5.0 5.8 6.0 5.4 5.2 4.4)
+    set inv-B-L-lv-wa (list 6.0 5.6 5.8 6.8 6.6 7.6 7.8 7.2 6.8 6.4)
+    set inv-C-L-lv-wa (list 5.6 4.8 5.0 5.2 6.0 6.2 6.8 6.6 5.4 4.4)
+    set inv-D-L-lv-wa (list 4.0 2.6 3.2 2.8 3.4 3.2 3.6 3.2 3.8 3.4)
+    set inv-E-L-lv-wa (list 2.2 1.0 1.4 1.0 1.0 1.4 1.4 1.2 1.4 1.8)
+    set ext-A-L-lv-wa (list 14.4 14.6 15.4 16.8 17.2 17.2 16.8 15.4 16.8 14.6)
+    set ext-B-L-lv-wa (list 15.2 12.6 15.8 16.8 17.0 16.4 14.8 13.6 17.2 13.6)
+    set ext-C-L-lv-wa (list  9.8 11.4 12.4 14.4 16.2 14.0 12.0 12.6 12.6 12.4)
+    set ext-D-L-lv-wa (list  4.8  7.8  2.8 10.4  9.2  2.8  6.0  4.8  8.2  6.0)
+    set ext-E-L-lv-wa (list 2.2 6.0 3.0 5.6 2.8 1.6 3.2 2.0 6.2 4.0)
+    set gini-inv-F-lv-wa (list 0.203 0.153 0.160 0.225 0.122 0.220 0.127 0.200 0.181 0.230)
+    set gini-inv-L-lv-wa (list 0.340 0.411 0.350 0.358 0.340 0.299 0.304 0.317 0.322 0.294)
+    set gini-ext-F-lv-wa (list 0.258 0.204 0.160 0.105 0.121 0.130 0.140 0.211 0.139 0.138)
+    set gini-ext-L-lv-wa (list 0.368 0.331 0.406 0.265 0.283 0.378 0.324 0.371 0.273 0.299)
+    
+    ; data for high water variation
+    set inf-eff-F-hv-wa (list 85.8 74.6 67.0 71.0 63.6 64.8 67.4 61.8 57.4 69.8)
+    set inf-eff-L-hv-wa (list 93.38 85.00 78.12 76.00 71.75 72.25 78.88 73.12 74.12 78.75)
+    set inv-A-F-hv-wa (list 1.6 2.6 3.4 6.2 3.0 5.2 5.4 5.2 5.2 8.2)
+    set inv-B-F-hv-wa (list 1.6 2.8 3.2 6.0 5.0 5.0 5.4 3.0 3.2 6.2)
+    set inv-C-F-hv-wa (list 3.4 2.8 4.2 5.2 2.8 5.6 5.8 3.0 3.4 8.2)
+    set inv-D-F-hv-wa (list 1.2 2.6 3.2 5.6 3.6 5.4 5.8 2.2 3.0 8.0)
+    set inv-E-F-hv-wa (list 3.0 3.0 3.4 6.0 3.2 5.0 5.2 2.6 2.8 4.0)
+    set ext-A-F-hv-wa (list  6.2  8.8  4.6 11.2  7.0  7.8 13.4  5.0  7.8 14.2)
+    set ext-B-F-hv-wa (list 10.8  9.8  6.0 12.6  5.6  6.8 11.6  2.6  6.8 13.4)
+    set ext-C-F-hv-wa (list  9.2 10.8  3.8 10.4  3.6 10.0 13.2  4.4  8.8 11.2)
+    set ext-D-F-hv-wa (list  8.8 12.0  4.6 10.0  3.2 10.0 12.6  3.8  9.6 11.6)
+    set ext-E-F-hv-wa (list  5.8 11.8  2.2  9.2  6.0  6.8 12.8  1.6  3.0  7.2)
+    set inv-A-L-hv-wa (list 1.88 4.88 3.88 6.62 5.62 7.00 8.38 3.62 5.75 7.50)
+    set inv-B-L-hv-wa (list 5.38 2.62 3.75 5.00 5.12 6.62 7.62 3.75 6.62 6.50)
+    set inv-C-L-hv-wa (list 5.00 4.38 4.75 6.12 5.75 6.88 7.75 5.25 7.00 7.50)
+    set inv-D-L-hv-wa (list 3.62 3.12 3.12 3.62 3.00 2.75 4.75 4.88 4.62 4.62)
+    set inv-E-L-hv-wa (list 3.00 1.62 2.62 1.50 1.25 2.25 3.25 1.75 2.25 3.62)
+    set ext-A-L-hv-wa (list 16.75 16.75 16.50 14.75 16.12 15.38 18.25 12.25 17.12 17.75)
+    set ext-B-L-hv-wa (list 14.75 16.00 12.75 13.25 15.62 16.38 18.50 10.00 15.38 17.50)
+    set ext-C-L-hv-wa (list 11.62 16.25  8.75 16.75 15.25 16.88 15.75  5.25 13.38 18.12)
+    set ext-D-L-hv-wa (list  4.12  6.25  3.25  9.12  2.50  5.62  7.62  2.88  4.38 10.88)
+    set ext-E-L-hv-wa (list 1.75 1.75 0.12 7.50 0.25 1.88 1.50 1.88 0.25 4.75)
+    set gini-inv-F-hv-wa (list 0.251 0.154 0.057 0.087 0.146 0.159 0.187 0.287 0.202 0.130)
+    set gini-inv-L-hv-wa (list 0.410 0.448 0.341 0.295 0.268 0.309 0.228 0.343 0.303 0.279)
+    set gini-ext-F-hv-wa (list 0.254 0.168 0.348 0.251 0.365 0.100 0.054 0.283 0.181 0.144)
+    set gini-ext-L-hv-wa (list 0.393 0.321 0.469 0.320 0.403 0.384 0.315 0.552 0.371 0.253)
+    
+    if Variability = "lv-inf" [
+      set inf-eff-L inf-eff-L-lv-inf
+      set inf-eff-F inf-eff-F-lv-inf 
+      set inv-A-F inv-A-F-lv-inf
+      set inv-B-F inv-B-F-lv-inf
+      set inv-C-F inv-C-F-lv-inf
+      set inv-D-F inv-D-F-lv-inf
+      set inv-E-F inv-E-F-lv-inf
+      set ext-A-F ext-A-F-lv-inf
+      set ext-B-F ext-B-F-lv-inf
+      set ext-C-F ext-C-F-lv-inf
+      set ext-D-F ext-D-F-lv-inf 
+      set ext-E-F ext-E-F-lv-inf
+      set inv-A-L inv-A-L-lv-inf
+      set inv-B-L inv-B-L-lv-inf
+      set inv-C-L inv-C-L-lv-inf
+      set inv-D-L inv-D-L-lv-inf
+      set inv-E-L inv-E-L-lv-inf
+      set ext-A-L ext-A-L-lv-inf
+      set ext-B-L ext-B-L-lv-inf
+      set ext-C-L ext-C-L-lv-inf
+      set ext-D-L ext-D-L-lv-inf
+      set ext-E-L ext-E-L-lv-inf
+      set gini-inv-F gini-inv-F-lv-inf
+      set gini-inv-L gini-inv-L-lv-inf
+      set gini-ext-F gini-ext-F-lv-inf
+      set gini-ext-L gini-ext-L-lv-inf
+    ]
+    if Variability = "hv-inf" [
+      set inf-eff-L inf-eff-L-hv-inf
+      set inf-eff-F inf-eff-F-hv-inf
+      set inv-A-F inv-A-F-hv-inf
+      set inv-B-F inv-B-F-hv-inf
+      set inv-C-F inv-C-F-hv-inf
+      set inv-D-F inv-D-F-hv-inf
+      set inv-E-F inv-E-F-hv-inf
+      set ext-A-F ext-A-F-hv-inf
+      set ext-B-F ext-B-F-hv-inf
+      set ext-C-F ext-C-F-hv-inf
+      set ext-D-F ext-D-F-hv-inf
+      set ext-E-F ext-E-F-hv-inf
+      set inv-A-L inv-A-L-hv-inf
+      set inv-B-L inv-B-L-hv-inf
+      set inv-C-L inv-C-L-hv-inf
+      set inv-D-L inv-D-L-hv-inf
+      set inv-E-L inv-E-L-hv-inf
+      set ext-A-L ext-A-L-hv-inf
+      set ext-B-L ext-B-L-hv-inf
+      set ext-C-L ext-C-L-hv-inf
+      set ext-D-L ext-D-L-hv-inf
+      set ext-E-L ext-E-L-hv-inf
+      set gini-inv-F gini-inv-F-hv-inf
+      set gini-inv-L gini-inv-L-hv-inf
+      set gini-ext-F gini-ext-F-hv-inf
+      set gini-ext-L gini-ext-L-hv-inf
+    ]
+    if Variability = "lv-wa" [
+      set inf-eff-L inf-eff-L-lv-wa
+      set inf-eff-F inf-eff-F-lv-wa
+      set inv-A-F inv-A-F-lv-wa
+      set inv-B-F inv-B-F-lv-wa
+      set inv-C-F inv-C-F-lv-wa
+      set inv-D-F inv-D-F-lv-wa
+      set inv-E-F inv-E-F-lv-wa
+      set ext-A-F ext-A-F-lv-wa
+      set ext-B-F ext-B-F-lv-wa
+      set ext-C-F ext-C-F-lv-wa
+      set ext-D-F ext-D-F-lv-wa
+      set ext-E-F ext-E-F-lv-wa
+      set inv-A-L inv-A-L-lv-wa
+      set inv-B-L inv-B-L-lv-wa
+      set inv-C-L inv-C-L-lv-wa
+      set inv-D-L inv-D-L-lv-wa
+      set inv-E-L inv-E-L-lv-wa
+      set ext-A-L ext-A-L-lv-wa
+      set ext-B-L ext-B-L-lv-wa
+      set ext-C-L ext-C-L-lv-wa
+      set ext-D-L ext-D-L-lv-wa
+      set ext-E-L ext-E-L-lv-wa
+      set gini-inv-F gini-inv-F-lv-wa
+      set gini-inv-L gini-inv-L-lv-wa
+      set gini-ext-F gini-ext-F-lv-wa
+      set gini-ext-L gini-ext-L-lv-wa
+    ]
+    if Variability = "hv-wa" [      
+      set inf-eff-L inf-eff-L-hv-wa
+      set inf-eff-F inf-eff-F-hv-wa
+      set inv-A-F inv-A-F-hv-wa
+      set inv-B-F inv-B-F-hv-wa
+      set inv-C-F inv-C-F-hv-wa
+      set inv-D-F inv-D-F-hv-wa
+      set inv-E-F inv-E-F-hv-wa
+      set ext-A-F ext-A-F-hv-wa
+      set ext-B-F ext-B-F-hv-wa
+      set ext-C-F ext-C-F-hv-wa
+      set ext-D-F ext-D-F-hv-wa
+      set ext-E-F ext-E-F-hv-wa
+      set inv-A-L inv-A-L-hv-wa
+      set inv-B-L inv-B-L-hv-wa
+      set inv-C-L inv-C-L-hv-wa
+      set inv-D-L inv-D-L-hv-wa
+      set inv-E-L inv-E-L-hv-wa
+      set ext-A-L ext-A-L-hv-wa
+      set ext-B-L ext-B-L-hv-wa
+      set ext-C-L ext-C-L-hv-wa
+      set ext-D-L ext-D-L-hv-wa
+      set ext-E-L ext-E-L-hv-wa
+      set gini-inv-F gini-inv-F-hv-wa
+      set gini-inv-L gini-inv-L-hv-wa
+      set gini-ext-F gini-ext-F-hv-wa
+      set gini-ext-L gini-ext-L-hv-wa
+    ]
+  ]
+end
 @#$#@#$#@
 GRAPHICS-WINDOW
 415
@@ -827,21 +937,22 @@ NIL
 PLOT
 602
 10
-1019
-294
+990
+286
 infrastructure
 NIL
 NIL
 1.0
-20.0
+10.0
 0.0
 100.0
 false
-false
+true
 "" ""
 PENS
 "infrastructure" 1.0 0 -13345367 true "" "plot infrastructure"
 "data" 1.0 0 -16777216 true "" "plot data-inf"
+"decline" 1.0 0 -7500403 true "" "plot infrastructure-decline"
 
 CHOOSER
 203
@@ -851,18 +962,18 @@ CHOOSER
 scenario
 scenario
 "selfish" "cooperative" "random" "mix"
-0
+1
 
 PLOT
-1032
-10
-1405
-295
+1006
+13
+1326
+290
 Gini
 NIL
 NIL
 1.0
-20.0
+10.0
 0.0
 0.8
 false
@@ -911,17 +1022,17 @@ NIL
 PLOT
 602
 296
-1018
+978
 521
 Investment per position
 NIL
 NIL
 1.0
-20.0
+10.0
 0.0
 10.0
 false
-false
+true
 "" ""
 PENS
 "A" 1.0 0 -16777216 true "" "plot inv-A"
@@ -931,19 +1042,19 @@ PENS
 "E" 1.0 0 -6459832 true "" "plot inv-E"
 
 PLOT
-1028
-299
-1406
-528
+1005
+298
+1327
+523
 Extraction per position
 NIL
 NIL
 1.0
-20.0
+10.0
 0.0
 20.0
 false
-false
+true
 "" ""
 PENS
 "A" 1.0 0 -16777216 true "" "plot ext-A"
@@ -991,7 +1102,7 @@ stdev-random
 stdev-random
 0
 10
-1.02
+3.69
 0.01
 1
 NIL
@@ -1015,7 +1126,7 @@ CHOOSER
 247
 Variability
 Variability
-"LV-inf" "HV-inf" "LV-inf" "HV-inf"
+"lv-inf" "hv-inf" "lv-wa" "hv-wa"
 0
 
 SWITCH
@@ -1025,6 +1136,17 @@ SWITCH
 192
 phase2?
 phase2?
+0
+1
+-1000
+
+SWITCH
+204
+133
+307
+166
+limcom
+limcom
 1
 1
 -1000
