@@ -1,6 +1,10 @@
+# load packages
+library(dplyr)
+library(reshape2)
+
 # Read in experimental dataset
 library(xlsx)
-exp.df.raw <- read.xlsx2(file = "Data_import.xlsx", sheetIndex = 1, header = T, 
+exp.df.raw <- read.xlsx2(file = "../data/input/Data_import.xlsx", sheetIndex = 1, header = T, 
                      # colClasses = c(rep("character", 8), rep("numeric",13)))
                      colClasses = c(rep("numeric",21)))
 
@@ -31,13 +35,34 @@ group_totals <- exp.df  %>%
             Earning_group = sum(Earning_ind))
 
 exp.df <- merge(exp.df, group_totals, all = T)
-            
+
+
+#### add treatment2 variable #####
+
+# function by G. Grothendieck: http://stackoverflow.com/questions/34096162/dplyr-mutate-replace-on-a-subset-of-rows
+mutate_cond <- function(.data, condition, ..., envir = parent.frame()) {
+  condition <- eval(substitute(condition), .data, envir)
+  .data[condition, ] <- .data[condition, ] %>% mutate(...)
+  .data
+}
+
+
+# treatment2 specifies the treatment of phase 2 also for phase 1 (instead of baseline)
+exp.df <- exp.df %>%
+  group_by(Group, Position) %>% 
+  arrange(Round) %>%
+  mutate(treatment2 = lead(treatment, n = 10)) %>% # produces NAs for rounds 11-20
+  # mutate_cond(Round <= 10, treatment2 = lead(treatment, n = 10)) %>%
+  mutate_cond(Round > 10, treatment2 = treatment) %>% # replace NAs
+  ungroup()
+
+
+
+##### calculate summaries ######            
 
 # calculate means and standard deviations across groups and positions for each round
-library(dplyr)
-library(reshape2)
 group_summary <- exp.df  %>%
-  group_by(treatment, LimComm, Round) %>%
+  group_by(treatment2, LimComm, Round) %>%
   summarise(n = length(unique(Group)),
             Infra_mean = mean(Infra_final),
             Infra_SD = sd(Infra_final),
@@ -54,7 +79,7 @@ group_summary <- exp.df  %>%
 
 # summarise data across groups of the same treatment for each round and position
 agent_summary <- exp.df  %>%
-  group_by(treatment, LimComm, Round, Position) %>%
+  group_by(treatment2, LimComm, Round, Position) %>%
   summarise(n = length(unique(Group)),
             Infra_mean = mean(Infra_final),
             Infra_SD = sd(Infra_final),
@@ -85,47 +110,6 @@ summary_withingroups <- exp.df  %>%
   as.data.frame()
 
 
-#### extract infrastructure data for export into NL model ####
-a <- filter(agent_summary, 
-            LimComm == 0 
-            & treatment == "LVI"
-            & Position == 1
-            & Round > 10) %>%
-  as.data.frame() %>% 
-  select(Round, Infra_mean : Gini_earnings_SD) %>%
-  round(digits = 2) 
-a[,"Infra_mean"]
-
-
-#### extract agent extraction and investment data for export into NL model ####
-# (adjust treatments and position as necessary)
-a <- filter(agent_summary, 
-       LimComm == 0 
-       & treatment == "HVW"
-       & Position == 1
-       & Round > 10)%>%
-  as.data.frame() %>% 
-  select(Round, Investment_mean : Gini_earnings_SD) %>%
-  round(digits = 2) 
-a[,"Investment_mean"]
-
-
-##### extract Gini data for export into NL model ####
-# re-run after recalculating and correcting Gini coefficients
-# (adjust treatments as necessary)
-a <- filter(agent_summary, 
-            LimComm == 0
-            & treatment == "LVI"
-            & Position == 1
-            & Round > 10) %>%
-  as.data.frame() %>% 
-  select(Round, Investment_mean : Gini_earnings_SD) %>%
-  round(digits = 3) 
-a[,"Gini_investment_mean"]
-
-
-
-
 ##### recalculate Gini coefficients #####
 
 # For HVI with LimComm, Gini_extraction_mean returns NaN for rounds 14 and 15 as well as 18-20
@@ -138,7 +122,7 @@ exp.df %>%
   filter(treatment == "HVI" #& Round %in% c(14, 15, 18:20) 
          & LimComm == 1) %>%
   select(treatment, LimComm, Round, Group, Position, Extraction, Gini_extraction) %>%
-  as.data.frame() %>%View()
+  as.data.frame() # %>%View()
 
 
 max(summary_withingroups$Gini_extraction_SD)
@@ -181,7 +165,7 @@ Gini_new <- exp.df  %>%
   summarise(Gini_investment_new = if (sum(Investment) == 0) {0} else { Gini(Investment) },
             Gini_extraction_new = if (sum(Extraction) == 0) {0} else { Gini(Extraction) },
             Gini_earnings_new = if (sum(Earning_ind) == 0) {0} else { Gini(Earning_ind) }
-            ) %>% 
+  ) %>% 
   as.data.frame()
 
 # merge tables with new and old Gini values and round to 6 digits 
@@ -214,6 +198,51 @@ Gini_new <- rename(Gini_new,
 exp.df.new <- merge(exp.df.new, Gini_new, all = T)
 
 exp.df <- exp.df.new
+
+rm(exp.df.new, Gini_new, Compare_Gini, Ginis, a, group_totals)
+
+# UPDATE SUMMARY DATAFRAMES FIRST!! (agent_summary, group_summary, summary_withingroups)
+
+#### extract infrastructure data for export into NL model ####
+# (adjust treatments and LimComm as necessary)
+a <- filter(agent_summary, 
+            LimComm == 1 
+            & treatment2 == "LVI"
+            # & Round > 10
+            & Position == 1) %>%
+  as.data.frame() %>% 
+  select(Round, Infra_mean : Gini_earnings_SD) %>%
+  round(digits = 2) 
+a[,"Infra_mean"]
+
+
+#### extract agent extraction and investment data for export into NL model ####
+# (adjust treatments and position as necessary)
+a <- filter(agent_summary, 
+       LimComm == 0 
+       & treatment2 == "LVI"
+       # & Round > 10
+       & Position == 1)%>%
+  as.data.frame() %>% 
+  select(Round, Investment_mean : Gini_earnings_SD) %>%
+  round(digits = 2) 
+a[,"Investment_mean"]
+
+
+##### extract Gini data for export into NL model ####
+# re-run after recalculating and correcting Gini coefficients
+# (adjust treatments as necessary)
+a <- filter(agent_summary, 
+            LimComm == 0
+            & treatment2 == "LVW"
+            # & Round > 10
+            & Position == 1) %>%
+  as.data.frame() %>% 
+  select(Round, Investment_mean : Gini_earnings_SD) %>%
+  round(digits = 3) 
+a[,"Gini_investment_mean"]
+
+
 
 
 #### calculate changes of investment levels across rounds ####
