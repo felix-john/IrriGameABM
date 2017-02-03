@@ -1,6 +1,8 @@
 ;;;;; CHANGELOG: ;;;;;;;;
-; - "social-values" and "conditionalcooperation" behaviours copied over from original model
-; - verification of above behaviour produced some questions that are highlighted by ";FJ?"
+; - loadexpdata: variability treatment data (= round 11-20) can be loaded, but are also simulated as rounds 1-10
+; - variable infrastructure-decline created (for plotting)
+; - define limcom in the interface
+; - read in corresponding treatment data for fitness analysis
 
 ;;;;; TO-DOS: ;;;;;;;;;;;
 
@@ -8,19 +10,15 @@
 turtles-own [	
   inv ; Investment in the public infrastructure
   inv-past ; Investment in last round
-  earnings ; Earnings in this round
-  watercol ; Water collected
-  gate ; Gate open (=1) or closed (=0)
-  harvest ; amount of tokens earned from getting water to your field
-  expC ; expected level of cooperation by others in the group
+  	earnings ; Earnings in this round
+  	watercol ; Water collected
+  	gate ; Gate open (=1) or closed (=0)
+  	harvest ; amount of tokens earned from getting water to your field
   strategy ; = 0 random; = 1 selfish ; = 2 cooperative strategy
-  actualutility; utility after the decisions are made
   turnoff ; in social values model - amount of water to be collected that is expected to maximize utility
-  satisfied ; boolean defining whether agent is satisfied (=1) or not (=0)
-]
+			]
 globals [	
   done ; boolean to define whether the batch of runs is finished (used for behaviorsearch)
-  sim-length ; number of rounds (=10 if only phase 1 is simulated; =20 if treatments are considered)
 	infrastructure ; level of public infrastructure
   infrastructure-decline ; decline of public infrastructure at the beginning of each round
 	capacity ; capacity of the infrastructure (amount of water that can be processed per second)
@@ -110,23 +108,33 @@ globals [
   decline-hv-inf
   supply-lv-wa
   supply-hv-wa
-]
+		]
 
 to setup
   clear-all
   set metric-mult 0
   crt 5 
   set done 0
-  set sim-length 10
-  if phase2? [set sim-length 20]
 ;  set limcom true
   
   loadexpdata
    
   setupcleardata
-  
-  resetlists
-
+  set list-inf n-values 10 [0]
+  set list-gini-inv n-values 10 [0]
+  set list-gini-ext n-values 10 [0]
+  set list-inv-A n-values 10 [0]
+  set list-inv-B n-values 10 [0]
+  set list-inv-C n-values 10 [0]
+  set list-inv-D n-values 10 [0]
+  set list-inv-E n-values 10 [0]
+  set list-ext-A n-values 10 [0]
+  set list-ext-B n-values 10 [0]
+  set list-ext-C n-values 10 [0]
+  set list-ext-D n-values 10 [0]
+  set list-ext-E n-values 10 [0]
+  set list-change (list 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0)
+    
   set metric-inv 0 
   set metric-ext 0
   set metric-inf 0
@@ -134,7 +142,7 @@ to setup
   set metric-gini-inv 0
   set metric-gini-ext 0
   set metric-mult 0
-;  set limcom false 
+;  set limcom false ;FJ?? Why is limcom set to "false" again (after being set to "true" above)?!
 end ; end of setup
 
 
@@ -142,8 +150,6 @@ to setupcleardata
   ask turtles
   [
     set inv 0 set earnings 0 set watercol 0 set gate 0
-    set satisfied 0
-    set expC mean-expC
   ]
   set infrastructure 100
   set infrastructure-decline 25
@@ -160,27 +166,9 @@ to setupcleardata
       ]
     ]
   ]
-;FJ  if scenario = "social-values" [ask turtles [set strategy "NA"]]
-  ask turtles [if random-float 1 < psat [set satisfied 1]]
   reset-ticks
 end
 
-to resetlists
-  set list-inf n-values sim-length [0]
-  set list-gini-inv n-values sim-length [0]
-  set list-gini-ext n-values sim-length [0]
-  set list-inv-A n-values sim-length [0]
-  set list-inv-B n-values sim-length [0]
-  set list-inv-C n-values sim-length [0]
-  set list-inv-D n-values sim-length [0]
-  set list-inv-E n-values sim-length [0]
-  set list-ext-A n-values sim-length [0]
-  set list-ext-B n-values sim-length [0]
-  set list-ext-C n-values sim-length [0]
-  set list-ext-D n-values sim-length [0]
-  set list-ext-E n-values sim-length [0]
-  set list-change n-values 21 [0]
-end
   
 to batch ; batch is used for calibration where 1000 simulations for the same parameter setting are used to calculate the fit
   set metric-inv 0
@@ -196,15 +184,28 @@ to batch ; batch is used for calibration where 1000 simulations for the same par
   while [iter < 1000]
   [
    setupcleardata
-   while [ticks < sim-length]
+   while [ticks < 10] ;FJ change that!
    [ 
     go
    ] 
-    set iter iter + 1 
+    set iter iter + 1 ;FJ?? Are any metrics stored after each iteration?!
   ]
   calcmetrics
   
-  resetlists
+  set list-inf (list 0 0 0 0 0 0 0 0 0 0) ;FJ extend lists to length of 20!
+  set list-gini-inv (list 0 0 0 0 0 0 0 0 0 0)
+  set list-gini-ext (list 0 0 0 0 0 0 0 0 0 0)
+  set list-inv-A (list 0 0 0 0 0 0 0 0 0 0)
+  set list-inv-B (list 0 0 0 0 0 0 0 0 0 0)
+  set list-inv-C (list 0 0 0 0 0 0 0 0 0 0)
+  set list-inv-D (list 0 0 0 0 0 0 0 0 0 0)
+  set list-inv-E (list 0 0 0 0 0 0 0 0 0 0)
+  set list-ext-A (list 0 0 0 0 0 0 0 0 0 0)
+  set list-ext-B (list 0 0 0 0 0 0 0 0 0 0)
+  set list-ext-C (list 0 0 0 0 0 0 0 0 0 0)
+  set list-ext-D (list 0 0 0 0 0 0 0 0 0 0)
+  set list-ext-E (list 0 0 0 0 0 0 0 0 0 0)
+  set list-change (list 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0)
 
   set s-metric-inv metric-inv
   set s-metric-ext metric-ext
@@ -224,7 +225,7 @@ to batch ; batch is used for calibration where 1000 simulations for the same par
   while [iter < 1000]
   [
    setupcleardata
-   while [ticks < sim-length]
+   while [ticks < 10] ;FJ change that!
    [  
     go
    ] 
@@ -242,106 +243,132 @@ to batch ; batch is used for calibration where 1000 simulations for the same par
 end ; of batch
 
 to go
-  if ticks = sim-length [stop]
+  if ticks = 10 [stop] ; 10 rounds in the experiment
 
-  if ticks = 10 [set infrastructure 100] ; has to be set to 100 because it will still depreciate afterwards
-
+;obsolete  if ticks = 10 [set infrastructure 100] ; has to be set to 100 because it will still depreciate afterwards
   createdata ; MJ: translate data list to time series of data
 
-  calcinfrastructuredecline ; setup infrastructure decline
+  ifelse phase2? and (Variability = "lv-inf" or Variability = "hv-inf")
+  [
+    if Variability = "lv-inf" [
+      set infrastructure-decline item ticks decline-lv-inf
+    ]
+    if Variability = "hv-inf" [
+      set infrastructure-decline item ticks decline-hv-inf
+    ]
+  ][
+    set infrastructure-decline 25 ; 25 is the round based reduction of the infrastructure (which cannot go below 0)
+  ]
+  set infrastructure infrastructure - infrastructure-decline
+  if infrastructure < 0 [set infrastructure 0]
+  set maintenance 66 - infrastructure 
+  if maintenance > 50 [set maintenance 50] ; if more than 50 units is needed for repair, the maximum investment is still 50
   
   ; update expectations from communication and extractions
   ask turtles [
     ifelse ticks = 0 [
-      ifelse limcom [
-        set expC expC * (1 - lambda) + (lambda * comlimscore)
-      ][
-        set expC expC * (1 - lambda) + lambda
-      ]
     ][
       let score 0
       if mean [harvest] of turtles > 0 [
-          ifelse (harvest / mean [harvest] of turtles) < 1 [set score (harvest / mean [harvest] of turtles)] [set score 1] ;FJ? Why do you take the mean of all turtles here, while for utility you compare own earning to the mean of other turtles?
+          ifelse (harvest / mean [harvest] of turtles) < 1 [set score (harvest / mean [harvest] of turtles)] [set score 1]
       ]
-      ; expected level of cooperation after communication and after feedback on extraction from resource
-      ifelse limcom [
-        set expC expC * (1 - lambda) + lambda * comlimscore 
-        set expC expC * (1 - lambda-ext) + lambda-ext * score
-      ][
-        set expC expC * (1 - lambda) + lambda ;FJ? Why is expC updated twice (= this line and the next)? In this line expC will always increase (= learning effect?) and in the next it may decrease.
-        set expC expC * (1 - lambda-ext) + lambda-ext * score ;FJ? Is it possible that expC only decreases if score < 0.5 (so unless an agent harvests less than twice the average its trust would still increase (but less strongly)?
-      ]
-    ]
-    if expC < 0 [set expC 0]
-    if expC > 1 [set expC 1]      
+    ]   
   ]
 
   invest
   
-  ; update expected cooperation from observed investment levels
-  ask turtles [
-    let score 1
-    if pastinfrastructure < 66 [
-      ifelse ((inv > mean [inv] of turtles) and (inv > 0)) [ ;FJ? See situation wrt harvest above
-        set score  (mean [inv] of turtles / inv) 
-      ][
-        set score 1
-      ]
-    ]
-    if pastinfrastructure < 66 [set expC expC * (1 - lambda-inv) + lambda-inv * score] ; adjusting expected level of cooperation after getting feedback on relative investments ;FJ? Is it possible that expC only decreases if score < 0.5 (so unless an agent invests more than twice the average its trust would still increase (but less strongly)?
-  ]
-  
-  calcwaterflow
-  calcutility
-  extract ; agents extract water
+  ; water extraction 
+  set sec 0
 
+  ifelse phase2? and (Variability = "lv-wa" or Variability = "hv-wa")
+  [
+    if Variability = "lv-wa" [set watersupply item ticks supply-lv-wa
+    ]
+    if Variability = "hv-wa" [set watersupply item ticks supply-hv-wa
+    ]
+  ][set watersupply 30]
+  
+  ask turtles [set watercol 0]
+  ifelse capacity < watersupply [
+		set actualwatersupply capacity
+	]
+	[	
+		set actualwatersupply watersupply
+	]
+
+  ask turtles [set gate 1] ; initially all gates are open
+  while [sec < 50]
+  [ 
+    set watersupply actualwatersupply
+    getwater
+    set sec sec + 1
+  ]
   ask turtles [
     set harvest calharvest watercol
     set earnings earnings + harvest
   ]
   set totalearnings sum [earnings] of turtles
   set totalharvest sum [harvest] of turtles
-  
   ; after the round calculate the actual utilities
-  calcactualutility
+   
   ; calculate the metrics
   calcgini
   
-  updatelists
+  ;MJ Here we ADD info to the lists SUM is replaced by SUM + X where SUM was the sum of X until the past iteration.
+  set list-inf replace-item ticks list-inf (item ticks list-inf + infrastructure)
+  set list-gini-inv replace-item ticks list-gini-inv (item ticks list-gini-inv + gini-inv)
+  set list-gini-ext replace-item ticks list-gini-ext (item ticks list-gini-ext + gini-ext)
+  set list-inv-A replace-item ticks list-inv-A (item ticks list-inv-A + [inv] of turtle 0) 
+  set list-inv-B replace-item ticks list-inv-B (item ticks list-inv-B + [inv] of turtle 1)
+  set list-inv-C replace-item ticks list-inv-C (item ticks list-inv-C + [inv] of turtle 2)
+  set list-inv-D replace-item ticks list-inv-D (item ticks list-inv-D + [inv] of turtle 3)
+  set list-inv-E replace-item ticks list-inv-E (item ticks list-inv-E + [inv] of turtle 4)
+  set list-ext-A replace-item ticks list-ext-A (item ticks list-ext-A + [harvest] of turtle 0)
+  set list-ext-B replace-item ticks list-ext-B (item ticks list-ext-B + [harvest] of turtle 1)
+  set list-ext-C replace-item ticks list-ext-C (item ticks list-ext-C + [harvest] of turtle 2)
+  set list-ext-D replace-item ticks list-ext-D (item ticks list-ext-D + [harvest] of turtle 3)
+  set list-ext-E replace-item ticks list-ext-E (item ticks list-ext-E + [harvest] of turtle 4)
+  if ticks > 0 [
+    let change 0
+    ask turtles [
+      set change inv - inv-past
+      let tickstart 0
+      if ticks > tickstart [
+      if (change = (0 - 10)) [set list-change replace-item 0 list-change (item 0 list-change + 1)]
+      if (change = (0 - 9)) [set list-change replace-item 1 list-change (item 1 list-change + 1)]
+      if (change = (0 - 8)) [set list-change replace-item 2 list-change (item 2 list-change + 1)]
+      if (change = (0 - 7)) [set list-change replace-item 3 list-change (item 3 list-change + 1)]
+      if (change = (0 - 6)) [set list-change replace-item 4 list-change (item 4 list-change + 1)]
+      if (change = (0 - 5)) [set list-change replace-item 5 list-change (item 5 list-change + 1)]
+      if (change = (0 - 4)) [set list-change replace-item 6 list-change (item 6 list-change + 1)]
+      if (change = (0 - 3)) [set list-change replace-item 7 list-change (item 7 list-change + 1)]
+      if (change = (0 - 2)) [set list-change replace-item 8 list-change (item 8 list-change + 1)]
+      if (change = (0 - 1)) [set list-change replace-item 9 list-change (item 9 list-change + 1)]
+      if (change = (0)) [set list-change replace-item 10 list-change (item 10 list-change + 1)]
+      if (change = 1) [set list-change replace-item 11 list-change (item 11 list-change + 1)]
+      if (change = 2) [set list-change replace-item 12 list-change (item 12 list-change + 1)]
+      if (change = 3) [set list-change replace-item 13 list-change (item 13 list-change + 1)]
+      if (change = 4) [set list-change replace-item 14 list-change (item 14 list-change + 1)]
+      if (change = 5) [set list-change replace-item 15 list-change (item 15 list-change + 1)]
+      if (change = 6) [set list-change replace-item 16 list-change (item 16 list-change + 1)]
+      if (change = 7) [set list-change replace-item 17 list-change (item 17 list-change + 1)]
+      if (change = 8) [set list-change replace-item 18 list-change (item 18 list-change + 1)]
+      if (change = 9) [set list-change replace-item 19 list-change (item 19 list-change + 1)]
+      if (change = 10) [set list-change replace-item 20 list-change (item 20 list-change + 1)]
+      ] 
+    ] 
+  ] 
 
   tick
 end ; end of go procedure
 
-to calcinfrastructuredecline
-  ifelse ticks >= 10 and phase2? and (Variability = "lv-inf" or Variability = "hv-inf")
-  [
-    if Variability = "lv-inf" [
-      set infrastructure-decline item (ticks - 10) decline-lv-inf
-    ]
-    if Variability = "hv-inf" [
-      set infrastructure-decline item (ticks - 10) decline-hv-inf
-    ]
-  ][
-  set infrastructure-decline 25 ; 25 is the round based reduction of the infrastructure (which cannot go below 0)
-  ]
-  
-  set infrastructure infrastructure - infrastructure-decline
-  if infrastructure < 0 [set infrastructure 0]
-  set maintenance 66 - infrastructure 
-  if maintenance > 50 [set maintenance 50] ; if more than 50 units is needed for repair, the maximum investment is still 50
-end
-
 to invest ; this is how investment decisions are made
   set pastinfrastructure infrastructure
   ask turtles [
-    set inv-past inv
-    if scenario = "conditionalcooperation" [
-      ifelse expC <= 0.5 [set strategy 1][set strategy 2]
-    ]    
+    set inv-past inv      
     
     if strategy = 0 [set inv random 11]
-    
-    if strategy = 1 [;FJ Presumably, this has to be adjusted for the different treatments
+    if strategy = 1 [
       set inv 0
       if who = 0 [
         let sizeinvestment 0
@@ -367,6 +394,8 @@ to invest ; this is how investment decisions are made
         set inv sizeinvestment 
       ]
       set inv inv + random-normal 0 stdev-random ; the trembling hand in investment decisions
+      ;set inv int (inv) ;FJ?? int truncates float - Does that introduce a downward bias? 4.9 -> 4; 5.1 -> 5; 5.9 -> 5 => use round instead?!
+      ;MJ indeed this might be adjusted to
       set inv int round inv 
       
       if inv < 0 [set inv 0]
@@ -375,89 +404,34 @@ to invest ; this is how investment decisions are made
     
     
     if strategy = 2 [
-      ifelse limcom [ ; with limcom
-        ifelse visioneffect [ 
-          ifelse infrastructure < 66
-          [
-            if (who = 0 or who = 4) [set inv ceiling (maintenance / 2)]
-            if (who = 1 or who = 2 or who = 3) [set inv ceiling (maintenance / 3)] 
-          ][
-            set inv 0
-          ]
-        ][
-          ifelse infrastructure < 66 [ 
-            set inv ceiling (maintenance / 5)
-          ][
-            set inv 0
-          ]
-        ]
-      ]
-      [ ;without limcom
+;      ifelse limcom [ ; with limcom
+;        ifelse visioneffect [ ;FJ?? Is that a remnant of another strategy?! Should be turned on or off as a baseline?
+;       ifelse infrastructure < 66
+;       [
+;         if (who = 0 or who = 4) [set inv ceiling (maintenance / 2)]
+;         if (who = 1 or who = 2 or who = 3) [set inv ceiling (maintenance / 3)] 
+;       ][
+;         set inv 0
+;       ]][
         ifelse infrastructure < 66 [
           set inv ceiling (maintenance / 5)
         ]
         [
           set inv 0
         ]
-      ]
+;       ]
+;      ][ ;without limcom
+;        ifelse infrastructure < 66 [
+;          set inv ceiling (maintenance / 5)
+;        ]
+;        [
+;          set inv 0
+;        ]
+;      ]
       set inv inv + random-normal 0 stdev-random
       set inv int round inv 
       if inv < 0 [set inv 0]
       if inv > 10 [set inv 10]  
-    ]
-    
-    if scenario = "social-values" [ 
-      ifelse satisfied < 1 [
-        ifelse ticks = 0 [
-          set inv 5
-        ][
-          let i 0
-          let utility 0
-          let list-utility []
-          let utilitymax 0
-          let totalutility 0
-          let earningsothers 0
-          show (word "investment: " [inv] of other turtles ", harvest: " [harvest] of other turtles)
-          ifelse limcom = false [
-            set earningsothers 10 - mean [inv] of other turtles + mean [harvest] of other turtles ;FJ? since strategy is 0 in scenario "social-values" (apparently, NL sets all variables to 0 unless specified differently during setup), inv is set to a random number! What should it really refer to? Last round's investments?
-          ][;FJ? do we have an updating problem here?! If inv should refer last round's values, they are partly overwritten as the "ask turtles" command runs repeatedly, once for each agent (using updated inv values in later iterations)
-            ifelse visioneffect [
-              if who = 0 [set earningsothers 10 - [inv] of turtle 1 + [harvest] of turtle 1]
-              if who = 1 [set earningsothers 10 - ([inv] of turtle 0 + [inv] of turtle 2) / 2 + ([harvest] of turtle 0 + [harvest] of turtle 2) / 2]
-              if who = 2 [set earningsothers 10 - ([inv] of turtle 1 + [inv] of turtle 3) / 2 + ([harvest] of turtle 1 + [harvest] of turtle 3) / 2]
-              if who = 3 [set earningsothers 10 - ([inv] of turtle 2 + [inv] of turtle 4) / 2 + ([harvest] of turtle 2 + [harvest] of turtle 4) / 2]
-              if who = 4 [set earningsothers 10 - [inv] of turtle 3 + [harvest] of turtle 3]
-            ][
-              set earningsothers 10 - mean [inv] of other turtles + mean [harvest] of other turtles 
-            ]
-          ]
-          
-          while [i <= 10]
-          [
-            ifelse 10 - i + harvest > earningsothers [
-              set utility 10 - i + harvest - alpha * (10 - i + harvest - earningsothers)
-            ][
-              set utility 10 - i + harvest + beta * (earningsothers - 10 + i - harvest)
-            ]
-            set list-utility lput utility list-utility
-            set totalutility totalutility + exp (- mu * utility) ;FJ? What is happening here? What is mu? If it refers to tau of eq. 5 in the paper, why is mu negative and tau positive? A negative exponent would actually make the highest utilities the least likely, wouldn't it?
-            set i i + 1
-          ]
-          
-          let randomnumber random-float totalutility
-          set i 0
-          set totalutility exp (- mu * item 0 list-utility)
-          while [i <= 10]
-          [
-            ifelse randomnumber < totalutility [
-              set inv i set i 11
-            ][
-             set totalutility totalutility + exp ( - mu * item i list-utility) ;FJ? If randomnumber > totalutility, for i = 0, - mu * item 0 list-utility is added twice (for i=0, totalutility = exp (- mu * item 0 list-utility)) in the sum - why? Would it solve the problem to move "set i i + 1" before this line?
-            ]
-            set i i + 1
-          ]
-        ]
-      ][set inv inv-past] ; agents repeat from the past round if they are satisfied
     ]
     
     set earnings 10 - inv
@@ -498,116 +472,18 @@ to-report calharvest [water] ; calculating the earnings from collecting a certai
   report crops
 end
 
-to calcwaterflow
-  ifelse ticks >= 10 and phase2? and (Variability = "lv-wa" or Variability = "hv-wa")
-  [
-    if Variability = "lv-wa" [set watersupply item (ticks - 10) supply-lv-wa]
-    if Variability = "hv-wa" [set watersupply item (ticks - 10) supply-hv-wa]
-  ][
-    set watersupply 30
-  ]
-  
-  ifelse capacity < watersupply [
-    set actualwatersupply capacity
-  ]
-  [  
-    set actualwatersupply watersupply
-  ]
-end
-
-to calcutility ; only relevant for scenario = "social-values"?!
-  ask turtles [
-    if satisfied < 1 [ ; if agent is not satisfied evaluate which level of water maximize utility given the expected water collected of others (
-      let totalwater 50 * actualwatersupply ; total water amount available
-      let umax 0
-      let util 0
-      let i 0 
-      set turnoff 0
-      while [i < totalwater]
-      [
-        let mewater calharvest i ; calculate earnings from water amount
-        let waterinput 0
-        ifelse limcom = false [
-          set waterinput int (((totalwater - i) / 4))
-        ][
-          ifelse visioneffect [
-          if who = 0 or who = 4 [
-            set waterinput int (totalwater - i)
-            if waterinput > 500 [set waterinput 500]
-          ]
-          if who = 1 or who = 2 or who = 3 [
-            set waterinput int ((totalwater - i) / 2)
-            if waterinput > 500 [set waterinput 500]
-          ] 
-          ][
-             set waterinput int (((totalwater - i) / 4))
-          ]       
-        ]
-        let otherwater calharvest waterinput ; calculate average earnings of average water collected by others (note that this is a crude approximation since waterinputs are earnings are not linearly related) 
-        ifelse mewater > otherwater [
-           set util mewater - alpha * (mewater - otherwater)
-          ][
-           set util mewater + beta * (otherwater - mewater)
-         ]
-       if util > umax [
-         set turnoff i ; find water amount that maximize utility, this will be the target of the agent
-         set umax util
-       ]
-       set i i + 25
-     ]
-    ]
-  ]
-
-  
-end
-
-to extract
-  set sec 0
-  ask turtles [
-    set watercol 0
-    set gate 1 ; initially all gates are open
-  ] 
-  
-  while [sec < 50]
-  [ 
-    set watersupply actualwatersupply
-    getwater
-    set sec sec + 1
-  ]
-end
-
 to getwater ; define when to open and close gates
   let i 0
   let totalwaterremaining watersupply * (50 - sec)
   while [i < 5]
   [
     ask turtle i [
-      
-      if scenario = "conditionalcooperation" [          
-        let water0 500 - 200 * expC 
-        ; agents have an intended level of water that they want to collect but may close gate earlier
-        ifelse water0 > 0 or watercol > 0 [
-          if random-float 1 < ((watercol ^ gammawatercol)/ (watercol ^ gammawatercol + water0 ^ gammawatercol)) [set gate 0]
-        ][set gate 0]
+      if strategy = 1 [
+        ifelse watercol < 500 [set gate 1][set gate 0]
       ]
-      
-      if scenario = "social-values" [
-        ifelse watercol < turnoff [set gate 1][set gate 0]
-      ]
- 
-      if scenario != "social-values" and scenario != "conditionalcooperation" [
-        if strategy = 0 [
-          set gate random 2
-        ]
-        
-        if strategy = 1 [
-          ifelse watercol < 500 [set gate 1][set gate 0]
-        ]
-        
-        if strategy = 2 [
-          let equalshare ceiling (10 * watersupply) 
-          ifelse watercol < equalshare [set gate 1][set gate 0]
-        ]
+      if strategy = 2 [
+        let equalshare ceiling (10 * watersupply) 
+        ifelse watercol < equalshare [set gate 1][set gate 0]
       ]
       
       if gate = 1 [
@@ -616,37 +492,10 @@ to getwater ; define when to open and close gates
           set watersupply watersupply - 25 ; if gate is open, reduce amount of water that reaches the next agent
         ][
         	set watercol watercol + watersupply set watersupply 0 ;
-        ]
-      ]
+     	  ]
+ 	    ]
     ]
     set i i + 1
-  ]
-end
-
-to calcactualutility
-  ask turtles [
-    ifelse limcom = false [
-      ifelse earnings > mean [earnings] of other turtles [
-        set actualutility earnings - alpha * (earnings - mean [earnings] of other turtles) 
-      ][
-        set actualutility earnings + beta * (mean [earnings] of other turtles - earnings)
-      ]
-    ][
-      ifelse visioneffect [
-      if who = 0 [ifelse earnings > [earnings] of turtle 1 [set actualutility earnings - alpha * (earnings - [earnings] of turtle 1)][set actualutility earnings + beta * ([earnings] of turtle 1 - earnings)]]
-      if who = 1 [ifelse earnings > (([earnings] of turtle 0 + [earnings] of turtle 2) / 2) [set actualutility earnings - alpha * (earnings - (([earnings] of turtle 0 + [earnings] of turtle 2) / 2))][set actualutility earnings + beta * ((([earnings] of turtle 0 + [earnings] of turtle 2) / 2) - earnings)]]
-      if who = 2 [ifelse earnings > (([earnings] of turtle 1 + [earnings] of turtle 3) / 2) [set actualutility earnings - alpha * (earnings - (([earnings] of turtle 1 + [earnings] of turtle 3) / 2))][set actualutility earnings + beta * ((([earnings] of turtle 1 + [earnings] of turtle 3) / 2) - earnings)]]
-      if who = 3 [ifelse earnings > (([earnings] of turtle 2 + [earnings] of turtle 4) / 2) [set actualutility earnings - alpha * (earnings - (([earnings] of turtle 2 + [earnings] of turtle 4) / 2))][set actualutility earnings + beta * ((([earnings] of turtle 2 + [earnings] of turtle 4) / 2) - earnings)]]
-      if who = 4 [ifelse earnings > [earnings] of turtle 3 [set actualutility earnings - alpha * (earnings - [earnings] of turtle 1)][set actualutility earnings + beta * ([earnings] of turtle 1 - earnings)]]
-      ][
-        ifelse earnings > mean [earnings] of other turtles [
-        set actualutility earnings - alpha * (earnings - mean [earnings] of other turtles) 
-      ][
-        set actualutility earnings + beta * (mean [earnings] of other turtles - earnings)
-      ]
-      ]
-    ]
-    ifelse actualutility > umin [set satisfied 1][set satisfied 0]
   ]
 end
 
@@ -701,58 +550,11 @@ to createdata ; read in the experiment data for a given time step
   ] 
 end
 
-to updatelists
-  ;MJ Here we ADD info to the lists SUM is replaced by SUM + X where SUM was the sum of X until the past iteration.
-  set list-inf replace-item ticks list-inf (item ticks list-inf + infrastructure)
-  set list-gini-inv replace-item ticks list-gini-inv (item ticks list-gini-inv + gini-inv)
-  set list-gini-ext replace-item ticks list-gini-ext (item ticks list-gini-ext + gini-ext)
-  set list-inv-A replace-item ticks list-inv-A (item ticks list-inv-A + [inv] of turtle 0) 
-  set list-inv-B replace-item ticks list-inv-B (item ticks list-inv-B + [inv] of turtle 1)
-  set list-inv-C replace-item ticks list-inv-C (item ticks list-inv-C + [inv] of turtle 2)
-  set list-inv-D replace-item ticks list-inv-D (item ticks list-inv-D + [inv] of turtle 3)
-  set list-inv-E replace-item ticks list-inv-E (item ticks list-inv-E + [inv] of turtle 4)
-  set list-ext-A replace-item ticks list-ext-A (item ticks list-ext-A + [harvest] of turtle 0)
-  set list-ext-B replace-item ticks list-ext-B (item ticks list-ext-B + [harvest] of turtle 1)
-  set list-ext-C replace-item ticks list-ext-C (item ticks list-ext-C + [harvest] of turtle 2)
-  set list-ext-D replace-item ticks list-ext-D (item ticks list-ext-D + [harvest] of turtle 3)
-  set list-ext-E replace-item ticks list-ext-E (item ticks list-ext-E + [harvest] of turtle 4)
-  if ticks > 0 [
-    let change 0
-    ask turtles [
-      set change inv - inv-past
-      let tickstart 0
-      if ticks > tickstart [
-        if (change = (0 - 10)) [set list-change replace-item 0 list-change (item 0 list-change + 1)]
-        if (change = (0 - 9)) [set list-change replace-item 1 list-change (item 1 list-change + 1)]
-        if (change = (0 - 8)) [set list-change replace-item 2 list-change (item 2 list-change + 1)]
-        if (change = (0 - 7)) [set list-change replace-item 3 list-change (item 3 list-change + 1)]
-        if (change = (0 - 6)) [set list-change replace-item 4 list-change (item 4 list-change + 1)]
-        if (change = (0 - 5)) [set list-change replace-item 5 list-change (item 5 list-change + 1)]
-        if (change = (0 - 4)) [set list-change replace-item 6 list-change (item 6 list-change + 1)]
-        if (change = (0 - 3)) [set list-change replace-item 7 list-change (item 7 list-change + 1)]
-        if (change = (0 - 2)) [set list-change replace-item 8 list-change (item 8 list-change + 1)]
-        if (change = (0 - 1)) [set list-change replace-item 9 list-change (item 9 list-change + 1)]
-        if (change = (0)) [set list-change replace-item 10 list-change (item 10 list-change + 1)]
-        if (change = 1) [set list-change replace-item 11 list-change (item 11 list-change + 1)]
-        if (change = 2) [set list-change replace-item 12 list-change (item 12 list-change + 1)]
-        if (change = 3) [set list-change replace-item 13 list-change (item 13 list-change + 1)]
-        if (change = 4) [set list-change replace-item 14 list-change (item 14 list-change + 1)]
-        if (change = 5) [set list-change replace-item 15 list-change (item 15 list-change + 1)]
-        if (change = 6) [set list-change replace-item 16 list-change (item 16 list-change + 1)]
-        if (change = 7) [set list-change replace-item 17 list-change (item 17 list-change + 1)]
-        if (change = 8) [set list-change replace-item 18 list-change (item 18 list-change + 1)]
-        if (change = 9) [set list-change replace-item 19 list-change (item 19 list-change + 1)]
-        if (change = 10) [set list-change replace-item 20 list-change (item 20 list-change + 1)]
-      ] 
-    ] 
-  ] 
-end
-
 to calcmetrics ; calculating the metrics to evaluate the fit between data and simulation (only used within batch procedure)
    let i 0
    while [i <= 20]
    [
-     set list-change replace-item i list-change (item i list-change / (45000)) ;MJ: There are 5 players who have 9 rounds for which a change in the investment level can be calculated. 5 * 9 is 45
+     set list-change replace-item i list-change (item i list-change / (45000)) ;FJ?? why divide by 45000? change-list has only a length of 21 - MJ: There are 5 players who have 9 rounds for which a change in the investment level can be calculated. 5 * 9 is 45
      set i i + 1
    ]
       
@@ -793,7 +595,7 @@ to calcmetrics ; calculating the metrics to evaluate the fit between data and si
      + (item 15 list-data-change - item 15 list-change) ^ 2 + (item 16 list-data-change - item 16 list-change) ^ 2 + (item 17 list-data-change - item 17 list-change) ^ 2 + (item 18 list-data-change - item 18 list-change) ^ 2 
      + (item 19 list-data-change - item 19 list-change) ^ 2 + (item 20 list-data-change - item 20 list-change) ^ 2 
      
-   set metric-inv ((metric-inv / 50) ^ 0.5) / 10 ;(([cumul. squared diffs] / [# values]) ^ 0.5 / [max. poss value] ;FJ does that have to be updated if treatments are analysed?
+   set metric-inv ((metric-inv / 50) ^ 0.5) / 10 ;(([cumul. squared diffs] / [# values]) ^ 0.5 / [max. poss value]
    set metric-ext ((metric-ext / 50 ) ^ 0.5) / 20 
    set metric-inf ((metric-inf / 10) ^ 0.5) / 100 
    set metric-change ((metric-change / 210) ^ 0.5) 
@@ -805,6 +607,12 @@ end
 
 
 to loadexpdata
+  ; input data for treatments
+  set decline-lv-inf (list 25 30 25 20 35 20 15 30 30 25)
+  set decline-hv-inf (list 25 10 10 80 10 5 10 80 10 10)
+  set supply-lv-wa (list 27 31 26 35 33 28 29 25 34 32)
+  set supply-hv-wa (list 27 31 22 36 25 32 38 21 29 39)
+  
   ; data from experiments - results for first 10 rounds (no variability!), mean across groups with equal treatment
   set inf-eff-F (list 92.95 83.38 79.14 78.43 78.43 74.19 73.76 74.00 74.24 72.57)
   set inf-eff-L (list 96.87 90.43 87.04 84.09 82.52 80.61 79.52 78.04 78.35 76.09)
@@ -838,123 +646,117 @@ to loadexpdata
   ;create and add lists for treatments
   
   if phase2? [ ; extend experimental data by treatment
-    ; input data for treatments
-    set decline-lv-inf (list 25 30 25 20 35 20 15 30 30 25)
-    set decline-hv-inf (list 25 10 10 80 10 5 10 80 10 10)
-    set supply-lv-wa (list 27 31 26 35 33 28 29 25 34 32)
-    set supply-hv-wa (list 27 31 22 36 25 32 38 21 29 39)
-    
-    ; data for low infrastructure variation
-    set inf-eff-F-lv-inf (list 95.6 84.4 79.4 75.4 75.8 68.0 68.8 69.4 71.6 70.6 90.2 73.0 68.6 71.4 68.2 76.4 79.2 74.0 68.2 66.6)
-    set inf-eff-L-lv-inf (list 97.2 89.8 85.2 81.8 79.8 79.4 81.0 80.2 80.2 79.6 98.0 82.8 81.0 83.2 78.0 78.6 81.6 74.4 74.8 76.6)
-    set inv-A-F-lv-inf (list 4.0 4.4 5.4 4.4 4.4 3.0 5.8 5.8 5.6 6.6 3.0 2.4 4.0 5.8 7.2 4.6 3.8 6.0 5.4 5.0)
-    set inv-B-F-lv-inf (list 5.6 2.6 3.8 4.0 4.8 2.8 4.8 5.8 6.0 5.6 3.4 3.2 3.8 5.0 7.2 7.0 3.8 5.0 4.8 4.8)
-    set inv-C-F-lv-inf (list 4.2 2.2 3.6 4.8 5.0 3.8 4.8 4.4 6.4 4.8 3.2 2.2 4.2 4.0 6.4 5.4 3.4 4.6 4.6 4.8)
-    set inv-D-F-lv-inf (list 3.8 2.8 4.4 4.4 5.6 4.4 6.0 5.4 5.4 4.2 3.4 2.8 5.6 4.8 5.8 6.2 4.4 5.8 5.8 5.0)
-    set inv-E-F-lv-inf (list 3.4 1.8 2.8 3.4 5.6 3.2 4.4 4.2 3.8 2.8 2.2 2.2 3.0 3.2 5.2 5.0 2.4 3.4 3.6 3.8)
-    set ext-A-F-lv-inf (list 15.0 15.4 10.4  9.0  9.2 11.0 10.6  8.6  7.2 13.2 18.8 11.0 11.0 11.8 14.8 13.0 10.8 13.4 15.6 15.8)
-    set ext-B-F-lv-inf (list 11.8 13.0 10.8  7.2 14.6 10.8  7.2 11.6 11.0 11.8 16.8 13.8 12.2 17.0 12.2  9.8 16.0 11.8 13.4 10.2)
-    set ext-C-F-lv-inf (list 13.0 13.8  7.8 12.8 12.6  6.6  7.0  7.6 11.8  6.0  8.0  9.8 15.0 16.2  9.0  9.8 10.6 13.6 15.0  2.0)
-    set ext-D-F-lv-inf (list  5.8  5.2  7.6 14.8 11.0  7.8  6.0  8.4 11.0  8.0  5.8  6.0 11.6  7.0  8.0 11.0  4.8 10.8  7.0  9.2)
-    set ext-E-F-lv-inf (list  1.8  2.8  6.6 11.0  4.8  8.8 11.0  8.0  7.2  5.0  3.8  7.0  4.2  4.2  4.8 12.0 10.6  7.8  0.8  9.4)
-    set inv-A-L-lv-inf (list 4.0 2.2 3.0 3.0 5.2 5.6 6.6 4.6 5.4 6.0 4.6 4.6 5.4 6.0 7.0 4.8 5.2 4.6 7.2 7.0)
-    set inv-B-L-lv-inf (list 5.2 4.4 4.6 5.4 5.0 4.8 6.6 6.8 6.8 5.6 5.4 4.0 5.4 5.6 7.0 4.4 3.6 5.6 5.8 5.4)
-    set inv-C-L-lv-inf (list 6.0 4.4 4.6 5.0 4.8 5.0 6.2 5.6 6.4 5.4 6.4 3.0 6.0 4.0 6.8 5.2 4.4 5.8 8.0 6.6)
-    set inv-D-L-lv-inf (list 4.0 3.0 3.8 4.8 4.0 4.8 3.8 4.2 4.2 5.0 4.8 1.8 3.8 4.2 5.0 3.8 2.8 4.8 5.8 4.4)
-    set inv-E-L-lv-inf (list 4.2 3.6 4.4 3.4 4.0 4.4 3.4 3.0 2.2 2.4 4.2 1.4 2.6 2.4 4.0 2.4 2.0 2.0 3.6 3.4)
-    set ext-A-L-lv-inf (list 17.0 18.2 18.4 17.2 15.6 15.6 15.8 13.0 15.0 16.2 18.0 17.0 13.4 15.2 15.0 12.8 16.0 12.0 17.8 18.0)
-    set ext-B-L-lv-inf (list 16.8 15.6 13.6 17.6 10.8 10.6 12.4  9.6 13.2  8.2 10.6 10.8 12.6 12.6 12.6 13.0  9.6 10.2 13.8 15.0)
-    set ext-C-L-lv-inf (list  8.2 11.4  9.2 11.8 16.4 13.4 10.8 11.8 11.4 12.6 10.2  7.0 14.8  9.8  8.6 13.2 10.2  7.2  7.0 10.8)
-    set ext-D-L-lv-inf (list  2.6  3.4 10.2  6.0  9.4 11.6 11.2 14.4 12.6 14.8 10.4  8.6 11.2 14.6 12.4 12.8 13.8  8.0 10.2  7.6)
-    set ext-E-L-lv-inf (list  0.0  1.0  0.4  0.8  4.0  4.6  3.2  6.2  2.8  6.6  4.0 10.4  6.0  7.0  6.0  5.8  5.2  4.6  4.8  4.0)
-    set gini-inv-F-lv-inf (list 0.207 0.216 0.161 0.100 0.066 0.174 0.093 0.081 0.091 0.255 0.129 0.157 0.203 0.173 0.094 0.123 0.207 0.099 0.204 0.236)
-    set gini-inv-L-lv-inf (list 0.258 0.370 0.280 0.232 0.147 0.151 0.161 0.197 0.233 0.209 0.226 0.294 0.207 0.221 0.185 0.250 0.260 0.279 0.203 0.202)
-    set gini-ext-F-lv-inf (list 0.359 0.331 0.387 0.210 0.357 0.348 0.348 0.189 0.311 0.364 0.388 0.456 0.292 0.268 0.357 0.321 0.309 0.298 0.321 0.399)
-    set gini-ext-L-lv-inf (list 0.483 0.398 0.384 0.389 0.322 0.354 0.363 0.330 0.301 0.297 0.310 0.298 0.281 0.216 0.240 0.270 0.298 0.289 0.359 0.320)
+               ; data for low infrastructure variation
+    set inf-eff-F-lv-inf (list 90.2 73.0 68.6 71.4 68.2 76.4 79.2 74.0 68.2 66.6)
+    set inf-eff-L-lv-inf (list 98.0 82.8 81.0 83.2 78.0 78.6 81.6 74.4 74.8 76.6)
+    set inv-A-F-lv-inf (list 3.0 2.4 4.0 5.8 7.2 4.6 3.8 6.0 5.4 5.0)
+    set inv-B-F-lv-inf (list 3.4 3.2 3.8 5.0 7.2 7.0 3.8 5.0 4.8 4.8)
+    set inv-C-F-lv-inf (list 3.2 2.2 4.2 4.0 6.4 5.4 3.4 4.6 4.6 4.8)
+    set inv-D-F-lv-inf (list 3.4 2.8 5.6 4.8 5.8 6.2 4.4 5.8 5.8 5.0)
+    set inv-E-F-lv-inf (list 2.2 2.2 3.0 3.2 5.2 5.0 2.4 3.4 3.6 3.8)
+    set ext-A-F-lv-inf (list 18.8 11.0 11.0 11.8 14.8 13.0 10.8 13.4 15.6 15.8)
+    set ext-B-F-lv-inf (list 16.8 13.8 12.2 17.0 12.2  9.8 16.0 11.8 13.4 10.2)
+    set ext-C-F-lv-inf (list  8.0  9.8 15.0 16.2  9.0  9.8 10.6 13.6 15.0  2.0)
+    set ext-D-F-lv-inf (list  5.8  6.0 11.6  7.0  8.0 11.0  4.8 10.8  7.0  9.2)
+    set ext-E-F-lv-inf (list  3.8  7.0  4.2  4.2  4.8 12.0 10.6  7.8  0.8  9.4)
+    set inv-A-L-lv-inf (list 4.6 4.6 5.4 6.0 7.0 4.8 5.2 4.6 7.2 7.0)
+    set inv-B-L-lv-inf (list 5.4 4.0 5.4 5.6 7.0 4.4 3.6 5.6 5.8 5.4)
+    set inv-C-L-lv-inf (list 6.4 3.0 6.0 4.0 6.8 5.2 4.4 5.8 8.0 6.6)
+    set inv-D-L-lv-inf (list 4.8 1.8 3.8 4.2 5.0 3.8 2.8 4.8 5.8 4.4)
+    set inv-E-L-lv-inf (list 4.2 1.4 2.6 2.4 4.0 2.4 2.0 2.0 3.6 3.4)
+    set ext-A-L-lv-inf (list 18.0 17.0 13.4 15.2 15.0 12.8 16.0 12.0 17.8 18.0)
+    set ext-B-L-lv-inf (list 10.6 10.8 12.6 12.6 12.6 13.0  9.6 10.2 13.8 15.0)
+    set ext-C-L-lv-inf (list 10.2  7.0 14.8  9.8  8.6 13.2 10.2  7.2  7.0 10.8)
+    set ext-D-L-lv-inf (list 10.4  8.6 11.2 14.6 12.4 12.8 13.8  8.0 10.2  7.6)
+    set ext-E-L-lv-inf (list  4.0 10.4  6.0  7.0  6.0  5.8  5.2  4.6  4.8  4.0)
+    set gini-inv-F-lv-inf (list 0.129 0.157 0.203 0.173 0.094 0.123 0.207 0.099 0.204 0.236)
+    set gini-inv-L-lv-inf (list 0.226 0.294 0.207 0.221 0.185 0.250 0.260 0.279 0.203 0.202)
+    set gini-ext-F-lv-inf (list 0.388 0.456 0.292 0.268 0.357 0.321 0.309 0.298 0.321 0.399)
+    set gini-ext-L-lv-inf (list 0.310 0.298 0.281 0.216 0.240 0.270 0.298 0.289 0.359 0.320)
     
     ; data for high infrastructure variation
-    set inf-eff-F-hv-inf (list 93.17 85.50 82.50 81.50 81.33 79.67 79.17 79.17 79.50 76.50 84.50 79.67 77.50 41.00 54.83 68.17 66.83 49.83 71.67 74.50)
-    set inf-eff-L-hv-inf (list 98.8 92.8 88.8 88.6 90.2 89.4 90.2 88.6 84.8 78.6 92.6 96.2 93.8 35.0 52.0 74.4 83.4 23.6 37.8 49.0)
-    set inv-A-F-hv-inf (list 3.83 3.83 5.33 5.83 5.50 6.00 4.67 5.67 4.67 4.67 1.67 1.67 2.00 7.17 4.67 3.50 1.50 9.00 6.17 2.50)
-    set inv-B-F-hv-inf (list 5.17 4.50 4.67 5.17 5.33 5.83 4.67 5.33 4.00 4.67 2.67 1.17 2.17 6.67 4.50 4.17 1.67 9.00 6.83 2.83)
-    set inv-C-F-hv-inf (list 4.17 4.00 5.33 5.17 5.17 5.83 6.33 5.67 6.17 5.17 2.00 1.83 1.67 7.17 3.33 3.33 1.17 6.67 6.33 2.33)
-    set inv-D-F-hv-inf (list 2.33 3.67 5.00 5.50 6.17 5.00 5.83 5.50 5.17 3.83 1.83 0.67 2.33 6.17 5.33 3.33 1.50 9.83 6.50 2.67)
-    set inv-E-F-hv-inf (list 2.83 3.17 4.00 5.17 5.00 4.83 5.50 4.17 5.33 3.67 2.17 1.17 1.17 7.17 4.33 3.17 1.33 9.33 6.00 2.50)
-    set ext-A-F-hv-inf (list 12.17  8.17  7.33 11.67  9.33 11.33  8.17 10.83 10.17 12.17  9.17 13.17 11.50  1.83  7.33 10.83 10.83  1.67 13.00 11.50)
-    set ext-B-F-hv-inf (list 10.67 11.17 12.67  9.83 10.67 12.17  8.50 10.50  9.17 13.17 13.00 12.33  9.33  1.67  6.67  9.17  9.83  2.50 11.50 11.50)
-    set ext-C-F-hv-inf (list 11.00 12.00 14.83 13.33  9.83 13.00 12.17 11.00 14.50 13.67 10.00  8.33  9.67  2.50  5.67  9.17  7.50  1.67 10.67  8.17)
-    set ext-D-F-hv-inf (list 12.00 12.50  9.17 12.50 10.17 10.00 10.33  9.83 11.50  8.17 11.33 10.00 12.50  1.67  5.00  7.17  8.17  2.33  8.33  9.17)
-    set ext-E-F-hv-inf (list  6.33  5.67  8.33  5.17  7.50  6.33 10.67  8.17 10.33  6.33 11.50 10.83  6.83  1.67  5.67 10.83  9.17  4.00  5.83  8.67)
-    set inv-A-L-hv-inf (list 8.2 6.4 6.4 6.6 6.8 6.8 6.6 6.4 5.2 5.6 6.2 5.2 2.8 5.6 8.0 8.0 4.8 4.0 7.4 5.4)
-    set inv-B-L-hv-inf (list 7.6 7.4 5.8 5.6 6.6 6.8 7.0 6.0 5.4 5.6 5.2 4.6 2.6 4.6 8.0 7.6 4.2 5.6 7.4 5.4)
-    set inv-C-L-hv-inf (list 5.0 3.0 4.0 6.0 6.2 4.0 5.4 5.8 5.0 5.2 2.4 3.4 2.0 4.6 6.8 6.6 5.2 6.2 6.4 5.2)
-    set inv-D-L-hv-inf (list 4.8 2.0 2.6 4.6 4.2 3.2 5.4 3.8 3.2 1.4 2.2 1.4 1.6 4.2 2.4 2.4 3.4 0.6 1.2 2.0)
-    set inv-E-L-hv-inf (list 4.6 1.4 2.2 4.0 2.8 3.4 1.6 2.4 2.4 1.0 1.8 2.0 0.2 2.2 1.8 2.8 1.4 1.4 1.2 1.2)
-    set ext-A-L-hv-inf (list 18.6 14.4 18.0 18.8 18.2 19.4 19.0 19.0 19.0 18.6 19.2 19.2 19.0  0.0  3.8 19.0 19.2  0.2  3.8 11.6)
-    set ext-B-L-hv-inf (list 17.8 16.8 16.4 13.6 17.4 17.8 17.4 17.8 17.6 17.0 18.0 18.2 18.2  0.0  4.2 17.6 16.4  0.0  3.8 11.2)
-    set ext-C-L-hv-inf (list 12.6 13.4 14.4 11.8 15.2 12.0 10.6 13.0 14.4 11.6 11.8 10.2  9.0  0.0  3.2 12.6 13.4  0.0  3.6  8.8)
-    set ext-D-L-hv-inf (list 4.2 9.4 3.8 6.2 3.0 3.6 5.0 4.6 7.8 4.8 5.8 6.2 5.8 0.0 2.0 4.4 3.4 0.0 0.0 1.6)
-    set ext-E-L-hv-inf (list 0.2 0.0 0.2 0.0 0.2 0.2 0.4 0.2 0.0 0.6 0.4 0.8 0.2 0.0 0.0 0.0 0.8 0.0 0.0 0.0)
-    set gini-inv-F-hv-inf (list 0.165 0.153 0.063 0.062 0.042 0.085 0.099 0.069 0.086 0.061 0.079 0.306 0.087 0.046 0.095 0.254 0.095 0.082 0.044 0.027)
-    set gini-inv-L-hv-inf (list 0.174 0.384 0.240 0.233 0.178 0.306 0.256 0.233 0.191 0.342 0.414 0.395 0.444 0.426 0.310 0.284 0.287 0.572 0.267 0.502)
-    set gini-ext-F-hv-inf (list 0.146 0.266 0.242 0.159 0.182 0.182 0.240 0.181 0.170 0.195 0.137 0.149 0.157 0.145 0.188 0.121 0.131 0.260 0.146 0.263)
-    set gini-ext-L-hv-inf (list 0.393 0.392 0.388 0.407 0.383 0.402 0.400 0.386 0.344 0.394 0.368 0.390 0.414 0.000 0.299 0.395 0.380 0.160 0.081 0.237)
+    set inf-eff-F-hv-inf (list 84.50 79.67 77.50 41.00 54.83 68.17 66.83 49.83 71.67 74.50)
+    set inf-eff-L-hv-inf (list 92.6 96.2 93.8 35.0 52.0 74.4 83.4 23.6 37.8 49.0)
+    set inv-A-F-hv-inf (list 1.67 1.67 2.00 7.17 4.67 3.50 1.50 9.00 6.17 2.50)
+    set inv-B-F-hv-inf (list 2.67 1.17 2.17 6.67 4.50 4.17 1.67 9.00 6.83 2.83)
+    set inv-C-F-hv-inf (list 2.00 1.83 1.67 7.17 3.33 3.33 1.17 6.67 6.33 2.33)
+    set inv-D-F-hv-inf (list 1.83 0.67 2.33 6.17 5.33 3.33 1.50 9.83 6.50 2.67)
+    set inv-E-F-hv-inf (list 2.17 1.17 1.17 7.17 4.33 3.17 1.33 9.33 6.00 2.50)
+    set ext-A-F-hv-inf (list  9.17 13.17 11.50  1.83  7.33 10.83 10.83  1.67 13.00 11.50)
+    set ext-B-F-hv-inf (list 13.00 12.33  9.33  1.67  6.67  9.17  9.83  2.50 11.50 11.50)
+    set ext-C-F-hv-inf (list 10.00  8.33  9.67  2.50  5.67  9.17  7.50  1.67 10.67  8.17)
+    set ext-D-F-hv-inf (list 11.33 10.00 12.50  1.67  5.00  7.17  8.17  2.33  8.33  9.17)
+    set ext-E-F-hv-inf (list 11.50 10.83  6.83  1.67  5.67 10.83  9.17  4.00  5.83  8.67)
+    set inv-A-L-hv-inf (list 6.2 5.2 2.8 5.6 8.0 8.0 4.8 4.0 7.4 5.4)
+    set inv-B-L-hv-inf (list 5.2 4.6 2.6 4.6 8.0 7.6 4.2 5.6 7.4 5.4)
+    set inv-C-L-hv-inf (list 2.4 3.4 2.0 4.6 6.8 6.6 5.2 6.2 6.4 5.2)
+    set inv-D-L-hv-inf (list 2.2 1.4 1.6 4.2 2.4 2.4 3.4 0.6 1.2 2.0)
+    set inv-E-L-hv-inf (list 1.8 2.0 0.2 2.2 1.8 2.8 1.4 1.4 1.2 1.2)
+    set ext-A-L-hv-inf (list 19.2 19.2 19.0  0.0  3.8 19.0 19.2  0.2  3.8 11.6)
+    set ext-B-L-hv-inf (list 18.0 18.2 18.2  0.0  4.2 17.6 16.4  0.0  3.8 11.2)
+    set ext-C-L-hv-inf (list 11.8 10.2  9.0  0.0  3.2 12.6 13.4  0.0  3.6  8.8)
+    set ext-D-L-hv-inf (list 5.8 6.2 5.8 0.0 2.0 4.4 3.4 0.0 0.0 1.6)
+    set ext-E-L-hv-inf (list 0.4 0.8 0.2 0.0 0.0 0.0 0.8 0.0 0.0 0.0)
+    set gini-inv-F-hv-inf (list 0.079 0.306 0.087 0.046 0.095 0.254 0.095 0.082 0.044 0.027)
+    set gini-inv-L-hv-inf (list 0.414 0.395 0.444 0.426 0.310 0.284 0.287 0.572 0.267 0.502)
+    set gini-ext-F-hv-inf (list 0.137 0.149 0.157 0.145 0.188 0.121 0.131 0.260 0.146 0.263)
+    set gini-ext-L-hv-inf (list 0.368 0.390 0.414 0.000 0.299 0.395 0.380 0.160 0.081 0.237)
     
     ; data for low water variation
-    set inf-eff-F-lv-wa (list 96.0 87.2 81.0 82.6 81.6 74.8 73.6 73.0 70.8 69.8 84.6 78.8 72.6 69.2 69.8 64.6 66.2 64.2 66.6 64.8)
-    set inf-eff-L-lv-wa (list 98.4 94.6 90.6 89.4 87.4 85.2 84.2 84.2 84.0 79.6 96.6 89.6 84.8 80.8 77.8 77.0 77.6 76.2 73.8 69.2)
-    set inv-A-F-lv-wa (list 5.0 2.8 4.0 6.8 6.4 4.6 5.6 6.8 4.8 5.0 1.4 4.0 4.2 3.2 6.8 5.8 6.8 6.4 7.2 5.0)
-    set inv-B-F-lv-wa (list 5.0 4.0 4.8 5.0 4.4 3.2 5.4 6.8 6.8 5.4 1.2 5.2 4.2 3.8 5.6 4.2 4.8 3.0 4.8 5.2)
-    set inv-C-F-lv-wa (list 5.0 3.8 4.4 5.8 5.6 4.4 5.6 5.2 5.4 6.6 3.4 3.6 3.6 4.8 5.6 3.8 6.0 6.4 6.8 7.0)
-    set inv-D-F-lv-wa (list 2.6 2.0 2.2 3.8 2.8 1.8 3.6 2.8 2.8 3.0 1.8 3.2 3.4 4.0 3.8 2.8 3.4 3.6 4.4 3.2)
-    set inv-E-F-lv-wa (list 4.0 3.6 3.4 6.0 5.6 5.4 3.6 2.8 3.0 4.0 1.8 3.2 3.4 5.8 3.8 3.2 5.6 3.6 4.2 2.8)
-    set ext-A-F-lv-wa (list 10.6 11.6 15.8 13.6 12.8 12.6 13.8 10.6 12.6  9.2 10.6 12.0  6.8 13.6 11.8  9.0 11.0  8.4 13.4 13.4)
-    set ext-B-F-lv-wa (list 11.4  9.6 12.4  9.8 13.4 15.8 10.8 11.8 11.4 10.8 10.8 15.6  7.0 10.0 11.0 10.0  8.2  4.8 11.0 12.8)
-    set ext-C-F-lv-wa (list  9.4 15.6  8.6 14.6 15.8 14.6  9.8 11.8 10.0 11.6  7.8 12.8  6.8  9.6 10.0  7.8  6.8  6.8 10.0  9.0)
-    set ext-D-F-lv-wa (list  6.8  5.2  7.0  6.0  6.0  8.0  7.0  8.0  4.8  6.2  6.8  7.0  7.8 11.0  6.8  6.8  9.0  6.8  8.8  7.0)
-    set ext-E-F-lv-wa (list  8.6 12.6  5.8  6.0  7.2  4.8  6.0  4.0  7.0  6.0  6.6  9.0  6.6 14.0 10.0  5.0  6.8  3.8  8.2  7.8)
-    set inv-A-L-lv-wa (list 5.6 4.8 5.2 5.8 6.0 5.4 5.6 6.2 6.4 4.0 5.6 4.0 4.8 5.2 5.0 5.8 6.0 5.4 5.2 4.4)
-    set inv-B-L-lv-wa (list 7.0 6.4 6.2 6.8 7.2 7.0 7.2 7.4 7.8 7.2 6.0 5.6 5.8 6.8 6.6 7.6 7.8 7.2 6.8 6.4)
-    set inv-C-L-lv-wa (list 4.4 4.6 5.0 5.4 5.8 6.0 6.2 6.0 5.6 5.4 5.6 4.8 5.0 5.2 6.0 6.2 6.8 6.6 5.4 4.4)
-    set inv-D-L-lv-wa (list 3.4 3.4 2.4 3.4 3.4 3.4 3.6 3.6 3.2 2.6 4.0 2.6 3.2 2.8 3.4 3.2 3.6 3.2 3.8 3.4)
-    set inv-E-L-lv-wa (list 4.2 3.0 2.8 2.6 1.0 1.4 1.6 2.0 2.0 1.4 2.2 1.0 1.4 1.0 1.0 1.4 1.4 1.2 1.4 1.8)
-    set ext-A-L-lv-wa (list 19.2 15.8 17.0 18.6 16.8 18.2 19.0 13.4 14.8 13.8 14.4 14.6 15.4 16.8 17.2 17.2 16.8 15.4 16.8 14.6)
-    set ext-B-L-lv-wa (list 18.6 17.8 17.2 17.2 17.0 17.0 17.0 13.8 12.4 12.6 15.2 12.6 15.8 16.8 17.0 16.4 14.8 13.6 17.2 13.6)
-    set ext-C-L-lv-wa (list 12.6  7.6 14.0 13.6 13.2 12.0 11.4 12.6 13.4 12.6  9.8 11.4 12.4 14.4 16.2 14.0 12.0 12.6 12.6 12.4)
-    set ext-D-L-lv-wa (list  3.0  3.6  2.2  3.0  3.6  4.4  5.2  2.0  2.2  4.0  4.8  7.8  2.8 10.4  9.2  2.8  6.0  4.8  8.2  6.0)
-    set ext-E-L-lv-wa (list 0.0 2.0 0.8 2.0 2.2 2.2 1.0 3.0 3.0 2.4 2.2 6.0 3.0 5.6 2.8 1.6 3.2 2.0 6.2 4.0)
-    set gini-inv-F-lv-wa (list 0.154 0.171 0.144 0.154 0.135 0.230 0.269 0.195 0.221 0.192 0.203 0.153 0.160 0.225 0.122 0.220 0.127 0.200 0.181 0.230)
-    set gini-inv-L-lv-wa (list 0.267 0.315 0.334 0.247 0.308 0.293 0.274 0.311 0.324 0.383 0.340 0.411 0.350 0.358 0.340 0.299 0.304 0.317 0.322 0.294)
-    set gini-ext-F-lv-wa (list 0.360 0.302 0.327 0.327 0.240 0.241 0.304 0.176 0.164 0.272 0.258 0.204 0.160 0.105 0.121 0.130 0.140 0.211 0.139 0.138)
-    set gini-ext-L-lv-wa (list 0.419 0.457 0.403 0.377 0.365 0.347 0.391 0.387 0.263 0.220 0.368 0.331 0.406 0.265 0.283 0.378 0.324 0.371 0.273 0.299)
+    set inf-eff-F-lv-wa (list 84.6 78.8 72.6 69.2 69.8 64.6 66.2 64.2 66.6 64.8)
+    set inf-eff-L-lv-wa (list 96.6 89.6 84.8 80.8 77.8 77.0 77.6 76.2 73.8 69.2)
+    set inv-A-F-lv-wa (list 1.4 4.0 4.2 3.2 6.8 5.8 6.8 6.4 7.2 5.0)
+    set inv-B-F-lv-wa (list 1.2 5.2 4.2 3.8 5.6 4.2 4.8 3.0 4.8 5.2)
+    set inv-C-F-lv-wa (list 3.4 3.6 3.6 4.8 5.6 3.8 6.0 6.4 6.8 7.0)
+    set inv-D-F-lv-wa (list 1.8 3.2 3.4 4.0 3.8 2.8 3.4 3.6 4.4 3.2)
+    set inv-E-F-lv-wa (list 1.8 3.2 3.4 5.8 3.8 3.2 5.6 3.6 4.2 2.8)
+    set ext-A-F-lv-wa (list 10.6 12.0  6.8 13.6 11.8  9.0 11.0  8.4 13.4 13.4)
+    set ext-B-F-lv-wa (list 10.8 15.6  7.0 10.0 11.0 10.0  8.2  4.8 11.0 12.8)
+    set ext-C-F-lv-wa (list  7.8 12.8  6.8  9.6 10.0  7.8  6.8  6.8 10.0  9.0)
+    set ext-D-F-lv-wa (list  6.8  7.0  7.8 11.0  6.8  6.8  9.0  6.8  8.8  7.0)
+    set ext-E-F-lv-wa (list  6.6  9.0  6.6 14.0 10.0  5.0  6.8  3.8  8.2  7.8)
+    set inv-A-L-lv-wa (list 5.6 4.0 4.8 5.2 5.0 5.8 6.0 5.4 5.2 4.4)
+    set inv-B-L-lv-wa (list 6.0 5.6 5.8 6.8 6.6 7.6 7.8 7.2 6.8 6.4)
+    set inv-C-L-lv-wa (list 5.6 4.8 5.0 5.2 6.0 6.2 6.8 6.6 5.4 4.4)
+    set inv-D-L-lv-wa (list 4.0 2.6 3.2 2.8 3.4 3.2 3.6 3.2 3.8 3.4)
+    set inv-E-L-lv-wa (list 2.2 1.0 1.4 1.0 1.0 1.4 1.4 1.2 1.4 1.8)
+    set ext-A-L-lv-wa (list 14.4 14.6 15.4 16.8 17.2 17.2 16.8 15.4 16.8 14.6)
+    set ext-B-L-lv-wa (list 15.2 12.6 15.8 16.8 17.0 16.4 14.8 13.6 17.2 13.6)
+    set ext-C-L-lv-wa (list  9.8 11.4 12.4 14.4 16.2 14.0 12.0 12.6 12.6 12.4)
+    set ext-D-L-lv-wa (list  4.8  7.8  2.8 10.4  9.2  2.8  6.0  4.8  8.2  6.0)
+    set ext-E-L-lv-wa (list 2.2 6.0 3.0 5.6 2.8 1.6 3.2 2.0 6.2 4.0)
+    set gini-inv-F-lv-wa (list 0.203 0.153 0.160 0.225 0.122 0.220 0.127 0.200 0.181 0.230)
+    set gini-inv-L-lv-wa (list 0.340 0.411 0.350 0.358 0.340 0.299 0.304 0.317 0.322 0.294)
+    set gini-ext-F-lv-wa (list 0.258 0.204 0.160 0.105 0.121 0.130 0.140 0.211 0.139 0.138)
+    set gini-ext-L-lv-wa (list 0.368 0.331 0.406 0.265 0.283 0.378 0.324 0.371 0.273 0.299)
     
     ; data for high water variation
-    set inf-eff-F-hv-wa (list 87.0 76.0 73.0 73.6 74.4 73.2 72.4 73.4 74.0 72.6 85.8 74.6 67.0 71.0 63.6 64.8 67.4 61.8 57.4 69.8)
-    set inf-eff-L-hv-wa (list 94.50 86.75 84.88 79.38 76.38 73.00 69.00 66.25 69.62 70.12 93.38 85.00 78.12 76.00 71.75 72.25 78.88 73.12 74.12 78.75)
-    set inv-A-F-hv-wa (list 2.4 2.6 4.4 5.2 5.2 5.0 4.8 5.2 5.4 4.8 1.6 2.6 3.4 6.2 3.0 5.2 5.4 5.2 5.2 8.2)
-    set inv-B-F-hv-wa (list 2.6 2.8 4.4 5.0 5.2 4.6 4.8 5.2 5.0 4.8 1.6 2.8 3.2 6.0 5.0 5.0 5.4 3.0 3.2 6.2)
-    set inv-C-F-hv-wa (list 2.8 3.4 4.4 5.2 5.2 4.8 5.0 5.2 5.4 4.8 3.4 2.8 4.2 5.2 2.8 5.6 5.8 3.0 3.4 8.2)
-    set inv-D-F-hv-wa (list 2.6 2.4 4.2 5.0 5.0 4.2 4.6 5.0 4.8 4.6 1.2 2.6 3.2 5.6 3.6 5.4 5.8 2.2 3.0 8.0)
-    set inv-E-F-hv-wa (list 2.6 2.8 4.6 5.2 5.2 5.2 5.0 5.4 5.0 4.6 3.0 3.0 3.4 6.0 3.2 5.0 5.2 2.6 2.8 4.0)
-    set ext-A-F-hv-wa (list 10.4 12.4  7.0 11.8 10.2  9.2 13.0 11.0 11.0  9.8  6.2  8.8  4.6 11.2  7.0  7.8 13.4  5.0  7.8 14.2)
-    set ext-B-F-hv-wa (list 13.8 16.4 11.6 13.8 11.0 14.6 12.0 12.0  9.6 11.6 10.8  9.8  6.0 12.6  5.6  6.8 11.6  2.6  6.8 13.4)
-    set ext-C-F-hv-wa (list 13.8  8.0  9.8  8.2 10.8 12.0 10.8  9.8 14.0 11.2  9.2 10.8  3.8 10.4  3.6 10.0 13.2  4.4  8.8 11.2)
-    set ext-D-F-hv-wa (list  9.6  8.8  6.8  7.0  9.2 11.8 12.0 11.0 11.0  9.8  8.8 12.0  4.6 10.0  3.2 10.0 12.6  3.8  9.6 11.6)
-    set ext-E-F-hv-wa (list  1.6  7.0  8.0  7.0 11.6  9.2  8.4  8.2  6.8  9.6  5.8 11.8  2.2  9.2  6.0  6.8 12.8  1.6  3.0  7.2)
-    set inv-A-L-hv-wa (list 3.25 3.25 5.38 5.25 6.25 7.25 6.25 5.75 5.75 5.12 1.88 4.88 3.88 6.62 5.62 7.00 8.38 3.62 5.75 7.50)
-    set inv-B-L-hv-wa (list 4.38 3.88 5.25 5.38 6.88 4.75 5.12 5.25 5.62 5.12 5.38 2.62 3.75 5.00 5.12 6.62 7.62 3.75 6.62 6.50)
-    set inv-C-L-hv-wa (list 4.38 5.25 6.00 4.88 4.88 5.25 5.88 5.38 6.38 4.75 5.00 4.38 4.75 6.12 5.75 6.88 7.75 5.25 7.00 7.50)
-    set inv-D-L-hv-wa (list 5.75 3.62 5.00 2.25 2.75 3.00 3.38 3.88 5.88 3.88 3.62 3.12 3.12 3.62 3.00 2.75 4.75 4.88 4.62 4.62)
-    set inv-E-L-hv-wa (list 4.50 2.62 2.75 2.50 2.12 2.75 1.88 1.75 1.62 3.62 3.00 1.62 2.62 1.50 1.25 2.25 3.25 1.75 2.25 3.62)
-    set ext-A-L-hv-wa (list 19.00 19.25 18.25 16.50 16.88 14.50 15.25 13.88 12.50 13.62 16.75 16.75 16.50 14.75 16.12 15.38 18.25 12.25 17.12 17.75)
-    set ext-B-L-hv-wa (list 19.50 17.50 19.38 16.75 14.50 14.50 15.38 13.00 11.88 12.00 14.75 16.00 12.75 13.25 15.62 16.38 18.50 10.00 15.38 17.50)
-    set ext-C-L-hv-wa (list  7.38 12.50 11.88 11.88 11.62 11.50 11.25 11.25 14.50 13.75 11.62 16.25  8.75 16.75 15.25 16.88 15.75  5.25 13.38 18.12)
-    set ext-D-L-hv-wa (list  1.12  1.88  0.12  2.38  3.75  3.00  5.00  6.50  6.75  6.75  4.12  6.25  3.25  9.12  2.50  5.62  7.62  2.88  4.38 10.88)
-    set ext-E-L-hv-wa (list 0.12 0.12 0.00 0.00 0.50 0.50 0.50 1.38 2.00 3.12 1.75 1.75 0.12 7.50 0.25 1.88 1.50 1.88 0.25 4.75)
-    set gini-inv-F-hv-wa (list 0.065 0.146 0.018 0.014 0.028 0.047 0.020 0.013 0.022 0.042 0.251 0.154 0.057 0.087 0.146 0.159 0.187 0.287 0.202 0.130)
-    set gini-inv-L-hv-wa (list 0.330 0.342 0.240 0.290 0.307 0.303 0.305 0.182 0.278 0.288 0.410 0.448 0.341 0.295 0.268 0.309 0.228 0.343 0.303 0.279)
-    set gini-ext-F-hv-wa (list 0.326 0.238 0.171 0.209 0.228 0.207 0.168 0.111 0.197 0.210 0.254 0.168 0.348 0.251 0.365 0.100 0.054 0.283 0.181 0.144)
-    set gini-ext-L-hv-wa (list 0.502 0.445 0.476 0.466 0.457 0.357 0.317 0.334 0.307 0.287 0.393 0.321 0.469 0.320 0.403 0.384 0.315 0.552 0.371 0.253)
+    set inf-eff-F-hv-wa (list 85.8 74.6 67.0 71.0 63.6 64.8 67.4 61.8 57.4 69.8)
+    set inf-eff-L-hv-wa (list 93.38 85.00 78.12 76.00 71.75 72.25 78.88 73.12 74.12 78.75)
+    set inv-A-F-hv-wa (list 1.6 2.6 3.4 6.2 3.0 5.2 5.4 5.2 5.2 8.2)
+    set inv-B-F-hv-wa (list 1.6 2.8 3.2 6.0 5.0 5.0 5.4 3.0 3.2 6.2)
+    set inv-C-F-hv-wa (list 3.4 2.8 4.2 5.2 2.8 5.6 5.8 3.0 3.4 8.2)
+    set inv-D-F-hv-wa (list 1.2 2.6 3.2 5.6 3.6 5.4 5.8 2.2 3.0 8.0)
+    set inv-E-F-hv-wa (list 3.0 3.0 3.4 6.0 3.2 5.0 5.2 2.6 2.8 4.0)
+    set ext-A-F-hv-wa (list  6.2  8.8  4.6 11.2  7.0  7.8 13.4  5.0  7.8 14.2)
+    set ext-B-F-hv-wa (list 10.8  9.8  6.0 12.6  5.6  6.8 11.6  2.6  6.8 13.4)
+    set ext-C-F-hv-wa (list  9.2 10.8  3.8 10.4  3.6 10.0 13.2  4.4  8.8 11.2)
+    set ext-D-F-hv-wa (list  8.8 12.0  4.6 10.0  3.2 10.0 12.6  3.8  9.6 11.6)
+    set ext-E-F-hv-wa (list  5.8 11.8  2.2  9.2  6.0  6.8 12.8  1.6  3.0  7.2)
+    set inv-A-L-hv-wa (list 1.88 4.88 3.88 6.62 5.62 7.00 8.38 3.62 5.75 7.50)
+    set inv-B-L-hv-wa (list 5.38 2.62 3.75 5.00 5.12 6.62 7.62 3.75 6.62 6.50)
+    set inv-C-L-hv-wa (list 5.00 4.38 4.75 6.12 5.75 6.88 7.75 5.25 7.00 7.50)
+    set inv-D-L-hv-wa (list 3.62 3.12 3.12 3.62 3.00 2.75 4.75 4.88 4.62 4.62)
+    set inv-E-L-hv-wa (list 3.00 1.62 2.62 1.50 1.25 2.25 3.25 1.75 2.25 3.62)
+    set ext-A-L-hv-wa (list 16.75 16.75 16.50 14.75 16.12 15.38 18.25 12.25 17.12 17.75)
+    set ext-B-L-hv-wa (list 14.75 16.00 12.75 13.25 15.62 16.38 18.50 10.00 15.38 17.50)
+    set ext-C-L-hv-wa (list 11.62 16.25  8.75 16.75 15.25 16.88 15.75  5.25 13.38 18.12)
+    set ext-D-L-hv-wa (list  4.12  6.25  3.25  9.12  2.50  5.62  7.62  2.88  4.38 10.88)
+    set ext-E-L-hv-wa (list 1.75 1.75 0.12 7.50 0.25 1.88 1.50 1.88 0.25 4.75)
+    set gini-inv-F-hv-wa (list 0.251 0.154 0.057 0.087 0.146 0.159 0.187 0.287 0.202 0.130)
+    set gini-inv-L-hv-wa (list 0.410 0.448 0.341 0.295 0.268 0.309 0.228 0.343 0.303 0.279)
+    set gini-ext-F-hv-wa (list 0.254 0.168 0.348 0.251 0.365 0.100 0.054 0.283 0.181 0.144)
+    set gini-ext-L-hv-wa (list 0.393 0.321 0.469 0.320 0.403 0.384 0.315 0.552 0.371 0.253)
     
     if Variability = "lv-inf" [
       set inf-eff-L inf-eff-L-lv-inf
@@ -1141,7 +943,7 @@ infrastructure
 NIL
 NIL
 1.0
-20.0
+10.0
 0.0
 100.0
 false
@@ -1155,12 +957,12 @@ PENS
 CHOOSER
 203
 10
-396
+376
 55
 scenario
 scenario
-"selfish" "cooperative" "random" "conditionalcooperation" "mix" "social-values"
-5
+"selfish" "cooperative" "random" "mix"
+1
 
 PLOT
 1006
@@ -1171,7 +973,7 @@ Gini
 NIL
 NIL
 1.0
-20.0
+10.0
 0.0
 0.8
 false
@@ -1292,15 +1094,15 @@ NIL
 HORIZONTAL
 
 SLIDER
-189
-398
-361
-431
+218
+192
+390
+225
 stdev-random
 stdev-random
 0
 10
-0.99
+3.69
 0.01
 1
 NIL
@@ -1313,28 +1115,28 @@ SWITCH
 150
 visioneffect
 visioneffect
-1
+0
 1
 -1000
 
 CHOOSER
-21
-315
-159
-360
+24
+202
+162
+247
 Variability
 Variability
 "lv-inf" "hv-inf" "lv-wa" "hv-wa"
-3
+0
 
 SWITCH
-22
-276
-130
-309
+25
+159
+133
+192
 phase2?
 phase2?
-1
+0
 1
 -1000
 
@@ -1348,181 +1150,6 @@ limcom
 1
 1
 -1000
-
-TEXTBOX
-23
-170
-173
-268
-Set phase2? to \"Off\" to run rounds 1-10 and compare to exp data averaged across all treatments; set to \"On\" and specify treatment in Variability dropdown to run rounds 1-20
-11
-0.0
-1
-
-SLIDER
-189
-244
-361
-277
-lambda-inv
-lambda-inv
-0
-1
-0.99
-0.01
-1
-NIL
-HORIZONTAL
-
-SLIDER
-188
-208
-360
-241
-lambda
-lambda
-0
-1
-0.81
-0.01
-1
-NIL
-HORIZONTAL
-
-SLIDER
-189
-282
-361
-315
-lambda-ext
-lambda-ext
-0
-1
-0.33
-0.01
-1
-NIL
-HORIZONTAL
-
-SLIDER
-189
-319
-361
-352
-mean-expC
-mean-expC
-0
-1
-0.66
-0.01
-1
-NIL
-HORIZONTAL
-
-SLIDER
-399
-302
-571
-335
-psat
-psat
-0
-1
-0.22
-0.01
-1
-NIL
-HORIZONTAL
-
-SLIDER
-400
-343
-572
-376
-umin
-umin
-0
-50
-13.7
-0.1
-1
-NIL
-HORIZONTAL
-
-SLIDER
-400
-383
-572
-416
-alpha
-alpha
--1
-1
-0.97
-0.01
-1
-NIL
-HORIZONTAL
-
-SLIDER
-399
-423
-571
-456
-beta
-beta
--1
-1
-0.54
-0.01
-1
-NIL
-HORIZONTAL
-
-SLIDER
-400
-465
-572
-498
-mu
-mu
-0
-100
-62
-0.1
-1
-NIL
-HORIZONTAL
-
-SLIDER
-189
-359
-361
-392
-comlimscore
-comlimscore
-0
-1
-0.68
-0.01
-1
-NIL
-HORIZONTAL
-
-SLIDER
-190
-434
-362
-467
-gammawatercol
-gammawatercol
-0
-20
-8.72
-0.01
-1
-NIL
-HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
