@@ -1,8 +1,15 @@
 ;;;;; CHANGELOG: ;;;;;;;;
-; - "social-values" and "conditionalcooperation" behaviours copied over from original model
-; - verification of above behaviour produced some questions that are highlighted by ";FJ?"
+; - set cooperative behaviour to equal share of actual waterflow (instead of fix value) for extraction in conditionalcooperation
+; - updating error in investment decision of social-values fixed (randomnumber was compared to wrong value of totalutility)
+; - set strategy to "NA" for social-values (it is not needed and prevents erroneous initialization)
+; - inv-past updated for all agents before new investment decisions are made
+; - error in investment decision for social-values fixed: earningsothers did not use investment levels of previous round
+; - bug in calculation of equalshare in conditionalcooperation fixed 
+; - error in calculation of utility in social-values fixed: delete minus sign before mu
+; - wrong reference in calcactualutility corrected
 
 ;;;;; TO-DOS: ;;;;;;;;;;;
+
 
 
 turtles-own [	
@@ -160,7 +167,7 @@ to setupcleardata
       ]
     ]
   ]
-;FJ  if scenario = "social-values" [ask turtles [set strategy "NA"]]
+  if scenario = "social-values" [ask turtles [set strategy "NA"]]
   ask turtles [if random-float 1 < psat [set satisfied 1]]
   reset-ticks
 end
@@ -261,15 +268,15 @@ to go
     ][
       let score 0
       if mean [harvest] of turtles > 0 [
-          ifelse (harvest / mean [harvest] of turtles) < 1 [set score (harvest / mean [harvest] of turtles)] [set score 1] ;FJ? Why do you take the mean of all turtles here, while for utility you compare own earning to the mean of other turtles?
+          ifelse (harvest / mean [harvest] of turtles) < 1 [set score (harvest / mean [harvest] of turtles)] [set score 1] 
       ]
       ; expected level of cooperation after communication and after feedback on extraction from resource
       ifelse limcom [
         set expC expC * (1 - lambda) + lambda * comlimscore 
         set expC expC * (1 - lambda-ext) + lambda-ext * score
       ][
-        set expC expC * (1 - lambda) + lambda ;FJ? Why is expC updated twice (= this line and the next)? In this line expC will always increase (= learning effect?) and in the next it may decrease.
-        set expC expC * (1 - lambda-ext) + lambda-ext * score ;FJ? Is it possible that expC only decreases if score < 0.5 (so unless an agent harvests less than twice the average its trust would still increase (but less strongly)?
+        set expC expC * (1 - lambda) + lambda 
+        set expC expC * (1 - lambda-ext) + lambda-ext * score 
       ]
     ]
     if expC < 0 [set expC 0]
@@ -277,18 +284,19 @@ to go
   ]
 
   invest
+;  show (word "investments: " map [[inv] of ?] sort turtles ", infrastructure: " infrastructure)
   
   ; update expected cooperation from observed investment levels
   ask turtles [
     let score 1
     if pastinfrastructure < 66 [
-      ifelse ((inv > mean [inv] of turtles) and (inv > 0)) [ ;FJ? See situation wrt harvest above
+      ifelse ((inv > mean [inv] of turtles) and (inv > 0)) [ 
         set score  (mean [inv] of turtles / inv) 
       ][
         set score 1
       ]
     ]
-    if pastinfrastructure < 66 [set expC expC * (1 - lambda-inv) + lambda-inv * score] ; adjusting expected level of cooperation after getting feedback on relative investments ;FJ? Is it possible that expC only decreases if score < 0.5 (so unless an agent invests more than twice the average its trust would still increase (but less strongly)?
+    if pastinfrastructure < 66 [set expC expC * (1 - lambda-inv) + lambda-inv * score] ; adjusting expected level of cooperation after getting feedback on relative investments
   ]
   
   calcwaterflow
@@ -333,15 +341,16 @@ end
 
 to invest ; this is how investment decisions are made
   set pastinfrastructure infrastructure
+  ask turtles [set inv-past inv]
+  
   ask turtles [
-    set inv-past inv
     if scenario = "conditionalcooperation" [
       ifelse expC <= 0.5 [set strategy 1][set strategy 2]
     ]    
     
     if strategy = 0 [set inv random 11]
     
-    if strategy = 1 [;FJ Presumably, this has to be adjusted for the different treatments
+    if strategy = 1 [;xx Presumably, this has to be adjusted for the different treatments
       set inv 0
       if who = 0 [
         let sizeinvestment 0
@@ -376,7 +385,7 @@ to invest ; this is how investment decisions are made
     
     if strategy = 2 [
       ifelse limcom [ ; with limcom
-        ifelse visioneffect [ 
+        ifelse visioneffect [
           ifelse infrastructure < 66
           [
             if (who = 0 or who = 4) [set inv ceiling (maintenance / 2)]
@@ -400,14 +409,18 @@ to invest ; this is how investment decisions are made
           set inv 0
         ]
       ]
-      set inv inv + random-normal 0 stdev-random
+;      type (word who ": orig. inv: " inv) 
+      let noise random-normal 0 stdev-random
+      set inv inv + noise
       set inv int round inv 
       if inv < 0 [set inv 0]
       if inv > 10 [set inv 10]  
+;      print (word ", noise: " noise ", final inv: " inv)
     ]
     
+;    show (word "satisfied: " map [[satisfied] of ?] sort turtles)
     if scenario = "social-values" [ 
-      ifelse satisfied < 1 [
+      ifelse satisfied < 1 [ 
         ifelse ticks = 0 [
           set inv 5
         ][
@@ -417,18 +430,18 @@ to invest ; this is how investment decisions are made
           let utilitymax 0
           let totalutility 0
           let earningsothers 0
-          show (word "investment: " [inv] of other turtles ", harvest: " [harvest] of other turtles)
+;          show (word "inv-past: " map [[inv-past] of ?] sort turtles ", harvest: " map [[harvest] of ?] sort turtles )
           ifelse limcom = false [
-            set earningsothers 10 - mean [inv] of other turtles + mean [harvest] of other turtles ;FJ? since strategy is 0 in scenario "social-values" (apparently, NL sets all variables to 0 unless specified differently during setup), inv is set to a random number! What should it really refer to? Last round's investments?
-          ][;FJ? do we have an updating problem here?! If inv should refer last round's values, they are partly overwritten as the "ask turtles" command runs repeatedly, once for each agent (using updated inv values in later iterations)
+            set earningsothers 10 - mean [inv-past] of other turtles + mean [harvest] of other turtles 
+          ][
             ifelse visioneffect [
-              if who = 0 [set earningsothers 10 - [inv] of turtle 1 + [harvest] of turtle 1]
-              if who = 1 [set earningsothers 10 - ([inv] of turtle 0 + [inv] of turtle 2) / 2 + ([harvest] of turtle 0 + [harvest] of turtle 2) / 2]
-              if who = 2 [set earningsothers 10 - ([inv] of turtle 1 + [inv] of turtle 3) / 2 + ([harvest] of turtle 1 + [harvest] of turtle 3) / 2]
-              if who = 3 [set earningsothers 10 - ([inv] of turtle 2 + [inv] of turtle 4) / 2 + ([harvest] of turtle 2 + [harvest] of turtle 4) / 2]
-              if who = 4 [set earningsothers 10 - [inv] of turtle 3 + [harvest] of turtle 3]
+              if who = 0 [set earningsothers 10 - [inv-past] of turtle 1 + [harvest] of turtle 1]
+              if who = 1 [set earningsothers 10 - ([inv-past] of turtle 0 + [inv-past] of turtle 2) / 2 + ([harvest] of turtle 0 + [harvest] of turtle 2) / 2]
+              if who = 2 [set earningsothers 10 - ([inv-past] of turtle 1 + [inv-past] of turtle 3) / 2 + ([harvest] of turtle 1 + [harvest] of turtle 3) / 2]
+              if who = 3 [set earningsothers 10 - ([inv-past] of turtle 2 + [inv-past] of turtle 4) / 2 + ([harvest] of turtle 2 + [harvest] of turtle 4) / 2]
+              if who = 4 [set earningsothers 10 - [inv-past] of turtle 3 + [harvest] of turtle 3]
             ][
-              set earningsothers 10 - mean [inv] of other turtles + mean [harvest] of other turtles 
+              set earningsothers 10 - mean [inv-past] of other turtles + mean [harvest] of other turtles 
             ]
           ]
           
@@ -440,22 +453,25 @@ to invest ; this is how investment decisions are made
               set utility 10 - i + harvest + beta * (earningsothers - 10 + i - harvest)
             ]
             set list-utility lput utility list-utility
-            set totalutility totalutility + exp (- mu * utility) ;FJ? What is happening here? What is mu? If it refers to tau of eq. 5 in the paper, why is mu negative and tau positive? A negative exponent would actually make the highest utilities the least likely, wouldn't it?
+            set totalutility totalutility + exp (mu * utility) 
             set i i + 1
           ]
+;          show (word "totalutility: " totalutility ", sum list-utility: " sum map [exp (mu * ?)] list-utility)
           
           let randomnumber random-float totalutility
           set i 0
-          set totalutility exp (- mu * item 0 list-utility)
+          set totalutility exp (mu * item 0 list-utility)
+;          show (word "randomnumber = " randomnumber ", util: " map [exp (mu * ?)] list-utility) 
           while [i <= 10]
           [
             ifelse randomnumber < totalutility [
               set inv i set i 11
             ][
-             set totalutility totalutility + exp ( - mu * item i list-utility) ;FJ? If randomnumber > totalutility, for i = 0, - mu * item 0 list-utility is added twice (for i=0, totalutility = exp (- mu * item 0 list-utility)) in the sum - why? Would it solve the problem to move "set i i + 1" before this line?
+              set i i + 1
+              set totalutility totalutility + exp (mu * item i list-utility) 
             ]
-            set i i + 1
           ]
+;          show (word ", inv: " inv ", totalutility: " totalutility)
         ]
       ][set inv inv-past] ; agents repeat from the past round if they are satisfied
     ]
@@ -574,20 +590,27 @@ to extract
     getwater
     set sec sec + 1
   ]
+;  show (word actualwatersupply " cfps, watercol after 50s: " map [[watercol] of ?] sort turtles)
 end
 
 to getwater ; define when to open and close gates
   let i 0
   let totalwaterremaining watersupply * (50 - sec)
+  let equalshare ceiling actualwatersupply * 50 / 5
+  
   while [i < 5]
   [
     ask turtle i [
       
       if scenario = "conditionalcooperation" [          
-        let water0 500 - 200 * expC 
+;        let water0 500 - 200 * expC 
+        let water0 500 - (500 - equalshare) * expC ;new
         ; agents have an intended level of water that they want to collect but may close gate earlier
         ifelse water0 > 0 or watercol > 0 [
-          if random-float 1 < ((watercol ^ gammawatercol)/ (watercol ^ gammawatercol + water0 ^ gammawatercol)) [set gate 0]
+          if random-float 1 < ((watercol ^ gammawatercol)/ (watercol ^ gammawatercol + water0 ^ gammawatercol)) [
+            set gate 0
+            ;show (word sec ", " who ", close gate early! Prob: " ((watercol ^ gammawatercol)/ (watercol ^ gammawatercol + water0 ^ gammawatercol)))
+          ]
         ][set gate 0]
       ]
       
@@ -596,17 +619,17 @@ to getwater ; define when to open and close gates
       ]
  
       if scenario != "social-values" and scenario != "conditionalcooperation" [
-        if strategy = 0 [
+        if strategy = 0 [ ; scenario = random
           set gate random 2
         ]
         
-        if strategy = 1 [
+        if strategy = 1 [ ; scenario = selfish
           ifelse watercol < 500 [set gate 1][set gate 0]
         ]
         
-        if strategy = 2 [
-          let equalshare ceiling (10 * watersupply) 
+        if strategy = 2 [ ; scenario = cooperative
           ifelse watercol < equalshare [set gate 1][set gate 0]
+          ;show (word sec ", " who ", eqshare: " equalshare ", watercol: " watercol ", gate: " gate)
         ]
       ]
       
@@ -618,6 +641,8 @@ to getwater ; define when to open and close gates
         	set watercol watercol + watersupply set watersupply 0 ;
         ]
       ]
+      ;show (word sec ", " who ", strategy: " strategy ", eqshare: " equalshare ", watercol: " watercol ", gate: " gate)
+
     ]
     set i i + 1
   ]
@@ -637,7 +662,7 @@ to calcactualutility
       if who = 1 [ifelse earnings > (([earnings] of turtle 0 + [earnings] of turtle 2) / 2) [set actualutility earnings - alpha * (earnings - (([earnings] of turtle 0 + [earnings] of turtle 2) / 2))][set actualutility earnings + beta * ((([earnings] of turtle 0 + [earnings] of turtle 2) / 2) - earnings)]]
       if who = 2 [ifelse earnings > (([earnings] of turtle 1 + [earnings] of turtle 3) / 2) [set actualutility earnings - alpha * (earnings - (([earnings] of turtle 1 + [earnings] of turtle 3) / 2))][set actualutility earnings + beta * ((([earnings] of turtle 1 + [earnings] of turtle 3) / 2) - earnings)]]
       if who = 3 [ifelse earnings > (([earnings] of turtle 2 + [earnings] of turtle 4) / 2) [set actualutility earnings - alpha * (earnings - (([earnings] of turtle 2 + [earnings] of turtle 4) / 2))][set actualutility earnings + beta * ((([earnings] of turtle 2 + [earnings] of turtle 4) / 2) - earnings)]]
-      if who = 4 [ifelse earnings > [earnings] of turtle 3 [set actualutility earnings - alpha * (earnings - [earnings] of turtle 1)][set actualutility earnings + beta * ([earnings] of turtle 1 - earnings)]]
+      if who = 4 [ifelse earnings > [earnings] of turtle 3 [set actualutility earnings - alpha * (earnings - [earnings] of turtle 3)][set actualutility earnings + beta * ([earnings] of turtle 3 - earnings)]] 
       ][
         ifelse earnings > mean [earnings] of other turtles [
         set actualutility earnings - alpha * (earnings - mean [earnings] of other turtles) 
@@ -793,7 +818,7 @@ to calcmetrics ; calculating the metrics to evaluate the fit between data and si
      + (item 15 list-data-change - item 15 list-change) ^ 2 + (item 16 list-data-change - item 16 list-change) ^ 2 + (item 17 list-data-change - item 17 list-change) ^ 2 + (item 18 list-data-change - item 18 list-change) ^ 2 
      + (item 19 list-data-change - item 19 list-change) ^ 2 + (item 20 list-data-change - item 20 list-change) ^ 2 
      
-   set metric-inv ((metric-inv / 50) ^ 0.5) / 10 ;(([cumul. squared diffs] / [# values]) ^ 0.5 / [max. poss value] ;FJ does that have to be updated if treatments are analysed?
+   set metric-inv ((metric-inv / 50) ^ 0.5) / 10 ;(([cumul. squared diffs] / [# values]) ^ 0.5 / [max. poss value] ;xx does that have to be updated if treatments are analysed?
    set metric-ext ((metric-ext / 50 ) ^ 0.5) / 20 
    set metric-inf ((metric-inf / 10) ^ 0.5) / 100 
    set metric-change ((metric-change / 210) ^ 0.5) 
@@ -1325,7 +1350,7 @@ CHOOSER
 Variability
 Variability
 "lv-inf" "hv-inf" "lv-wa" "hv-wa"
-3
+0
 
 SWITCH
 22
@@ -1488,7 +1513,7 @@ mu
 mu
 0
 100
-62
+37
 0.1
 1
 NIL
