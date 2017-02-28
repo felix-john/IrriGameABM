@@ -1,0 +1,198 @@
+---
+title: "Darren Wilkinson ABC rejection example"
+output: html_notebook
+---
+
+This is an example R script that is based on an [example by Darren Wilkinson](https://darrenjw.wordpress.com/2013/03/31/introduction-to-approximate-bayesian-computation-abc/).
+
+# One core
+
+```{r Setup and simulation, results='hide'}
+require(smfsb)
+data(LVdata)
+ 
+# sample size
+N=1e5
+message(paste("N =",N))
+
+# specify the prior distribution, here an exponential distribution
+# prior yields a matrix of 3 cols (th1-th3) and N rows
+prior=cbind(th1=exp(runif(N,-6,2)),th2=exp(runif(N,-6,2)),th3=exp(runif(N,-6,2))) 
+rows=lapply(1:N,function(i){prior[i,]})
+
+# simulate the model: simTs(initial conditions, t0, terminal time, time step size, advancing function (th is passed to stepLVc))
+message("starting simulation")
+samples=lapply(rows,function(th){simTs(c(50,100),0,30,2,stepLVc,th)})
+message("finished simulation")
+```
+
+`simTs` is a function from the `smfsb` package. It simulates a single realisation of the model. `stepLVc` is a function for advancing the state of a Lotka-Volterra model by using a Gillespie algorithm. `th` is the vector of constants for the LV equations.
+`samples` is a nested list. It contains an element for each sample which contains a time series of the state variables in the simulation. 
+
+
+```{r Compute distances, results='hide'}
+# calculates the sum of square differences betweeen a simulation value and the empirical data
+distance<-function(ts)
+{
+  diff=ts-LVperfect
+  sum(diff*diff)
+}
+ 
+message("computing distances")
+dist=lapply(samples,distance)
+message("distances computed")
+ 
+dist=sapply(dist,c)
+cutoff=quantile(dist,1000/N) # calculates the distance of the 1%-percentile
+post=prior[dist<cutoff,] # includes the 1000 best results
+```
+
+The `cutoff` is not a fix number, but a quantile instead.
+
+```{r Produce output, results='hide'}
+op=par(mfrow=c(2,3))
+apply(post,2,hist,30)
+apply(log(post),2,hist,30)
+par(op)
+```
+
+
+# Multiple cores
+
+"One problem with the above script is that all proposed samples are stored in memory at once. This is problematic for problems involving large numbers of samples. However, it is convenient to do simulations in large batches, both for computation of quantiles, and also for efficient parallelisation. The script below illustrates how to implement a batch parallelisation strategy for this problem. Samples are generated in batches of size 10^4, and only the best fitting samples are stored before the next batch is processed. This strategy can be used to get a good sized sample based on a more stringent acceptance criterion at the cost of addition simulation time. Note that the parallelisation code will only work with recent versions of R, and works by replacing calls to lapply with the parallel version, mclapply. You should notice an appreciable speed-up on a multicore machine."
+
+```{r Multicore simulation and analysis, results='hide'}
+require(smfsb)
+require(parallel)
+options(mc.cores=4)
+data(LVdata)
+ 
+N=1e5
+bs=1e4
+batches=N/bs
+message(paste("N =",N," | bs =",bs," | batches =",batches))
+ 
+distance<-function(ts)
+{
+  diff=ts-LVperfect
+  sum(diff*diff)
+}
+ 
+post=NULL
+for (i in 1:batches) {
+  message(paste("batch",i,"of",batches))
+  prior=cbind(th1=exp(runif(bs,-6,2)),th2=exp(runif(bs,-6,2)),th3=exp(runif(bs,-6,2)))
+  rows=lapply(1:bs,function(i){prior[i,]})
+  samples=mclapply(rows,function(th){simTs(c(50,100),0,30,2,stepLVc,th)})
+  dist=mclapply(samples,distance)
+  dist=sapply(dist,c)
+  cutoff=quantile(dist,1000/N) # keep 100 runs out of every batch run
+  post=rbind(post,prior[dist<cutoff,])
+}
+message(paste("Finished. Kept",dim(post)[1],"simulations"))
+ 
+op=par(mfrow=c(2,3))
+apply(post,2,hist,30)
+apply(log(post),2,hist,30)
+par(op)
+```
+
+"Note that there is an additional approximation here, since the top 100 samples from each of 10 batches of simulations won’t correspond exactly to the top 1000 samples overall, but given all of the other approximations going on in ABC, this one is likely to be the least of your worries."
+
+
+# Summary statistics
+
+Here's a [link](https://darrenjw.wordpress.com/2013/09/01/summary-stats-for-abc/) to the original blog entry of Darren Wilkinson. 
+
+Here, instead of directly computing the Euclidean distance between the real and simulated data, we will look at the Euclidean distance between some (normalised) summary statistics.  
+First we will load some packages and set some parameters.
+```{r}
+require(smfsb)
+require(parallel)
+options(mc.cores=4)
+data(LVdata)
+  
+N=1e6
+bs=1e5
+batches=N/bs
+message(paste("N =",N," | bs =",bs," | batches =",batches))
+```
+
+Next we will define some summary stats for a univariate time series – the mean, the (log) variance, and the first two auto-correlations. (*Note* FJ: Mean and log variance of the 16 observed time steps.)
+```{r}
+ssinit <- function(vec)
+{
+  ac23=as.vector(acf(vec,lag.max=2,plot=FALSE)$acf)[2:3]
+  c(mean(vec),log(var(vec)+1),ac23)
+}
+```
+
+Once we have this, we can define some stats for a bivariate time series by combining the stats for the two component series, along with the cross-correlation between them.
+
+```{r}
+ssi <- function(ts)
+{
+  c(ssinit(ts[,1]),ssinit(ts[,2]),cor(ts[,1],ts[,2]))
+}
+```
+
+This gives a set of summary stats, but these individual statistics are potentially on very different scales. They can be transformed and re-weighted in a variety of ways, usually on the basis of a pilot run which gives some information about the distribution of the summary stats. Here we will do the simplest possible thing, which is to normalise the variance of the stats on the basis of a pilot run. This is not at all optimal – see the references at the end of the post for a description of better methods.
+
+```{r}
+message("Batch 0: Pilot run batch")
+prior=cbind(th1=exp(runif(bs,-6,2)),th2=exp(runif(bs,-6,2)),th3=exp(runif(bs,-6,2)))
+rows=lapply(1:bs,function(i){prior[i,]})
+samples=mclapply(rows,function(th){simTs(c(50,100),0,30,2,stepLVc,th)})
+sumstats=mclapply(samples,ssi)
+sds=apply(sapply(sumstats,c),1,sd) # calculate SD across runs of this batch, individually for each metric
+print(sds)
+ 
+# now define a standardised distance
+ss<-function(ts)
+{
+  ssi(ts)/sds
+}
+ 
+ss0=ss(LVperfect)
+ 
+distance <- function(ts)
+{
+  diff=ss(ts)-ss0
+  sum(diff*diff)
+}
+```
+
+Now we have a normalised distance function defined, we can proceed exactly as before to obtain an ABC posterior via rejection sampling.
+
+```{r rejection sampling, cache=TRUE}
+post=NULL
+for (i in 1:batches) {
+  message(paste("batch",i,"of",batches))
+  prior=cbind(th1=exp(runif(bs,-6,2)),th2=exp(runif(bs,-6,2)),th3=exp(runif(bs,-6,2)))
+  rows=lapply(1:bs,function(i){prior[i,]})
+  samples=mclapply(rows,function(th){simTs(c(50,100),0,30,2,stepLVc,th)})
+  dist=mclapply(samples,distance)
+  dist=sapply(dist,c)
+  cutoff=quantile(dist,1000/N,na.rm=TRUE)
+  post=rbind(post,prior[dist<cutoff,])
+}
+message(paste("Finished. Kept",dim(post)[1],"simulations"))
+
+```
+
+Having obtained the posterior, we can use the following code to plot the results.
+
+```{r}
+th=c(th1 = 1, th2 = 0.005, th3 = 0.6)
+op=par(mfrow=c(2,3))
+for (i in 1:3) {
+  hist(post[,i],30,col=5,main=paste("Posterior for theta[",i,"]",sep=""))
+  abline(v=th[i],lwd=2,col=2)
+}
+for (i in 1:3) {
+  hist(log(post[,i]),30,col=5,main=paste("Posterior for log(theta[",i,"])",sep=""))
+  abline(v=log(th[i]),lwd=2,col=2)
+}
+par(op)
+```
+

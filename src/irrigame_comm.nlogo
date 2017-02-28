@@ -1,12 +1,6 @@
 ;;;;; CHANGELOG: ;;;;;;;;
-; - set cooperative behaviour to equal share of actual waterflow (instead of fix value) for extraction in conditionalcooperation
-; - updating error in investment decision of social-values fixed (randomnumber was compared to wrong value of totalutility)
-; - set strategy to "NA" for social-values (it is not needed and prevents erroneous initialization)
-; - inv-past updated for all agents before new investment decisions are made
-; - error in investment decision for social-values fixed: earningsothers did not use investment levels of previous round
-; - bug in calculation of equalshare in conditionalcooperation fixed 
-; - error in calculation of utility in social-values fixed: delete minus sign before mu
-; - wrong reference in calcactualutility corrected
+; - comment out updateparams and useoptimalparams
+; - add if-conditions for commands that are only used for specific scenarios
 
 ;;;;; TO-DOS: ;;;;;;;;;;;
 
@@ -41,6 +35,8 @@ globals [
   sec ; secpnd in game collecting water
 ;  limcom ; boolean that defines whether agents have limited communication of not
   pastinfrastructure ; infrastructure level of previous round
+  ; parameters for phase2
+  lambda-inv2 lambda2 lambda-ext2 stdev-random2 comlimscore2 gammawatercol2 umin2 alpha2 beta2 mu2
   inf-eff-F inf-eff-L ; infrastructure levels for limited and full communication
   inv-A-F inv-B-F inv-C-F inv-D-F inv-E-F ; data on investment levels per position with full communication
   ext-A-F ext-B-F ext-C-F ext-D-F ext-E-F ; data on extraction levels per position with full communication
@@ -129,6 +125,8 @@ to setup
 ;  set limcom true
   
   loadexpdata
+  
+  ;if phase2? [useoptimalparams] ;resets parameters for phase1 to those obtained from calibration
    
   setupcleardata
   
@@ -143,7 +141,6 @@ to setup
   set metric-mult 0
 ;  set limcom false 
 end ; end of setup
-
 
 to setupcleardata
   ask turtles
@@ -162,13 +159,17 @@ to setupcleardata
   if scenario = "mix" [
     ask turtles [
       let randomnumber random-float 1
-      ifelse randomnumber <= sharerandom [set strategy 0]
-      [ifelse randomnumber <= (sharerandom + shareselfish) [ set strategy 1][set strategy 2]
+      ifelse randomnumber <= sharerandom [set strategy 0][
+        ifelse randomnumber <= (sharerandom + shareselfish) [ set strategy 1][set strategy 2]
       ]
     ]
   ]
-  if scenario = "social-values" [ask turtles [set strategy "NA"]]
-  ask turtles [if random-float 1 < psat [set satisfied 1]]
+  if scenario = "social-values" [
+    ask turtles [
+      set strategy "NA"
+      if random-float 1 < psat [set satisfied 1]
+    ]
+  ]
   reset-ticks
 end
 
@@ -251,56 +252,59 @@ end ; of batch
 to go
   if ticks = sim-length [stop]
 
-  if ticks = 10 [set infrastructure 100] ; has to be set to 100 because it will still depreciate afterwards
+  if ticks = 10 [
+    set infrastructure 100 ; has to be set to 100 because it will still depreciate afterwards
+    ; updateparams ; resets parameters to values from interface
+  ] 
 
   createdata ; MJ: translate data list to time series of data
 
   calcinfrastructuredecline ; setup infrastructure decline
   
-  ; update expectations from communication and extractions
-  ask turtles [
-    ifelse ticks = 0 [
-      ifelse limcom [
-        set expC expC * (1 - lambda) + (lambda * comlimscore)
+  ; update expectations from communication and extractions (only for conditionalcooperation)
+  if scenario = "conditionalcooperation" [
+    ask turtles [
+      ifelse ticks = 0 [
+        ifelse limcom [
+          set expC expC * (1 - lambda) + (lambda * comlimscore)
+        ][
+          set expC expC * (1 - lambda) + lambda
+        ]
       ][
-        set expC expC * (1 - lambda) + lambda
-      ]
-    ][
-      let score 0
-      if mean [harvest] of turtles > 0 [
+        let score 0
+        if mean [harvest] of turtles > 0 [
           ifelse (harvest / mean [harvest] of turtles) < 1 [set score (harvest / mean [harvest] of turtles)] [set score 1] 
+        ]
+        ; expected level of cooperation after communication and after feedback on extraction from resource
+        ifelse limcom [
+          set expC expC * (1 - lambda) + lambda * comlimscore 
+          set expC expC * (1 - lambda-ext) + lambda-ext * score
+        ][
+         set expC expC * (1 - lambda) + lambda 
+         set expC expC * (1 - lambda-ext) + lambda-ext * score 
+        ]
       ]
-      ; expected level of cooperation after communication and after feedback on extraction from resource
-      ifelse limcom [
-        set expC expC * (1 - lambda) + lambda * comlimscore 
-        set expC expC * (1 - lambda-ext) + lambda-ext * score
-      ][
-        set expC expC * (1 - lambda) + lambda 
-        set expC expC * (1 - lambda-ext) + lambda-ext * score 
-      ]
+      if expC < 0 [set expC 0]
+      if expC > 1 [set expC 1]      
     ]
-    if expC < 0 [set expC 0]
-    if expC > 1 [set expC 1]      
   ]
 
   invest
 ;  show (word "investments: " map [[inv] of ?] sort turtles ", infrastructure: " infrastructure)
   
-  ; update expected cooperation from observed investment levels
-  ask turtles [
-    let score 1
-    if pastinfrastructure < 66 [
-      ifelse ((inv > mean [inv] of turtles) and (inv > 0)) [ 
-        set score  (mean [inv] of turtles / inv) 
-      ][
-        set score 1
+  ; update expected cooperation from observed investment levels (only for conditionalcooperation)
+  if scenario = "conditionalcooperation" [
+    ask turtles [
+      let score 1
+      if pastinfrastructure < 66 [
+        ifelse ((inv > mean [inv] of turtles) and (inv > 0)) [set score  (mean [inv] of turtles / inv)] [set score 1]
       ]
+      if pastinfrastructure < 66 [set expC expC * (1 - lambda-inv) + lambda-inv * score] ; adjusting expected level of cooperation after getting feedback on relative investments
     ]
-    if pastinfrastructure < 66 [set expC expC * (1 - lambda-inv) + lambda-inv * score] ; adjusting expected level of cooperation after getting feedback on relative investments
   ]
   
   calcwaterflow
-  calcutility
+  if scenario = "social-values" [ calcutility ]; for social-values
   extract ; agents extract water
 
   ask turtles [
@@ -310,8 +314,8 @@ to go
   set totalearnings sum [earnings] of turtles
   set totalharvest sum [harvest] of turtles
   
-  ; after the round calculate the actual utilities
-  calcactualutility
+  ; after the round calculate the actual utilities (only for social-values)
+  if scenario = "social-values" [ calcactualutility ]
   ; calculate the metrics
   calcgini
   
@@ -350,7 +354,7 @@ to invest ; this is how investment decisions are made
     
     if strategy = 0 [set inv random 11]
     
-    if strategy = 1 [;xx Presumably, this has to be adjusted for the different treatments
+    if strategy = 1 [
       set inv 0
       if who = 0 [
         let sizeinvestment 0
@@ -542,22 +546,22 @@ to calcutility ; only relevant for scenario = "social-values"?!
       while [i < totalwater]
       [
         let mewater calharvest i ; calculate earnings from water amount
-        let waterinput 0
+        let waterinput 0 ; assumption how much others would extract (given that agent itself extracts i)
         ifelse limcom = false [
           set waterinput int (((totalwater - i) / 4))
-        ][
+        ][ ;with limited communication
           ifelse visioneffect [
-          if who = 0 or who = 4 [
-            set waterinput int (totalwater - i)
-            if waterinput > 500 [set waterinput 500]
-          ]
-          if who = 1 or who = 2 or who = 3 [
-            set waterinput int ((totalwater - i) / 2)
-            if waterinput > 500 [set waterinput 500]
-          ] 
-          ][
-             set waterinput int (((totalwater - i) / 4))
-          ]       
+            if who = 0 or who = 4 [
+              set waterinput int (totalwater - i)
+              if waterinput > 500 [set waterinput 500]
+            ]
+            if who = 1 or who = 2 or who = 3 [
+              set waterinput int ((totalwater - i) / 2)
+              if waterinput > 500 [set waterinput 500]
+            ] 
+          ][ ;without visioneffect
+            set waterinput int (((totalwater - i) / 4))
+          ]     
         ]
         let otherwater calharvest waterinput ; calculate average earnings of average water collected by others (note that this is a crude approximation since waterinputs are earnings are not linearly related) 
         ifelse mewater > otherwater [
@@ -648,27 +652,68 @@ to getwater ; define when to open and close gates
   ]
 end
 
+to useoptimalparams
+    ; store parameters from interface for phase2
+    set lambda-inv2 lambda-inv
+    set lambda2 lambda
+    set lambda-ext2 lambda-ext
+    set stdev-random2 stdev-random
+    set comlimscore2 comlimscore 
+    set gammawatercol2 gammawatercol
+    set umin2 umin 
+    set alpha2 alpha
+    set beta2 beta
+    set mu2 mu
+    
+    ; reset to values from calibration for phase1
+    set lambda-inv 0.99
+    set lambda 0.81
+    set lambda-ext 0.33
+    set stdev-random 0.99
+    set comlimscore 0.68 
+    set gammawatercol 8.72
+    set umin 13.7
+    set alpha 0.97
+    set beta 0.54
+    set mu 37
+;    set mean-expC 0.66 ;not changed above
+;    set psat 0.22 ;not changed above
+end
+
+to updateparams
+  set lambda-inv lambda-inv2
+  set lambda lambda2
+  set lambda-ext lambda-ext2
+  set stdev-random stdev-random2
+  set comlimscore comlimscore2
+  set gammawatercol gammawatercol2
+  set umin umin2 
+  set alpha alpha2
+  set beta beta2
+  set mu mu2
+end
+
 to calcactualutility
   ask turtles [
-    ifelse limcom = false [
+    ifelse limcom = false [ ; full communication
       ifelse earnings > mean [earnings] of other turtles [
         set actualutility earnings - alpha * (earnings - mean [earnings] of other turtles) 
       ][
         set actualutility earnings + beta * (mean [earnings] of other turtles - earnings)
       ]
-    ][
+    ][ ; limited communication
       ifelse visioneffect [
       if who = 0 [ifelse earnings > [earnings] of turtle 1 [set actualutility earnings - alpha * (earnings - [earnings] of turtle 1)][set actualutility earnings + beta * ([earnings] of turtle 1 - earnings)]]
       if who = 1 [ifelse earnings > (([earnings] of turtle 0 + [earnings] of turtle 2) / 2) [set actualutility earnings - alpha * (earnings - (([earnings] of turtle 0 + [earnings] of turtle 2) / 2))][set actualutility earnings + beta * ((([earnings] of turtle 0 + [earnings] of turtle 2) / 2) - earnings)]]
       if who = 2 [ifelse earnings > (([earnings] of turtle 1 + [earnings] of turtle 3) / 2) [set actualutility earnings - alpha * (earnings - (([earnings] of turtle 1 + [earnings] of turtle 3) / 2))][set actualutility earnings + beta * ((([earnings] of turtle 1 + [earnings] of turtle 3) / 2) - earnings)]]
       if who = 3 [ifelse earnings > (([earnings] of turtle 2 + [earnings] of turtle 4) / 2) [set actualutility earnings - alpha * (earnings - (([earnings] of turtle 2 + [earnings] of turtle 4) / 2))][set actualutility earnings + beta * ((([earnings] of turtle 2 + [earnings] of turtle 4) / 2) - earnings)]]
       if who = 4 [ifelse earnings > [earnings] of turtle 3 [set actualutility earnings - alpha * (earnings - [earnings] of turtle 3)][set actualutility earnings + beta * ([earnings] of turtle 3 - earnings)]] 
-      ][
+      ][ ; no vision effect
         ifelse earnings > mean [earnings] of other turtles [
-        set actualutility earnings - alpha * (earnings - mean [earnings] of other turtles) 
-      ][
-        set actualutility earnings + beta * (mean [earnings] of other turtles - earnings)
-      ]
+          set actualutility earnings - alpha * (earnings - mean [earnings] of other turtles) 
+        ][
+          set actualutility earnings + beta * (mean [earnings] of other turtles - earnings)
+        ]
       ]
     ]
     ifelse actualutility > umin [set satisfied 1][set satisfied 0]
@@ -1185,7 +1230,7 @@ CHOOSER
 scenario
 scenario
 "selfish" "cooperative" "random" "conditionalcooperation" "mix" "social-values"
-5
+2
 
 PLOT
 1006
@@ -1317,10 +1362,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-189
-398
-361
-431
+202
+491
+374
+524
 stdev-random
 stdev-random
 0
@@ -1385,10 +1430,10 @@ Set phase2? to \"Off\" to run rounds 1-10 and compare to exp data averaged acros
 1
 
 SLIDER
-189
-244
-361
-277
+202
+337
+374
+370
 lambda-inv
 lambda-inv
 0
@@ -1400,10 +1445,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-188
-208
-360
-241
+201
+301
+373
+334
 lambda
 lambda
 0
@@ -1415,10 +1460,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-189
-282
-361
-315
+202
+375
+374
+408
 lambda-ext
 lambda-ext
 0
@@ -1430,10 +1475,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-189
-319
-361
-352
+202
+412
+374
+445
 mean-expC
 mean-expC
 0
@@ -1520,10 +1565,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-189
-359
-361
-392
+202
+452
+374
+485
 comlimscore
 comlimscore
 0
@@ -1535,10 +1580,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-190
-434
-362
-467
+203
+527
+375
+560
 gammawatercol
 gammawatercol
 0
@@ -1548,6 +1593,26 @@ gammawatercol
 1
 NIL
 HORIZONTAL
+
+TEXTBOX
+203
+259
+353
+291
+Parameters for conditionalcooperation
+13
+0.0
+1
+
+TEXTBOX
+402
+260
+552
+292
+Parameters for social-values
+13
+0.0
+1
 
 @#$#@#$#@
 ## WHAT IS IT?

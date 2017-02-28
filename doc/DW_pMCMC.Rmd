@@ -1,0 +1,107 @@
+---
+title: "Darren Wilkinson pMCMC example"
+output: html_notebook
+---
+
+This is an example R Notebook that is based on an [example by Darren Wilkinson](https://darrenjw.wordpress.com/2011/11/12/particle-filtering-and-pmcmc-using-r/).
+
+## Setup
+
+```{r experiment setup}
+require(smfsb)
+data(LVdata)
+#stepLVc(c(x1=50,x2=100),0,1)
+plot(LVnoise10,plot.type="single",col=c(2,4))
+
+```
+
+
+## Particle filter
+
+One of the key ingredients required to implement the pseudo-marginal MCMC scheme is a (bootstrap) particle filter which generates an unbiased estimate of the marginal likelihood of the data given the parameters (integrated over the unobserved state trajectory). The algorithm was discussed in this post, and R code to implement this is included in the `smfsb` R package as `pfMLLik. For reasons of numerical stability, the function computes and returns the log of the marginal likelihood, but it is important to understand that it is the actually likelihood estimate that is unbiased for the true likelihood, and not the corresponding statement for the logs. The actual code of the function is relatively short, and for completeness is given below:
+```{r particle filter marginal log-likelihood function, eval=FALSE}
+# arguments for pfMLLik: n = # particles, simx0 = initial conditions for all particles, t0 = starting point of Markov process, stepFun = function to advance Markov process, dataLik = likelihood of the observation, data = empirical data
+pfMLLik <- function (n, simx0, t0, stepFun, dataLik, data) 
+{
+    times = c(t0, as.numeric(rownames(data)))
+    deltas = diff(times)
+    return(function(...) {
+        xmat = simx0(n, t0, ...)
+        ll = 0
+        for (i in 1:length(deltas)) {
+            xmat = t(apply(xmat, 1, stepFun, t0 = times[i], deltat = deltas[i], ...))
+            w = apply(xmat, 1, dataLik, t = times[i + 1], y = data[i,], log = FALSE, ...)
+            if (max(w) < 1e-20) {
+                warning("Particle filter bombed")
+                return(-1e+99)
+            }
+            ll = ll + log(mean(w))
+            rows = sample(1:n, n, replace = TRUE, prob = w)
+            xmat = xmat[rows, ]
+        }
+        ll
+    })
+}
+```
+We need to set up the prior and the data likelihood correctly before we can use this function, but first note that the function does not actually run a particle filter at all, but instead stores everything it needs to know to run the particle filter in the local environment, and then returns a function closure for evaluating the marginal likelihood at a given set of parameters. The resulting function (closure) can then be used to run a particle filter for a given set of parameters, simply by passing the required parameters into the function. […] 
+To use `pfMLLik`, we first need to define a function which evaluates the log-likelihood of an observation conditional on the true state, and another which samples from the prior distribution of the initial state of the system. Here, we can do that as follows.
+```{r run particle filter}
+# set up data likelihood
+noiseSD=10
+dataLik <- function(x,t,y,log=TRUE,...)
+{
+    ll=sum(dnorm(y,x,noiseSD,log=TRUE))
+    if (log)
+        return(ll)
+    else
+        return(exp(ll))
+}
+# now define a sampler for the prior on the initial state
+simx0 <- function(N,t0,...)
+{
+    mat=cbind(rpois(N,50),rpois(N,100))
+    colnames(mat)=c("x1","x2")
+    mat
+}
+# convert the time series to a timed data matrix
+LVdata=as.timedData(LVnoise10)
+
+# create marginal log-likelihood functions, based on a particle filter
+# mLLik arguments: n = # particles, simx0 = initial conditions for all particles, t0 = starting point of Markov process, stepFun = function to advance Markov process, dataLik = likelihood of the observation, data = empirical data
+mLLik=pfMLLik(100,simx0,0,stepLVc,dataLik,LVdata)
+```
+Now the function (closure) `mLLik` will, for a given parameter vector, run a particle filter (using 100 particles) and return the log of the particle filter’s unbiased estimate of the marginal likelihood of the data. It is then very easy to use this function to create a simple PMMH algorithm for parameter inference.
+
+## PMMH algorithm
+
+Below is an algorithm based on flat priors and a simple Metropolis-Hastings update for the parameters using the function closure mLLik, defined above.
+```{r run PMMH algorithm, results='hide'}
+iters=1000
+tune=0.01
+thin=10
+th=c(th1 = 1, th2 = 0.005, th3 = 0.6)
+p=length(th)
+ll=-1e99 # set initial likelihood to very low values to ensure that first random draw has higher likelihood
+thmat=matrix(0,nrow=iters,ncol=p)
+colnames(thmat)=names(th)
+# Main pMCMC loop
+for (i in 1:iters) {
+    message(paste(i,""),appendLF=FALSE)
+    for (j in 1:thin) {
+        thprop=th*exp(rnorm(p,0,tune)) # draw initial values
+        llprop=mLLik(thprop) # calculate the marginal log-likelihood based on these initial values
+        if (log(runif(1)) < llprop - ll) {# if current draw increases the likelihood then set it as the new reference value; log(runif(1)) introduces small-scale random errors
+            th=thprop
+            ll=llprop
+            }
+        }
+    thmat[i,]=th
+    }
+message("Done!")
+```
+Variation in log-likelihoods are mainly driven by `log(runif(1))` because it also increases small-scale errors (if likelihood increases parameters will always be updated; but parameter sets with a slightly inferior likelihood to the current one, might wrongly be accepted due to randomness). The fact that `th` and `ll` are not reset after each iteration, is negligible in comparison to the error term.
+
+```{r, Compute and plot some basic summaries}
+mcmcSummary(thmat, rows = 3) # rows refers to number of variables per plot page
+```
+So, although we should really run the chain for a bit longer, we see that we can learn a great deal about the parameters of the process from very little data. For completeness, a full runnable demo script is included below the references. Of course there are many obvious extensions of this basic problem, such as partial observation (eg. only observing the prey) and unknown measurement error. These are discussed in Wilkinson (2011), and code for these cases is included within the demo(PMCMC), which should be inspected for further details.
