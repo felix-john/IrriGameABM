@@ -1,6 +1,5 @@
 ;;;;; CHANGELOG: ;;;;;;;;
-; - comment out updateparams and useoptimalparams
-; - add if-conditions for commands that are only used for specific scenarios
+; - comment out loading experimental data
 
 ;;;;; TO-DOS: ;;;;;;;;;;;
 
@@ -117,28 +116,35 @@ globals [
 
 to setup
   clear-all
-  set metric-mult 0
+;  set metric-mult 0
   crt 5 
   set done 0
   set sim-length 10
   if phase2? [set sim-length 20]
 ;  set limcom true
   
-  loadexpdata
+;  loadexpdata
   
   ;if phase2? [useoptimalparams] ;resets parameters for phase1 to those obtained from calibration
-   
+  
+  if phase2? [; input data for treatments
+    set decline-lv-inf (list 25 30 25 20 35 20 15 30 30 25)
+    set decline-hv-inf (list 25 10 10 80 10 5 10 80 10 10)
+    set supply-lv-wa (list 27 31 26 35 33 28 29 25 34 32)
+    set supply-hv-wa (list 27 31 22 36 25 32 38 21 29 39)
+  ]
+
   setupcleardata
   
-  resetlists
+;  resetlists
 
-  set metric-inv 0 
-  set metric-ext 0
-  set metric-inf 0
-  set metric-change 0
-  set metric-gini-inv 0
-  set metric-gini-ext 0
-  set metric-mult 0
+;  set metric-inv 0 
+;  set metric-ext 0
+;  set metric-inf 0
+;  set metric-change 0
+;  set metric-gini-inv 0
+;  set metric-gini-ext 0
+;  set metric-mult 0
 ;  set limcom false 
 end ; end of setup
 
@@ -257,7 +263,7 @@ to go
     ; updateparams ; resets parameters to values from interface
   ] 
 
-  createdata ; MJ: translate data list to time series of data
+;  createdata ; MJ: translate data list to time series of data
 
   calcinfrastructuredecline ; setup infrastructure decline
   
@@ -319,7 +325,7 @@ to go
   ; calculate the metrics
   calcgini
   
-  updatelists
+;  updatelists
 
   tick
 end ; end of go procedure
@@ -908,12 +914,6 @@ to loadexpdata
   ;create and add lists for treatments
   
   if phase2? [ ; extend experimental data by treatment
-    ; input data for treatments
-    set decline-lv-inf (list 25 30 25 20 35 20 15 30 30 25)
-    set decline-hv-inf (list 25 10 10 80 10 5 10 80 10 10)
-    set supply-lv-wa (list 27 31 26 35 33 28 29 25 34 32)
-    set supply-hv-wa (list 27 31 22 36 25 32 38 21 29 39)
-    
     ; data for low infrastructure variation
     set inf-eff-F-lv-inf (list 95.6 84.4 79.4 75.4 75.8 68.0 68.8 69.4 71.6 70.6 90.2 73.0 68.6 71.4 68.2 76.4 79.2 74.0 68.2 66.6)
     set inf-eff-L-lv-inf (list 97.2 89.8 85.2 81.8 79.8 79.4 81.0 80.2 80.2 79.6 98.0 82.8 81.0 83.2 78.0 78.6 81.6 74.4 74.8 76.6)
@@ -1230,7 +1230,7 @@ CHOOSER
 scenario
 scenario
 "selfish" "cooperative" "random" "conditionalcooperation" "mix" "social-values"
-2
+5
 
 PLOT
 1006
@@ -1395,7 +1395,7 @@ CHOOSER
 Variability
 Variability
 "lv-inf" "hv-inf" "lv-wa" "hv-wa"
-0
+2
 
 SWITCH
 22
@@ -1404,7 +1404,7 @@ SWITCH
 309
 phase2?
 phase2?
-1
+0
 1
 -1000
 
