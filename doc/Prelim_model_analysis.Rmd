@@ -925,6 +925,10 @@ Infrastructure is completely destroyed and agents are locked in a state where no
 + Water flow is not included in utility function. Thus, potential returns on investment aren't considered (e.g. in the above example they don't see the use of investing). Should that be included somehow?
 + Why are utilities modeled as exponential function? Does that really make a difference?
     * My answer: It only matters when comparing the different utilities in the investment decision. And since the ultimate investment decision depends on `randomnumber`, it also matters *by how much* utility in-/decreases through investing another token. 
++ Utility function of Charness & Rabin 2002 is different from the one in Janssen & Baggio 2016. Can they mathematically converted into one another?!
+Charness & Rabin 2002: $$ \text{if } \pi_B \geq \pi_A: U_B = (1 - \rho - \theta q) \pi_B + (\rho + \theta q) \pi_A \\
+ \text{if } \pi_B \leq \pi_A: U_B = (1 - \sigma - \theta q) \pi_B + (\sigma + \theta q) \pi_A $$ 
+So they don't directly compare the differences in payoffs, but take take absolute payoffs instead.
 + Endogenize waterflow in investment decision? When calculating investment decision (see below), `i` does not only decrease income, but also raises infrastructure level, which could generate a greater water stream that would allow a larger extraction. In model terms, `harvest`  would have to be replaced with a dynamic calculation of water flows. That way, the trade-off between individual saving and group-level investment could be included.
 ```
 while [i <= 10]
@@ -939,3 +943,4 @@ while [i <= 10]
   set i i + 1
 ]
 ```
+    + Implementing that would require to convert several procedures into reporter procedures (`calcwaterflow`) --> already started
