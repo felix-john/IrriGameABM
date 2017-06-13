@@ -1,0 +1,527 @@
+---
+title: "Trying to get ABC to run"
+output: html_notebook
+---
+
+# Based on Thiele et al. 2014
+
+This is a trial run of the ABC rejection sampling algorithm as described in *Thiele et al. 2014*. The code is adapted from SM9_abc_rejection.R of the supplementary material of that article.
+
+## Getting rJava and RNetLogo to run
+
+Connecting R, Java, and NetLogo through rJava and RNetLogo is not a trivial issue. Especially the compatibility of different R packages (R, Java, and NetLogo) is not always given: rJava may not recognize the current Java version, RNetLogo may not be compatible with an older NetLogo version, and rJava and RNetLogo may not be compatible.
+Helpful links to connect the correct Java version may be found [here](http://stackoverflow.com/questions/26061726/compile-rjava-on-mac-for-java-1-7), [here](http://conjugateprior.org/2014/12/r-java8-osx/), [here](https://github.com/s-u/rJava/issues/37), [here](http://stackoverflow.com/questions/26618105/rnetlogo-not-working-on-mac-yosemite/26723881#26723881) or [here](http://stackoverflow.com/questions/13610293/how-to-get-rjava-0-9-3-to-work-on-os-x-10-7-4-with-oracle-java-1-7).
+Older RNetLogo versions are available [here](https://cran.r-project.org/src/contrib/Archive/RNetLogo). For NetLogo version 5.0 - 5.2, [RNetLogo_1.0-1](https://cran.r-project.org/src/contrib/Archive/RNetLogo/RNetLogo_1.0-1.tar.gz) should be installed as follows. 
+```{r, results='hide'}
+packageurl <- "https://cran.r-project.org/src/contrib/Archive/RNetLogo/RNetLogo_1.0-1.tar.gz"
+install.packages(packageurl, repos=NULL, type="source")
+```
+
+
+## Setup and run the simulation
+
+This code block first loads all the necessary packages and draws the parameter sets following a latin hypercube sampling algorithm. Finally, the simulations are run based on the generated parameter set. 
+```{r Setup and simulation}
+
+#-------------------------------------------------------------------------------------
+# I. Prerequirements
+#-------------------------------------------------------------------------------------
+
+# load RNetLogo package 
+# (if not installed already, execute install.packages("rJava") and install.packages("RNetLogo") )
+Sys.setenv(NOAWT=1)
+require(RNetLogo)
+
+# an R random seed (for beeing reproducible)
+set.seed(1606350664)
+
+# TODO: adapt these paths to your requirements
+# the NetLogo installation path (where the NetLogo.jar is located)
+nl.path     <- "/Applications/NetLogo 5.2"
+# the path to the NetLogo model file
+# model.path  <- "../../src/irrigame_comm.nlogo"
+model.path  <- "/Users/felixx/Documents/UFZ-Cloud/IrriGameABM/src/irrigame_comm.nlogo"
+# the simulation function
+# simfun.path <- "../../src/sim_function1.R"
+simfun.path <- "/Users/felixx/Documents/UFZ-Cloud/IrriGameABM/src/sim_function1.R"
+
+# TODO: set values for those parameters that are not changes during the experiment
+#       parameter names have to be the names of the parameters in the NetLogo model
+fix.params <- list(
+                    'scenario'      = "\"social-values\"",
+                    'limcom'        = "false",
+                    'visioneffect'  = "false",
+                    'phase2?'       = "false"
+)      
+
+# TODO: give value ranges for each parameter 
+#       parameter names has to been the names of the parameters in the NetLogo model
+parameter.values <- list(
+                          'psat'          = list(min = 0.0,  max = 1.0, random.function="qunif"),
+                          'umin'          = list(min = 0.0,  max = 50.0, random.function="qunif"),
+                          'alpha'         = list(min = -1.0, max = 1.0, random.function="qunif"),
+                          'beta'          = list(min = -1.0, max = 1.0, random.function="qunif"),
+                          'mu'            = list(min = 0.0,  max = 100.0, random.function="qunif")
+                        )
+
+# TODO: adapt to your observation summary statistics (here: just the mean of the ranges)
+calibration.ranges <- data.frame(
+                            'Infrastructure2' = 83.38,
+                            'Infrastructure4' = 78.43, 
+                            'Infrastructure6' = 74.19,
+                            'Infrastructure8' = 74.00,
+                            'Infrastructure10' = 72.57,
+                            'Inequality2' = 0.283,
+                            'Inequality4' = 0.223, 
+                            'Inequality6' = 0.241, 
+                            'Inequality8' = 0.182, 
+                            'Inequality10' = 0.257
+                          )
+
+# TODO: number of parameter sets
+sample.count <- 30000
+
+# how many repetitions for each parameter set should be run (to control stochasticity)?
+# TODO: adapt the number of repititions, set to 1 if deterministic model
+no.repeated.sim <- 10
+
+# TODO: set tolerance value for ABC (required proportion of points accepted)
+tol <- 0.3
+
+# TODO: should R report the progress
+trace.progress = TRUE
+
+# initialize NetLogo
+nl.sm9 <- "irrigame_comm.nlogo"
+NLStart(nl.path, gui=FALSE, nl.obj=nl.sm9)
+NLLoadModel(model.path,nl.obj=nl.sm9)
+# NLQuit(all = T)
+
+#-------------------------------------------------------------------------------------
+# II. Definition of the simulation function to test a parameter set
+#-------------------------------------------------------------------------------------
+
+# load the code of the simulation function (name: simulate)
+source(file=simfun.path)
+
+
+#-------------------------------------------------------------------------------------
+# III. Creation of the parameter sets by latin hypercube sampling
+#-------------------------------------------------------------------------------------
+
+# get names of parameters
+parameter.names <- names(parameter.values)
+fix.param.names <- names(fix.params)
+
+#-------------------------------------------------------------------------------------
+# III.A. Alternative 1: Package tgp
+#-------------------------------------------------------------------------------------
+# load required package tgp
+#require(tgp)
+
+# create random (latin hypercube) samples, it would be possible to use the ranges directly
+# by we will use the value interval [0,1] and apply a random distribution function afterwards
+#lhs.design <- lhs(sample.count, t(matrix(c(0,1),2,length(parameter.values))))
+
+# transform the standardized random values to the real parameter value range
+# and apply the desired random distribution
+#lhs.design <- lapply(seq(1,length(parameter.values)), function(i) {
+#    match.fun(parameter.values[[i]]$random.function)(lhs.design[,i], parameter.values[[i]]$min, parameter.values[[i]]$max)
+#  })
+#names(lhs.design) <- parameter.names
+
+
+#-------------------------------------------------------------------------------------
+# III.B. Alternative 2: Package lhs
+#-------------------------------------------------------------------------------------
+# NOTE: here, we can't give the real value range. 
+# This package will create values from 0 to 1 and must be transformed afterwards.
+# But this package is much more powerfull supplying different LHS methods.
+require(lhs)
+
+# create a random sample of parameter sets (Latin Hypercube Sampling)
+lhs.design <- randomLHS(sample.count, length(parameter.values))
+
+# transform the standardized random values to the real parameter value range
+# and apply the desired random distribution
+lhs.design <- lapply(seq(1,length(parameter.values)), function(i) {
+    match.fun(parameter.values[[i]]$random.function)(lhs.design[,i], parameter.values[[i]]$min, parameter.values[[i]]$max)
+  })
+names(lhs.design) <- parameter.names
+
+
+#-------------------------------------------------------------------------------------
+# IV. Run of the (LHS) simulation for all parameter sets
+#-------------------------------------------------------------------------------------
+
+# variable used for progress tracing 
+# (global variable: not nice, but I see currently no other way in R)
+already.processed <- 0
+
+# simulate for all parameter sets and
+# get results of all evalulation criteria as matrix
+sim.results.lhs <- apply(data.frame(lhs.design), 1, 
+                         simulate,
+                         no.repeated.sim=no.repeated.sim, nl.obj=nl.sm9, 
+                         trace.progress=trace.progress,
+                         parameter.names=parameter.names, 
+                         iter.length=sample.count,
+                         function.name="LHS",
+                         fix.params, fix.param.names
+                        )
+rownames(sim.results.lhs) <- c(sapply(c(2,4,6,8,10), function(x) {paste0("Infrastructure", x)}),
+                            sapply(c(2,4,6,8,10), function(x) {paste0("gini_ext", x)}))
+
+```
+
+## Data analysis
+
+### Baseline scenario
+
+The following code block runs the ABC analysis.
+```{r ABC setup}
+#-------------------------------------------------------------------------------------
+# V. Run the ABC
+#-------------------------------------------------------------------------------------
+
+# load required package abc
+require(abc)
+
+# reorganize the data
+sumstat <- as.data.frame(t(sim.results.lhs))
+names(sumstat) <- names(calibration.ranges)
+param <- as.data.frame(lhs.design)
+
+# covariance calculation to get a feeling for a good tolerance value
+cv.rej <- cv4abc(param=param, sumstat=sumstat, nval=50,
+                 tols=c(.05,.1,.2,.3,.5), method="rejection")
+summary(cv.rej)
+plot(cv.rej, log=rep("xy", times = length(param)))
+
+```
+
+```{r}
+# run the ABC with rejection sampling
+method <- "rejection"
+sim.results.abc.rej <- abc(target=calibration.ranges, param=param, sumstat=sumstat, tol=tol, method=method)
+
+# plot the resulting posterior distribution for the parameters
+# (package abc must be loaded)
+hist(sim.results.abc.rej, breaks=50)
+
+```
+
+```{r}
+# run the ABC with local linear regression method
+method <- "loclinear" # "neuralnet" (require(nnet))
+sim.results.abc.ll <- abc(target=calibration.ranges, param=param, sumstat=sumstat, tol=tol, method=method)
+
+# create diagnostic plot
+# (package abc must be loaded)
+plot(sim.results.abc.ll, param)
+
+# plot the resulting posterior distribution for the parameters
+# (package abc must be loaded)
+hist(sim.results.abc.ll, breaks=50)
+```
+
+```{r}
+# distribution characteristics
+summary(sim.results.abc.rej,intvl=0.9)
+summary(sim.results.abc.ll,intvl=0.9)
+```
+
+### Keeping only the 10% best performing runs
+
+```{r}
+# set the tolerance threshold to 10%
+tol <- 0.1 
+
+
+# run the ABC with rejection sampling
+method <- "rejection"
+sim.results.abc.rej <- abc(target=calibration.ranges, param=param, sumstat=sumstat, tol=tol, method=method)
+
+# plot the resulting posterior distribution for the parameters
+# (package abc must be loaded)
+hist(sim.results.abc.rej, breaks=50)
+```
+
+
+```{r}
+# run the ABC with local linear regression method
+method <- "loclinear" # "neuralnet" (require(nnet))
+sim.results.abc.ll <- abc(target=calibration.ranges, param=param, sumstat=sumstat, tol=tol, method=method)
+
+# create diagnostic plot
+# (package abc must be loaded)
+plot(sim.results.abc.ll, param)
+
+# plot the resulting posterior distribution for the parameters
+# (package abc must be loaded)
+hist(sim.results.abc.ll, breaks=50)
+```
+
+```{r}
+# distribution characteristics
+summary(sim.results.abc.rej,intvl=0.9)
+summary(sim.results.abc.ll,intvl=0.9)
+```
+
+
+### Calibrating against all time steps
+
+```{r Setup and simulation, results='hide'}
+
+#-------------------------------------------------------------------------------------
+# I. Prerequirements
+#-------------------------------------------------------------------------------------
+
+# load RNetLogo package 
+# (if not installed already, execute install.packages("rJava") and install.packages("RNetLogo") )
+Sys.setenv(NOAWT=1)
+require(RNetLogo)
+
+# an R random seed (for beeing reproducible)
+set.seed(1606350664)
+
+# TODO: adapt these paths to your requirements
+# the NetLogo installation path (where the NetLogo.jar is located)
+nl.path     <- "/Applications/NetLogo 5.2"
+# the path to the NetLogo model file
+# model.path  <- "../../src/irrigame_comm.nlogo"
+model.path  <- "/Users/felixx/Documents/UFZ-Cloud/IrriGameABM/src/irrigame_comm.nlogo"
+# the simulation function
+# simfun.path <- "../../src/sim_function1.R"
+simfun.path <- "/Users/felixx/Documents/UFZ-Cloud/IrriGameABM/src/sim_function1.R"
+
+# TODO: set values for those parameters that are not changes during the experiment
+#       parameter names have to be the names of the parameters in the NetLogo model
+fix.params <- list(
+                    'scenario'      = "\"social-values\"",
+                    'limcom'        = "false",
+                    'visioneffect'  = "false",
+                    'phase2?'       = "false"
+)      
+
+# TODO: give value ranges for each parameter 
+#       parameter names has to been the names of the parameters in the NetLogo model
+parameter.values <- list(
+                          'psat'          = list(min = 0.0,  max = 1.0, random.function="qunif"),
+                          'umin'          = list(min = 0.0,  max = 50.0, random.function="qunif"),
+                          'alpha'         = list(min = -1.0, max = 1.0, random.function="qunif"),
+                          'beta'          = list(min = -1.0, max = 1.0, random.function="qunif"),
+                          'mu'            = list(min = 0.0,  max = 100.0, random.function="qunif")
+                        )
+
+# TODO: adapt to your observation summary statistics (here: just the mean of the ranges)
+calibration.ranges <- data.frame(
+                            'Infrastructure1' = 92.95,
+                            'Infrastructure2' = 83.38,
+                            'Infrastructure3' = 79.14, 
+                            'Infrastructure4' = 78.43,
+                            'Infrastructure5' = 78.43,
+                            'Infrastructure6' = 74.19,
+                            'Infrastructure7' = 73.76,
+                            'Infrastructure8' = 74.00,
+                            'Infrastructure9' = 74.24,
+                            'Infrastructure10' = 72.57,
+                            'Inequality1' = 0.291,
+                            'Inequality2' = 0.283,
+                            'Inequality3' = 0.280,
+                            'Inequality4' = 0.223, 
+                            'Inequality5' = 0.249,
+                            'Inequality6' = 0.241, 
+                            'Inequality7' = 0.264,
+                            'Inequality8' = 0.182, 
+                            'Inequality9' = 0.219,
+                            'Inequality10' = 0.257
+                          )
+
+# TODO: number of parameter sets
+sample.count <- 30000
+
+# how many repetitions for each parameter set should be run (to control stochasticity)?
+# TODO: adapt the number of repititions, set to 1 if deterministic model
+no.repeated.sim <- 10
+
+# TODO: set tolerance value for ABC (required proportion of points accepted)
+tol <- 0.3
+
+# TODO: should R report the progress
+trace.progress = TRUE
+
+# initialize NetLogo
+nl.sm9 <- "irrigame_comm.nlogo"
+NLStart(nl.path, gui=FALSE, nl.obj=nl.sm9)
+NLLoadModel(model.path,nl.obj=nl.sm9)
+# NLQuit(all = T)
+
+#-------------------------------------------------------------------------------------
+# II. Definition of the simulation function to test a parameter set
+#-------------------------------------------------------------------------------------
+
+# load the code of the simulation function (name: simulate)
+source(file=simfun.path)
+
+
+#-------------------------------------------------------------------------------------
+# III. Creation of the parameter sets by latin hypercube sampling
+#-------------------------------------------------------------------------------------
+
+# get names of parameters
+parameter.names <- names(parameter.values)
+fix.param.names <- names(fix.params)
+
+#-------------------------------------------------------------------------------------
+# III.A. Alternative 1: Package tgp
+#-------------------------------------------------------------------------------------
+# load required package tgp
+#require(tgp)
+
+# create random (latin hypercube) samples, it would be possible to use the ranges directly
+# by we will use the value interval [0,1] and apply a random distribution function afterwards
+#lhs.design <- lhs(sample.count, t(matrix(c(0,1),2,length(parameter.values))))
+
+# transform the standardized random values to the real parameter value range
+# and apply the desired random distribution
+#lhs.design <- lapply(seq(1,length(parameter.values)), function(i) {
+#    match.fun(parameter.values[[i]]$random.function)(lhs.design[,i], parameter.values[[i]]$min, parameter.values[[i]]$max)
+#  })
+#names(lhs.design) <- parameter.names
+
+
+#-------------------------------------------------------------------------------------
+# III.B. Alternative 2: Package lhs
+#-------------------------------------------------------------------------------------
+# NOTE: here, we can't give the real value range. 
+# This package will create values from 0 to 1 and must be transformed afterwards.
+# But this package is much more powerfull supplying different LHS methods.
+require(lhs)
+
+# create a random sample of parameter sets (Latin Hypercube Sampling)
+lhs.design <- randomLHS(sample.count, length(parameter.values))
+
+# transform the standardized random values to the real parameter value range
+# and apply the desired random distribution
+lhs.design <- lapply(seq(1,length(parameter.values)), function(i) {
+    match.fun(parameter.values[[i]]$random.function)(lhs.design[,i], parameter.values[[i]]$min, parameter.values[[i]]$max)
+  })
+names(lhs.design) <- parameter.names
+
+
+#-------------------------------------------------------------------------------------
+# IV. Run of the (LHS) simulation for all parameter sets
+#-------------------------------------------------------------------------------------
+
+# variable used for progress tracing 
+# (global variable: not nice, but I see currently no other way in R)
+already.processed <- 0
+
+# simulate for all parameter sets and
+# get results of all evalulation criteria as matrix
+sim.results.lhs <- apply(data.frame(lhs.design), 1, 
+                         simulate_all,
+                         no.repeated.sim=no.repeated.sim, nl.obj=nl.sm9, 
+                         trace.progress=trace.progress,
+                         parameter.names=parameter.names, 
+                         iter.length=sample.count,
+                         function.name="LHS",
+                         fix.params, fix.param.names
+                        )
+rownames(sim.results.lhs) <- c(sapply(1:10, function(x) {paste0("Infrastructure", x)}),
+                            sapply(1:10, function(x) {paste0("gini_ext", x)}))
+
+```
+
+
+
+The following code block runs the ABC analysis.
+```{r ABC setup}
+#-------------------------------------------------------------------------------------
+# V. Run the ABC
+#-------------------------------------------------------------------------------------
+
+# load required package abc
+require(abc)
+
+# reorganize the data
+sumstat <- as.data.frame(t(sim.results.lhs))
+names(sumstat) <- names(calibration.ranges)
+param <- as.data.frame(lhs.design)
+
+# covariance calculation to get a feeling for a good tolerance value
+cv.rej <- cv4abc(param=param, sumstat=sumstat, nval=50,
+                 tols=c(.05,.1,.2,.3,.5), method="rejection")
+summary(cv.rej)
+plot(cv.rej, log=rep("xy", times = length(param)))
+
+```
+
+```{r}
+# run the ABC with rejection sampling
+method <- "rejection"
+sim.results.abc.rej <- abc(target=calibration.ranges, param=param, sumstat=sumstat, tol=tol, method=method)
+
+# plot the resulting posterior distribution for the parameters
+# (package abc must be loaded)
+hist(sim.results.abc.rej, breaks=50)
+
+```
+
+```{r}
+# run the ABC with local linear regression method
+method <- "loclinear" # "neuralnet" (require(nnet))
+sim.results.abc.ll <- abc(target=calibration.ranges, param=param, sumstat=sumstat, tol=tol, method=method)
+
+# create diagnostic plot
+# (package abc must be loaded)
+plot(sim.results.abc.ll, param)
+
+# plot the resulting posterior distribution for the parameters
+# (package abc must be loaded)
+hist(sim.results.abc.ll, breaks=50)
+```
+
+```{r}
+# distribution characteristics
+summary(sim.results.abc.rej,intvl=0.9)
+summary(sim.results.abc.ll,intvl=0.9)
+```
+
+### Keeping only the 10% best performing runs
+
+```{r}
+# set the tolerance threshold to 10%
+tol <- 0.1 
+
+
+# run the ABC with rejection sampling
+method <- "rejection"
+sim.results.abc.rej <- abc(target=calibration.ranges, param=param, sumstat=sumstat, tol=tol, method=method)
+
+# plot the resulting posterior distribution for the parameters
+# (package abc must be loaded)
+hist(sim.results.abc.rej, breaks=50)
+```
+
+
+```{r}
+# run the ABC with local linear regression method
+method <- "loclinear" # "neuralnet" (require(nnet))
+sim.results.abc.ll <- abc(target=calibration.ranges, param=param, sumstat=sumstat, tol=tol, method=method)
+
+# create diagnostic plot
+# (package abc must be loaded)
+plot(sim.results.abc.ll, param)
+
+# plot the resulting posterior distribution for the parameters
+# (package abc must be loaded)
+hist(sim.results.abc.ll, breaks=50)
+```
+
+```{r}
+# distribution characteristics
+summary(sim.results.abc.rej,intvl=0.9)
+summary(sim.results.abc.ll,intvl=0.9)
+```

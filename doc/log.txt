@@ -1,0 +1,1721 @@
+starting worker pid=8948 on localhost:11051 at 17:12:11.349
+starting worker pid=4696 on localhost:11051 at 17:12:11.617
+starting worker pid=7060 on localhost:11051 at 17:12:11.886
+starting worker pid=8952 on localhost:11051 at 17:12:12.142
+Loading required package: rJava
+Loading required package: rJava
+Loading required package: rJava
+Loading required package: rJava
+Loading required package: igraph
+Loading required package: igraph
+Loading required package: igraph
+
+Attaching package: 'igraph'
+
+The following objects are masked from 'package:stats':
+
+    decompose, spectrum
+
+
+Attaching package: 'igraph'
+
+
+Attaching package: 'igraph'
+
+The following objects are masked from 'package:stats':
+
+    decompose, spectrum
+
+The following object is masked from 'package:base':
+
+    union
+
+ose, spectrum
+
+The following object is masked from 'package:base':
+
+    union
+
+The following object is masked from 'package:base':
+
+    union
+
+Loading required package: igraph
+
+Attaching package: 'igraph'
+
+The following objects are masked from 'package:stats':
+
+    decompose, spectrum
+
+The following object is masked from 'package:base':
+
+    union
+
+[1] "processed (Morris): 0.285714285714286%"
+[1] "processed (Morris): 0.285714285714286%"
+[1] "processed (Morris): 0.285714285714286%"
+[1] "processed (Morris): 0.285714285714286%"
+[1] "processed (Morris): 0.571428571428571%"
+[1] "processed (Morris): 0.571428571428571%"
+[1] "processed (Morris): 0.857142857142857%"
+[1] "processed (Morris): 0.571428571428571%"
+[1] "processed (Morris): 0.857142857142857%"
+[1] "processed (Morris): 0.571428571428571%"
+[1] "processed (Morris): 1.14285714285714%"
+[1] "processed (Morris): 0.857142857142857%"
+[1] "processed (Morris): 0.857142857142857%"
+[1] "processed (Morris): 1.14285714285714%"
+[1] "processed (Morris): 1.42857142857143%"
+[1] "processed (Morris): 1.14285714285714%"
+[1] "processed (Morris): 1.42857142857143%"
+[1] "processed (Morris): 1.14285714285714%"
+[1] "processed (Morris): 1.71428571428571%"
+[1] "processed (Morris): 1.42857142857143%"
+[1] "processed (Morris): 1.71428571428571%"
+[1] "processed (Morris): 1.42857142857143%"
+[1] "processed (Morris): 2%"
+[1] "processed (Morris): 1.71428571428571%"
+[1] "processed (Morris): 2%"
+[1] "processed (Morris): 2.28571428571429%"
+[1] "processed (Morris): 1.71428571428571%"
+[1] "processed (Morris): 2%"
+[1] "processed (Morris): 2.28571428571429%"
+[1] "processed (Morris): 2.57142857142857%"
+[1] "processed (Morris): 2%"
+[1] "processed (Morris): 2.28571428571429%"
+[1] "processed (Morris): 2.57142857142857%"
+[1] "processed (Morris): 2.85714285714286%"
+[1] "processed (Morris): 2.28571428571429%"
+[1] "processed (Morris): 2.85714285714286%"
+[1] "processed (Morris): 2.57142857142857%"
+[1] "processed (Morris): 3.14285714285714%"
+[1] "processed (Morris): 2.57142857142857%"
+[1] "processed (Morris): 2.85714285714286%"
+[1] "processed (Morris): 3.14285714285714%"
+[1] "processed (Morris): 3.42857142857143%"
+[1] "processed (Morris): 3.14285714285714%"
+[1] "processed (Morris): 3.42857142857143%"
+[1] "processed (Morris): 2.85714285714286%"
+[1] "processed (Morris): 3.71428571428571%"
+[1] "processed (Morris): 3.42857142857143%"
+[1] "processed (Morris): 3.14285714285714%"
+[1] "processed (Morris): 3.71428571428571%"
+[1] "processed (Morris): 4%"
+[1] "processed (Morris): 3.71428571428571%"
+[1] "processed (Morris): 3.42857142857143%"
+[1] "processed (Morris): 4%"
+[1] "processed (Morris): 4.28571428571429%"
+[1] "processed (Morris): 4%"
+[1] "processed (Morris): 4.57142857142857%"
+[1] "processed (Morris): 3.71428571428571%"
+[1] "processed (Morris): 4.28571428571429%"
+[1] "processed (Morris): 4.28571428571429%"
+[1] "processed (Morris): 4.85714285714286%"
+[1] "processed (Morris): 4%"
+[1] "processed (Morris): 4.57142857142857%"
+[1] "processed (Morris): 4.57142857142857%"
+[1] "processed (Morris): 4.28571428571429%"
+[1] "processed (Morris): 5.14285714285714%"
+[1] "processed (Morris): 4.85714285714286%"
+[1] "processed (Morris): 4.85714285714286%"
+[1] "processed (Morris): 4.57142857142857%"
+[1] "processed (Morris): 5.42857142857143%"
+[1] "processed (Morris): 5.14285714285714%"
+[1] "processed (Morris): 5.14285714285714%"
+[1] "processed (Morris): 5.71428571428571%"
+[1] "processed (Morris): 5.42857142857143%"
+[1] "processed (Morris): 4.85714285714286%"
+[1] "processed (Morris): 5.42857142857143%"
+[1] "processed (Morris): 6%"
+[1] "processed (Morris): 5.71428571428571%"
+[1] "processed (Morris): 5.71428571428571%"
+[1] "processed (Morris): 5.14285714285714%"
+[1] "processed (Morris): 6.28571428571429%"
+[1] "processed (Morris): 6%"
+[1] "processed (Morris): 6%"
+[1] "processed (Morris): 5.42857142857143%"
+[1] "processed (Morris): 6.57142857142857%"
+[1] "processed (Morris): 6.28571428571429%"
+[1] "processed (Morris): 6.28571428571429%"
+[1] "processed (Morris): 5.71428571428571%"
+[1] "processed (Morris): 6.85714285714286%"
+[1] "processed (Morris): 6.57142857142857%"
+[1] "processed (Morris): 7.14285714285714%"
+[1] "processed (Morris): 6.57142857142857%"
+[1] "processed (Morris): 6%"
+[1] "processed (Morris): 6.85714285714286%"
+[1] "processed (Morris): 7.42857142857143%"
+[1] "processed (Morris): 6.85714285714286%"
+[1] "processed (Morris): 7.14285714285714%"
+[1] "processed (Morris): 6.28571428571429%"
+[1] "processed (Morris): 7.14285714285714%"
+[1] "processed (Morris): 7.71428571428571%"
+[1] "processed (Morris): 7.42857142857143%"
+[1] "processed (Morris): 6.57142857142857%"
+[1] "processed (Morris): 8%"
+[1] "processed (Morris): 7.42857142857143%"
+[1] "processed (Morris): 7.71428571428571%"
+[1] "processed (Morris): 6.85714285714286%"
+[1] "processed (Morris): 8.28571428571428%"
+[1] "processed (Morris): 7.71428571428571%"
+[1] "processed (Morris): 8%"
+[1] "processed (Morris): 7.14285714285714%"
+[1] "processed (Morris): 8.57142857142857%"
+[1] "processed (Morris): 8%"
+[1] "processed (Morris): 8.28571428571428%"
+[1] "processed (Morris): 7.42857142857143%"
+[1] "processed (Morris): 8.85714285714286%"
+[1] "processed (Morris): 8.28571428571428%"
+[1] "processed (Morris): 8.57142857142857%"
+[1] "processed (Morris): 9.14285714285714%"
+[1] "processed (Morris): 7.71428571428571%"
+[1] "processed (Morris): 8.57142857142857%"
+[1] "processed (Morris): 8.85714285714286%"
+[1] "processed (Morris): 9.42857142857143%"
+[1] "processed (Morris): 9.14285714285714%"
+[1] "processed (Morris): 8%"
+[1] "processed (Morris): 8.85714285714286%"
+[1] "processed (Morris): 9.71428571428571%"
+[1] "processed (Morris): 9.42857142857143%"
+[1] "processed (Morris): 8.28571428571428%"
+[1] "processed (Morris): 10%"
+[1] "processed (Morris): 9.14285714285714%"
+[1] "processed (Morris): 9.71428571428571%"
+[1] "processed (Morris): 8.57142857142857%"
+[1] "processed (Morris): 10.2857142857143%"
+[1] "processed (Morris): 9.42857142857143%"
+[1] "processed (Morris): 10.5714285714286%"
+[1] "processed (Morris): 10%"
+[1] "processed (Morris): 9.71428571428571%"
+[1] "processed (Morris): 8.85714285714286%"
+[1] "processed (Morris): 10.8571428571429%"
+[1] "processed (Morris): 10.2857142857143%"
+[1] "processed (Morris): 10%"
+[1] "processed (Morris): 9.14285714285714%"
+[1] "processed (Morris): 11.1428571428571%"
+[1] "processed (Morris): 10.5714285714286%"
+[1] "processed (Morris): 10.2857142857143%"
+[1] "processed (Morris): 9.42857142857143%"
+[1] "processed (Morris): 11.4285714285714%"
+[1] "processed (Morris): 10.8571428571429%"
+[1] "processed (Morris): 10.5714285714286%"
+[1] "processed (Morris): 11.7142857142857%"
+[1] "processed (Morris): 9.71428571428571%"
+[1] "processed (Morris): 11.1428571428571%"
+[1] "processed (Morris): 10.8571428571429%"
+[1] "processed (Morris): 12%"
+[1] "processed (Morris): 10%"
+[1] "processed (Morris): 11.4285714285714%"
+[1] "processed (Morris): 11.1428571428571%"
+[1] "processed (Morris): 12.2857142857143%"
+[1] "processed (Morris): 11.7142857142857%"
+[1] "processed (Morris): 10.2857142857143%"
+[1] "processed (Morris): 11.4285714285714%"
+[1] "processed (Morris): 12.5714285714286%"
+[1] "processed (Morris): 12%"
+[1] "processed (Morris): 10.5714285714286%"
+[1] "processed (Morris): 12.8571428571429%"
+[1] "processed (Morris): 11.7142857142857%"
+[1] "processed (Morris): 12.2857142857143%"
+[1] "processed (Morris): 10.8571428571429%"
+[1] "processed (Morris): 13.1428571428571%"
+[1] "processed (Morris): 12%"
+[1] "processed (Morris): 12.5714285714286%"
+[1] "processed (Morris): 11.1428571428571%"
+[1] "processed (Morris): 13.4285714285714%"
+[1] "processed (Morris): 12.2857142857143%"
+[1] "processed (Morris): 12.8571428571429%"
+[1] "processed (Morris): 11.4285714285714%"
+[1] "processed (Morris): 13.7142857142857%"
+[1] "processed (Morris): 12.5714285714286%"
+[1] "processed (Morris): 13.1428571428571%"
+[1] "processed (Morris): 14%"
+[1] "processed (Morris): 13.4285714285714%"
+[1] "processed (Morris): 12.8571428571429%"
+[1] "processed (Morris): 11.7142857142857%"
+[1] "processed (Morris): 14.2857142857143%"
+[1] "processed (Morris): 13.7142857142857%"
+[1] "processed (Morris): 13.1428571428571%"
+[1] "processed (Morris): 12%"
+[1] "processed (Morris): 14.5714285714286%"
+[1] "processed (Morris): 14%"
+[1] "processed (Morris): 13.4285714285714%"
+[1] "processed (Morris): 12.2857142857143%"
+[1] "processed (Morris): 14.8571428571429%"
+[1] "processed (Morris): 14.2857142857143%"
+[1] "processed (Morris): 13.7142857142857%"
+[1] "processed (Morris): 12.5714285714286%"
+[1] "processed (Morris): 15.1428571428571%"
+[1] "processed (Morris): 14.5714285714286%"
+[1] "processed (Morris): 14%"
+[1] "processed (Morris): 12.8571428571429%"
+[1] "processed (Morris): 15.4285714285714%"
+[1] "processed (Morris): 14.8571428571429%"
+[1] "processed (Morris): 14.2857142857143%"
+[1] "processed (Morris): 15.7142857142857%"
+[1] "processed (Morris): 13.1428571428571%"
+[1] "processed (Morris): 15.1428571428571%"
+[1] "processed (Morris): 14.5714285714286%"
+[1] "processed (Morris): 16%"
+[1] "processed (Morris): 13.4285714285714%"
+[1] "processed (Morris): 15.4285714285714%"
+[1] "processed (Morris): 14.8571428571429%"
+[1] "processed (Morris): 16.2857142857143%"
+[1] "processed (Morris): 13.7142857142857%"
+[1] "processed (Morris): 15.7142857142857%"
+[1] "processed (Morris): 15.1428571428571%"
+[1] "processed (Morris): 16.5714285714286%"
+[1] "processed (Morris): 14%"
+[1] "processed (Morris): 16%"
+[1] "processed (Morris): 16.8571428571429%"
+[1] "processed (Morris): 15.4285714285714%"
+[1] "processed (Morris): 16.2857142857143%"
+[1] "processed (Morris): 14.2857142857143%"
+[1] "processed (Morris): 17.1428571428571%"
+[1] "processed (Morris): 15.7142857142857%"
+[1] "processed (Morris): 16.5714285714286%"
+[1] "processed (Morris): 17.4285714285714%"
+[1] "processed (Morris): 14.5714285714286%"
+[1] "processed (Morris): 16%"
+[1] "processed (Morris): 16.8571428571429%"
+[1] "processed (Morris): 14.8571428571429%"
+[1] "processed (Morris): 17.7142857142857%"
+[1] "processed (Morris): 16.2857142857143%"
+[1] "processed (Morris): 17.1428571428571%"
+[1] "processed (Morris): 18%"
+[1] "processed (Morris): 15.1428571428571%"
+[1] "processed (Morris): 17.4285714285714%"
+[1] "processed (Morris): 16.5714285714286%"
+[1] "processed (Morris): 18.2857142857143%"
+[1] "processed (Morris): 15.4285714285714%"
+[1] "processed (Morris): 17.7142857142857%"
+[1] "processed (Morris): 16.8571428571429%"
+[1] "processed (Morris): 18.5714285714286%"
+[1] "processed (Morris): 15.7142857142857%"
+[1] "processed (Morris): 18%"
+[1] "processed (Morris): 17.1428571428571%"
+[1] "processed (Morris): 18.8571428571429%"
+[1] "processed (Morris): 18.2857142857143%"
+[1] "processed (Morris): 17.4285714285714%"
+[1] "processed (Morris): 16%"
+[1] "processed (Morris): 19.1428571428571%"
+[1] "processed (Morris): 18.5714285714286%"
+[1] "processed (Morris): 17.7142857142857%"
+[1] "processed (Morris): 16.2857142857143%"
+[1] "processed (Morris): 19.4285714285714%"
+[1] "processed (Morris): 18.8571428571429%"
+[1] "processed (Morris): 16.5714285714286%"
+[1] "processed (Morris): 18%"
+[1] "processed (Morris): 19.7142857142857%"
+[1] "processed (Morris): 19.1428571428571%"
+[1] "processed (Morris): 16.8571428571429%"
+[1] "processed (Morris): 18.2857142857143%"
+[1] "processed (Morris): 20%"
+[1] "processed (Morris): 19.4285714285714%"
+[1] "processed (Morris): 17.1428571428571%"
+[1] "processed (Morris): 18.5714285714286%"
+[1] "processed (Morris): 20.2857142857143%"
+[1] "processed (Morris): 19.7142857142857%"
+[1] "processed (Morris): 18.8571428571429%"
+[1] "processed (Morris): 20.5714285714286%"
+[1] "processed (Morris): 20%"
+[1] "processed (Morris): 17.4285714285714%"
+[1] "processed (Morris): 20.8571428571429%"
+[1] "processed (Morris): 19.1428571428571%"
+[1] "processed (Morris): 20.2857142857143%"
+[1] "processed (Morris): 17.7142857142857%"
+[1] "processed (Morris): 21.1428571428571%"
+[1] "processed (Morris): 20.5714285714286%"
+[1] "processed (Morris): 19.4285714285714%"
+[1] "processed (Morris): 18%"
+[1] "processed (Morris): 21.4285714285714%"
+[1] "processed (Morris): 20.8571428571429%"
+[1] "processed (Morris): 19.7142857142857%"
+[1] "processed (Morris): 18.2857142857143%"
+[1] "processed (Morris): 20%"
+[1] "processed (Morris): 21.7142857142857%"
+[1] "processed (Morris): 21.1428571428571%"
+[1] "processed (Morris): 18.5714285714286%"
+[1] "processed (Morris): 22%"
+[1] "processed (Morris): 20.2857142857143%"
+[1] "processed (Morris): 21.4285714285714%"
+[1] "processed (Morris): 22.2857142857143%"
+[1] "processed (Morris): 18.8571428571429%"
+[1] "processed (Morris): 21.7142857142857%"
+[1] "processed (Morris): 20.5714285714286%"
+[1] "processed (Morris): 22.5714285714286%"
+[1] "processed (Morris): 19.1428571428571%"
+[1] "processed (Morris): 22%"
+[1] "processed (Morris): 20.8571428571429%"
+[1] "processed (Morris): 19.4285714285714%"
+[1] "processed (Morris): 22.8571428571429%"
+[1] "processed (Morris): 22.2857142857143%"
+[1] "processed (Morris): 21.1428571428571%"
+[1] "processed (Morris): 23.1428571428571%"
+[1] "processed (Morris): 22.5714285714286%"
+[1] "processed (Morris): 19.7142857142857%"
+[1] "processed (Morris): 21.4285714285714%"
+[1] "processed (Morris): 23.4285714285714%"
+[1] "processed (Morris): 22.8571428571429%"
+[1] "processed (Morris): 20%"
+[1] "processed (Morris): 21.7142857142857%"
+[1] "processed (Morris): 23.7142857142857%"
+[1] "processed (Morris): 23.1428571428571%"
+[1] "processed (Morris): 20.2857142857143%"
+[1] "processed (Morris): 22%"
+[1] "processed (Morris): 24%"
+[1] "processed (Morris): 23.4285714285714%"
+[1] "processed (Morris): 20.5714285714286%"
+[1] "processed (Morris): 22.2857142857143%"
+[1] "processed (Morris): 23.7142857142857%"
+[1] "processed (Morris): 24.2857142857143%"
+[1] "processed (Morris): 22.5714285714286%"
+[1] "processed (Morris): 20.8571428571429%"
+[1] "processed (Morris): 24.5714285714286%"
+[1] "processed (Morris): 24%"
+[1] "processed (Morris): 22.8571428571429%"
+[1] "processed (Morris): 21.1428571428571%"
+[1] "processed (Morris): 24.8571428571429%"
+[1] "processed (Morris): 24.2857142857143%"
+[1] "processed (Morris): 21.4285714285714%"
+[1] "processed (Morris): 23.1428571428571%"
+[1] "processed (Morris): 25.1428571428571%"
+[1] "processed (Morris): 24.5714285714286%"
+[1] "processed (Morris): 21.7142857142857%"
+[1] "processed (Morris): 23.4285714285714%"
+[1] "processed (Morris): 24.8571428571429%"
+[1] "processed (Morris): 23.7142857142857%"
+[1] "processed (Morris): 22%"
+[1] "processed (Morris): 24%"
+[1] "processed (Morris): 22.2857142857143%"
+[1] "processed (Morris): 22.5714285714286%"
+[1] "processed (Morris): 24.2857142857143%"
+[1] "processed (Morris): 22.8571428571429%"
+[1] "processed (Morris): 24.5714285714286%"
+[1] "processed (Morris): 23.1428571428571%"
+[1] "processed (Morris): 24.8571428571429%"
+[1] "processed (Morris): 23.4285714285714%"
+[1] "processed (Morris): 25.1428571428571%"
+[1] "processed (Morris): 23.7142857142857%"
+[1] "processed (Morris): 24%"
+[1] "processed (Morris): 24.2857142857143%"
+[1] "processed (Morris): 24.5714285714286%"
+[1] "processed (Morris): 24.8571428571429%"
+Warnmeldungen:
+1: package 'rJava' was built under R version 3.3.2 
+2: In `[<-`(`*tmp*`, nl.obj, value = list(nl.sm13 = <S4 object of class "jobjRef">)) :
+ 
+  implicit list embedding of S4 objects is deprecated
+ implicit list embedding of S4 objects is deprecated
+Warnmeldungen:
+1: package 'rJava' was built under R version 3.3.2 
+2: In `[<-`(`*tmp*`, nl.obj, value = list(nl.sm13 = <S4 object of class "jobjRef">)) :
+  implicit list embedding of S4 objects is deprecated
+Warnmeldungen:
+1: package 'rJava' was built under R version 3.3.2 
+2: In `[<-`(`*tmp*`, nl.obj, value = list(nl.sm13 = <S4 object of class "jobjRef">)) :
+  implicit list embedding of S4 objects is deprecated
+starting worker pid=7120 on localhost:11451 at 11:01:15.724
+starting worker pid=9096 on localhost:11451 at 11:01:16.005
+starting worker pid=476 on localhost:11451 at 11:01:16.260
+starting worker pid=2324 on localhost:11451 at 11:01:16.516
+Loading required package: rJava
+Loading required package: rJava
+Loading required package: rJava
+Loading required package: rJava
+Loading required package: igraph
+
+Attaching package: 'igraph'
+
+The following objects are masked from 'package:stats':
+
+    decompose, spectrum
+
+The following object is masked from 'package:base':
+
+    union
+
+Loading required package: igraph
+Loading required package: igraph
+Loading required package: igraph
+
+Attaching package: 'igraph'
+
+The following objects are masked from 'package:stats':
+
+    decompose, spectrum
+
+
+Attaching package: 'igraph'
+
+The following object is masked from 'package:base':
+
+    union
+
+The following objects are masked from 'package:stats':
+
+    decompose, spectrum
+
+The following object is masked from 'package:base':
+
+    union
+
+
+Attaching package: 'igraph'
+
+The following objects are masked from 'package:stats':
+
+    decompose, spectrum
+
+The following object is masked from 'package:base':
+
+    union
+
+[1] "processed (Morris): 0.285714285714286%"
+[1] "processed (Morris): 0.285714285714286%"
+[1] "processed (Morris): 0.571428571428571%"
+[1] "processed (Morris): 0.285714285714286%"
+[1] "processed (Morris): 0.285714285714286%"
+[1] "processed (Morris): 0.571428571428571%"
+[1] "processed (Morris): 0.857142857142857%"
+[1] "processed (Morris): 0.571428571428571%"
+[1] "processed (Morris): 0.857142857142857%"
+[1] "processed (Morris): 0.571428571428571%"
+[1] "processed (Morris): 1.14285714285714%"
+[1] "processed (Morris): 1.42857142857143%"
+[1] "processed (Morris): 1.14285714285714%"
+[1] "processed (Morris): 0.857142857142857%"
+[1] "processed (Morris): 0.857142857142857%"
+[1] "processed (Morris): 1.71428571428571%"
+[1] "processed (Morris): 1.42857142857143%"
+[1] "processed (Morris): 2%"
+[1] "processed (Morris): 1.14285714285714%"
+[1] "processed (Morris): 1.14285714285714%"
+[1] "processed (Morris): 1.71428571428571%"
+[1] "processed (Morris): 2.28571428571429%"
+[1] "processed (Morris): 1.42857142857143%"
+[1] "processed (Morris): 1.42857142857143%"
+[1] "processed (Morris): 2%"
+[1] "processed (Morris): 2.57142857142857%"
+[1] "processed (Morris): 2.28571428571429%"
+[1] "processed (Morris): 2.85714285714286%"
+[1] "processed (Morris): 1.71428571428571%"
+[1] "processed (Morris): 1.71428571428571%"
+[1] "processed (Morris): 3.14285714285714%"
+[1] "processed (Morris): 2.57142857142857%"
+[1] "processed (Morris): 2%"
+[1] "processed (Morris): 2%"
+[1] "processed (Morris): 3.42857142857143%"
+[1] "processed (Morris): 2.85714285714286%"
+[1] "processed (Morris): 2.28571428571429%"
+[1] "processed (Morris): 3.71428571428571%"
+[1] "processed (Morris): 2.28571428571429%"
+[1] "processed (Morris): 3.14285714285714%"
+[1] "processed (Morris): 4%"
+[1] "processed (Morris): 2.57142857142857%"
+[1] "processed (Morris): 3.42857142857143%"
+[1] "processed (Morris): 2.57142857142857%"
+[1] "processed (Morris): 4.28571428571429%"
+[1] "processed (Morris): 2.85714285714286%"
+[1] "processed (Morris): 3.71428571428571%"
+[1] "processed (Morris): 4.57142857142857%"
+[1] "processed (Morris): 2.85714285714286%"
+[1] "processed (Morris): 3.14285714285714%"
+[1] "processed (Morris): 4.85714285714286%"
+[1] "processed (Morris): 3.14285714285714%"
+[1] "processed (Morris): 4%"
+[1] "processed (Morris): 3.42857142857143%"
+[1] "processed (Morris): 5.14285714285714%"
+[1] "processed (Morris): 4.28571428571429%"
+[1] "processed (Morris): 3.71428571428571%"
+[1] "processed (Morris): 5.42857142857143%"
+[1] "processed (Morris): 3.42857142857143%"
+[1] "processed (Morris): 4%"
+[1] "processed (Morris): 4.57142857142857%"
+[1] "processed (Morris): 5.71428571428571%"
+[1] "processed (Morris): 3.71428571428571%"
+[1] "processed (Morris): 4.28571428571429%"
+[1] "processed (Morris): 6%"
+[1] "processed (Morris): 4.85714285714286%"
+[1] "processed (Morris): 4%"
+[1] "processed (Morris): 4.57142857142857%"
+[1] "processed (Morris): 6.28571428571429%"
+[1] "processed (Morris): 5.14285714285714%"
+[1] "processed (Morris): 4.28571428571429%"
+[1] "processed (Morris): 6.57142857142857%"
+[1] "processed (Morris): 4.85714285714286%"
+[1] "processed (Morris): 5.42857142857143%"
+[1] "processed (Morris): 6.85714285714286%"
+[1] "processed (Morris): 5.71428571428571%"
+[1] "processed (Morris): 5.14285714285714%"
+[1] "processed (Morris): 4.57142857142857%"
+[1] "processed (Morris): 7.14285714285714%"
+[1] "processed (Morris): 7.42857142857143%"
+[1] "processed (Morris): 6%"
+[1] "processed (Morris): 5.42857142857143%"
+[1] "processed (Morris): 4.85714285714286%"
+[1] "processed (Morris): 7.71428571428571%"
+[1] "processed (Morris): 6.28571428571429%"
+[1] "processed (Morris): 5.71428571428571%"
+[1] "processed (Morris): 5.14285714285714%"
+[1] "processed (Morris): 8%"
+[1] "processed (Morris): 6%"
+[1] "processed (Morris): 6.57142857142857%"
+[1] "processed (Morris): 5.42857142857143%"
+[1] "processed (Morris): 8.28571428571428%"
+[1] "processed (Morris): 6.85714285714286%"
+[1] "processed (Morris): 6.28571428571429%"
+[1] "processed (Morris): 8.57142857142857%"
+[1] "processed (Morris): 5.71428571428571%"
+[1] "processed (Morris): 7.14285714285714%"
+[1] "processed (Morris): 6.57142857142857%"
+[1] "processed (Morris): 8.85714285714286%"
+[1] "processed (Morris): 6%"
+[1] "processed (Morris): 7.42857142857143%"
+[1] "processed (Morris): 9.14285714285714%"
+[1] "processed (Morris): 6.85714285714286%"
+[1] "processed (Morris): 7.71428571428571%"
+[1] "processed (Morris): 7.14285714285714%"
+[1] "processed (Morris): 6.28571428571429%"
+[1] "processed (Morris): 9.42857142857143%"
+[1] "processed (Morris): 9.71428571428571%"
+[1] "processed (Morris): 7.42857142857143%"
+[1] "processed (Morris): 6.57142857142857%"
+[1] "processed (Morris): 8%"
+[1] "processed (Morris): 10%"
+[1] "processed (Morris): 7.71428571428571%"
+[1] "processed (Morris): 6.85714285714286%"
+[1] "processed (Morris): 8.28571428571428%"
+[1] "processed (Morris): 10.2857142857143%"
+[1] "processed (Morris): 8.57142857142857%"
+[1] "processed (Morris): 8%"
+[1] "processed (Morris): 10.5714285714286%"
+[1] "processed (Morris): 7.14285714285714%"
+[1] "processed (Morris): 8.85714285714286%"
+[1] "processed (Morris): 10.8571428571429%"
+[1] "processed (Morris): 8.28571428571428%"
+[1] "processed (Morris): 7.42857142857143%"
+[1] "processed (Morris): 11.1428571428571%"
+[1] "processed (Morris): 9.14285714285714%"
+[1] "processed (Morris): 8.57142857142857%"
+[1] "processed (Morris): 7.71428571428571%"
+[1] "processed (Morris): 11.4285714285714%"
+[1] "processed (Morris): 8.85714285714286%"
+[1] "processed (Morris): 9.42857142857143%"
+[1] "processed (Morris): 11.7142857142857%"
+[1] "processed (Morris): 8%"
+[1] "processed (Morris): 9.71428571428571%"
+[1] "processed (Morris): 9.14285714285714%"
+[1] "processed (Morris): 12%"
+[1] "processed (Morris): 10%"
+[1] "processed (Morris): 12.2857142857143%"
+[1] "processed (Morris): 8.28571428571428%"
+[1] "processed (Morris): 9.42857142857143%"
+[1] "processed (Morris): 10.2857142857143%"
+[1] "processed (Morris): 12.5714285714286%"
+[1] "processed (Morris): 9.71428571428571%"
+[1] "processed (Morris): 8.57142857142857%"
+[1] "processed (Morris): 12.8571428571429%"
+[1] "processed (Morris): 10.5714285714286%"
+[1] "processed (Morris): 10%"
+[1] "processed (Morris): 8.85714285714286%"
+[1] "processed (Morris): 13.1428571428571%"
+[1] "processed (Morris): 10.8571428571429%"
+[1] "processed (Morris): 10.2857142857143%"
+[1] "processed (Morris): 9.14285714285714%"
+[1] "processed (Morris): 13.4285714285714%"
+[1] "processed (Morris): 11.1428571428571%"
+[1] "processed (Morris): 13.7142857142857%"
+[1] "processed (Morris): 10.5714285714286%"
+[1] "processed (Morris): 11.4285714285714%"
+[1] "processed (Morris): 9.42857142857143%"
+[1] "processed (Morris): 14%"
+[1] "processed (Morris): 11.7142857142857%"
+[1] "processed (Morris): 10.8571428571429%"
+[1] "processed (Morris): 14.2857142857143%"
+[1] "processed (Morris): 9.71428571428571%"
+[1] "processed (Morris): 14.5714285714286%"
+[1] "processed (Morris): 12%"
+[1] "processed (Morris): 11.1428571428571%"
+[1] "processed (Morris): 10%"
+[1] "processed (Morris): 14.8571428571429%"
+[1] "processed (Morris): 12.2857142857143%"
+[1] "processed (Morris): 11.4285714285714%"
+[1] "processed (Morris): 10.2857142857143%"
+[1] "processed (Morris): 15.1428571428571%"
+[1] "processed (Morris): 12.5714285714286%"
+[1] "processed (Morris): 11.7142857142857%"
+[1] "processed (Morris): 15.4285714285714%"
+[1] "processed (Morris): 12.8571428571429%"
+[1] "processed (Morris): 10.5714285714286%"
+[1] "processed (Morris): 15.7142857142857%"
+[1] "processed (Morris): 12%"
+[1] "processed (Morris): 16%"
+[1] "processed (Morris): 13.1428571428571%"
+[1] "processed (Morris): 10.8571428571429%"
+[1] "processed (Morris): 12.2857142857143%"
+[1] "processed (Morris): 16.2857142857143%"
+[1] "processed (Morris): 13.4285714285714%"
+[1] "processed (Morris): 11.1428571428571%"
+[1] "processed (Morris): 12.5714285714286%"
+[1] "processed (Morris): 16.5714285714286%"
+[1] "processed (Morris): 13.7142857142857%"
+[1] "processed (Morris): 11.4285714285714%"
+[1] "processed (Morris): 12.8571428571429%"
+[1] "processed (Morris): 16.8571428571429%"
+[1] "processed (Morris): 14%"
+[1] "processed (Morris): 17.1428571428571%"
+[1] "processed (Morris): 13.1428571428571%"
+[1] "processed (Morris): 11.7142857142857%"
+[1] "processed (Morris): 14.2857142857143%"
+[1] "processed (Morris): 17.4285714285714%"
+[1] "processed (Morris): 13.4285714285714%"
+[1] "processed (Morris): 14.5714285714286%"
+[1] "processed (Morris): 17.7142857142857%"
+[1] "processed (Morris): 12%"
+[1] "processed (Morris): 13.7142857142857%"
+[1] "processed (Morris): 18%"
+[1] "processed (Morris): 14.8571428571429%"
+[1] "processed (Morris): 12.2857142857143%"
+[1] "processed (Morris): 14%"
+[1] "processed (Morris): 18.2857142857143%"
+[1] "processed (Morris): 15.1428571428571%"
+[1] "processed (Morris): 12.5714285714286%"
+[1] "processed (Morris): 18.5714285714286%"
+[1] "processed (Morris): 14.2857142857143%"
+[1] "processed (Morris): 15.4285714285714%"
+[1] "processed (Morris): 18.8571428571429%"
+[1] "processed (Morris): 12.8571428571429%"
+[1] "processed (Morris): 15.7142857142857%"
+[1] "processed (Morris): 14.5714285714286%"
+[1] "processed (Morris): 19.1428571428571%"
+[1] "processed (Morris): 16%"
+[1] "processed (Morris): 13.1428571428571%"
+[1] "processed (Morris): 19.4285714285714%"
+[1] "processed (Morris): 14.8571428571429%"
+[1] "processed (Morris): 19.7142857142857%"
+[1] "processed (Morris): 13.4285714285714%"
+[1] "processed (Morris): 16.2857142857143%"
+[1] "processed (Morris): 15.1428571428571%"
+[1] "processed (Morris): 20%"
+[1] "processed (Morris): 15.4285714285714%"
+[1] "processed (Morris): 13.7142857142857%"
+[1] "processed (Morris): 16.5714285714286%"
+[1] "processed (Morris): 20.2857142857143%"
+[1] "processed (Morris): 16.8571428571429%"
+[1] "processed (Morris): 15.7142857142857%"
+[1] "processed (Morris): 20.5714285714286%"
+[1] "processed (Morris): 14%"
+[1] "processed (Morris): 17.1428571428571%"
+[1] "processed (Morris): 20.8571428571429%"
+[1] "processed (Morris): 16%"
+[1] "processed (Morris): 21.1428571428571%"
+[1] "processed (Morris): 14.2857142857143%"
+[1] "processed (Morris): 17.4285714285714%"
+[1] "processed (Morris): 16.2857142857143%"
+[1] "processed (Morris): 21.4285714285714%"
+[1] "processed (Morris): 14.5714285714286%"
+[1] "processed (Morris): 17.7142857142857%"
+[1] "processed (Morris): 16.5714285714286%"
+[1] "processed (Morris): 21.7142857142857%"
+[1] "processed (Morris): 18%"
+[1] "processed (Morris): 14.8571428571429%"
+[1] "processed (Morris): 22%"
+[1] "processed (Morris): 16.8571428571429%"
+[1] "processed (Morris): 18.2857142857143%"
+[1] "processed (Morris): 22.2857142857143%"
+[1] "processed (Morris): 15.1428571428571%"
+[1] "processed (Morris): 17.1428571428571%"
+[1] "processed (Morris): 22.5714285714286%"
+[1] "processed (Morris): 18.5714285714286%"
+[1] "processed (Morris): 15.4285714285714%"
+[1] "processed (Morris): 22.8571428571429%"
+[1] "processed (Morris): 17.4285714285714%"
+[1] "processed (Morris): 18.8571428571429%"
+[1] "processed (Morris): 15.7142857142857%"
+[1] "processed (Morris): 23.1428571428571%"
+[1] "processed (Morris): 19.1428571428571%"
+[1] "processed (Morris): 17.7142857142857%"
+[1] "processed (Morris): 23.4285714285714%"
+[1] "processed (Morris): 18%"
+[1] "processed (Morris): 16%"
+[1] "processed (Morris): 19.4285714285714%"
+[1] "processed (Morris): 23.7142857142857%"
+[1] "processed (Morris): 18.2857142857143%"
+[1] "processed (Morris): 19.7142857142857%"
+[1] "processed (Morris): 24%"
+[1] "processed (Morris): 16.2857142857143%"
+[1] "processed (Morris): 18.5714285714286%"
+[1] "processed (Morris): 24.2857142857143%"
+[1] "processed (Morris): 20%"
+[1] "processed (Morris): 16.5714285714286%"
+[1] "processed (Morris): 24.5714285714286%"
+[1] "processed (Morris): 20.2857142857143%"
+[1] "processed (Morris): 24.8571428571429%"
+[1] "processed (Morris): 18.8571428571429%"
+[1] "processed (Morris): 16.8571428571429%"
+[1] "processed (Morris): 20.5714285714286%"
+[1] "processed (Morris): 19.1428571428571%"
+[1] "processed (Morris): 17.1428571428571%"
+[1] "processed (Morris): 20.8571428571429%"
+[1] "processed (Morris): 19.4285714285714%"
+[1] "processed (Morris): 17.4285714285714%"
+[1] "processed (Morris): 21.1428571428571%"
+[1] "processed (Morris): 19.7142857142857%"
+[1] "processed (Morris): 21.4285714285714%"
+[1] "processed (Morris): 17.7142857142857%"
+[1] "processed (Morris): 20%"
+[1] "processed (Morris): 21.7142857142857%"
+[1] "processed (Morris): 18%"
+[1] "processed (Morris): 20.2857142857143%"
+[1] "processed (Morris): 18.2857142857143%"
+[1] "processed (Morris): 22%"
+[1] "processed (Morris): 20.5714285714286%"
+[1] "processed (Morris): 22.2857142857143%"
+[1] "processed (Morris): 18.5714285714286%"
+[1] "processed (Morris): 20.8571428571429%"
+[1] "processed (Morris): 22.5714285714286%"
+[1] "processed (Morris): 18.8571428571429%"
+[1] "processed (Morris): 21.1428571428571%"
+[1] "processed (Morris): 22.8571428571429%"
+[1] "processed (Morris): 19.1428571428571%"
+[1] "processed (Morris): 21.4285714285714%"
+[1] "processed (Morris): 23.1428571428571%"
+[1] "processed (Morris): 19.4285714285714%"
+[1] "processed (Morris): 21.7142857142857%"
+[1] "processed (Morris): 23.4285714285714%"
+[1] "processed (Morris): 19.7142857142857%"
+[1] "processed (Morris): 22%"
+[1] "processed (Morris): 23.7142857142857%"
+[1] "processed (Morris): 20%"
+[1] "processed (Morris): 22.2857142857143%"
+[1] "processed (Morris): 24%"
+[1] "processed (Morris): 20.2857142857143%"
+[1] "processed (Morris): 22.5714285714286%"
+[1] "processed (Morris): 20.5714285714286%"
+[1] "processed (Morris): 24.2857142857143%"
+[1] "processed (Morris): 22.8571428571429%"
+[1] "processed (Morris): 24.5714285714286%"
+[1] "processed (Morris): 20.8571428571429%"
+[1] "processed (Morris): 24.8571428571429%"
+[1] "processed (Morris): 23.1428571428571%"
+[1] "processed (Morris): 21.1428571428571%"
+[1] "processed (Morris): 23.4285714285714%"
+[1] "processed (Morris): 21.4285714285714%"
+[1] "processed (Morris): 23.7142857142857%"
+[1] "processed (Morris): 21.7142857142857%"
+[1] "processed (Morris): 24%"
+[1] "processed (Morris): 22%"
+[1] "processed (Morris): 24.2857142857143%"
+[1] "processed (Morris): 22.2857142857143%"
+[1] "processed (Morris): 24.5714285714286%"
+[1] "processed (Morris): 22.5714285714286%"
+[1] "processed (Morris): 24.8571428571429%"
+[1] "processed (Morris): 22.8571428571429%"
+[1] "processed (Morris): 25.1428571428571%"
+[1] "processed (Morris): 23.1428571428571%"
+[1] "processed (Morris): 23.4285714285714%"
+[1] "processed (Morris): 23.7142857142857%"
+[1] "processed (Morris): 24%"
+[1] "processed (Morris): 24.2857142857143%"
+[1] "processed (Morris): 24.5714285714286%"
+[1] "processed (Morris): 24.8571428571429%"
+[1] "processed (Morris): 25.1428571428571%"
+Warnmeldungen:
+Warnmeldungen:
+a' was built under R version 3.3.2 
+2: 1: package 'rJava' was built under R version 3.3.2 
+2: In `[<-`(`*tmp*`, nl.obj, value = list(nl.sm13 = <S4 object of class "jobjRef">)) :
+  implicit list embedding of S4 objects is deprecated
+In `[<-`(`*tmp*`, nl.obj, value = list(nl.sm13 = <S4 object of class "jobjRef">)) :
+  implicit list embedding of S4 objects is deprecated
+Warnmeldungen:
+1: package 'rJava' was built under R version 3.3.2 
+2: In `[<-`(`*tmp*`, nl.obj, value = list(nl.sm13 = <S4 object of class "jobjRef">)) :
+  implicit list embedding of S4 objects is deprecated
+Warnmeldungen:
+1: package 'rJava' was built under R version 3.3.2 
+2: In `[<-`(`*tmp*`, nl.obj, value = list(nl.sm13 = <S4 object of class "jobjRef">)) :
+  implicit list embedding of S4 objects is deprecated
+starting worker pid=5072 on localhost:11429 at 12:13:17.726
+starting worker pid=8388 on localhost:11429 at 12:13:18.036
+starting worker pid=2080 on localhost:11429 at 12:13:18.412
+starting worker pid=4524 on localhost:11429 at 12:13:18.676
+Loading required package: rJava
+Loading required package: rJava
+Loading required package: rJava
+Loading required package: rJava
+Loading required package: igraph
+Loading required package: igraph
+Loading required package: igraph
+
+Attaching package: 'igraph'
+
+The following objects are masked from 'package:stats':
+
+    decompose, spectrum
+
+Loading required package: igraph
+The following object is masked from 'package:base':
+
+    union
+
+
+Attaching package: 'igraph'
+
+The following objects are masked from 'package:stats':
+
+    decompose, spectrum
+
+The following object is masked from 'package:base':
+
+    union
+
+
+Attaching package: 'igraph'
+
+The following objects are masked from 'package:stats':
+
+    decompose, spectrum
+
+The following object is masked from 'package:base':
+
+    union
+
+
+Attaching package: 'igraph'
+
+The following objects are masked from 'package:stats':
+
+    decompose, spectrum
+
+The following object is masked from 'package:base':
+
+    union
+
+starting worker pid=8644 on localhost:11429 at 12:17:56.674
+starting worker pid=8348 on localhost:11429 at 12:17:56.990
+starting worker pid=8384 on localhost:11429 at 12:17:57.263
+starting worker pid=6192 on localhost:11429 at 12:17:57.542
+Loading required package: rJava
+Loading required package: rJava
+Loading required package: rJava
+Loading required package: rJava
+Loading required package: igraph
+Loading required package: igraph
+Loading required package: igraph
+
+Attaching package: 'igraph'
+
+The following objects are masked from 'package:stats':
+
+    decompose, spectrum
+
+The following object is masked from 'package:base':
+
+    union
+
+
+Attaching package: 'igraph'
+
+The following objects are masked from 'package:stats':
+
+    decompose, spectrum
+
+The following object is masked from 'package:base':
+
+    union
+
+
+Attaching package: 'igraph'
+
+The following objects are masked from 'package:stats':
+
+    decompose, spectrum
+
+The following object is masked from 'package:base':
+
+    union
+
+Loading required package: igraph
+
+Attaching package: 'igraph'
+
+The following objects are masked from 'package:stats':
+
+    decompose, spectrum
+
+The following object is masked from 'package:base':
+
+    union
+
+Warnmeldungen:
+1: package 'rJava' was built under R version 3.3.2 
+2: 1: package 'rJava' was built under R version 3.3.2 
+2: In `[<-`(`*tmp*`, nl.obj, value = list(nl.sm13 = <S4 object of class "jobjRef">)) :
+ Warnmeldungen:
+1: package 'rJava' was built under R version 3.3.2 
+
+In `[<-`(`*tmp*`, nl.obj, value = list(nl.sm13 = <S4 object of class "jobjRef">)) :
+  implicit list embedding of S4 objects is deprecated
+2: In `[<-`(`*tmp*`, nl.obj, value = list(nl.sm13 = <S4 object of class "jobjRef">)) :
+  implicit list embedding of S4 objects is deprecated
+Warnmeldungen:
+1: package 'rJava' was built under R version 3.3.2 
+2: In `[<-`(`*tmp*`, nl.obj, value = list(nl.sm13 = <S4 object of class "jobjRef">)) :
+  implicit list embedding of S4 objects is deprecated
+starting worker pid=6948 on localhost:11429 at 12:20:23.806
+starting worker pid=5356 on localhost:11429 at 12:20:24.059
+starting worker pid=5856 on localhost:11429 at 12:20:24.309
+starting worker pid=7160 on localhost:11429 at 12:20:24.538
+Loading required package: rJava
+Loading required package: rJava
+Loading required package: rJava
+Loading required package: rJava
+Loading required package: igraph
+Loading required package: igraph
+
+Attaching package: 'igraph'
+
+The following objects are masked from 'package:stats':
+
+    decompose, spectrum
+
+The following object is masked from 'package:base':
+
+    union
+
+Loading required package: igraph
+
+Attaching package: 'igraph'
+
+The following objects are masked from 'package:stats':
+
+    decompose, spectrum
+
+The following object is masked from 'package:base':
+
+    union
+
+Loading required package: igraph
+
+Attaching package: 'igraph'
+
+The following objects are masked from 'package:stats':
+
+    decompose, spectrum
+
+The following object is masked from 'package:base':
+
+    union
+
+
+Attaching package: 'igraph'
+
+The following objects are masked from 'package:stats':
+
+    decompose, spectrum
+
+The following object is masked from 'package:base':
+
+    union
+
+Warnmeldungen:
+1: package 'rJava' was built under R version 3.3.2 
+2: Warnmeldungen:
+1: package 'rJava' was built under R version 3.3.2 
+In `[<-`(`*tmp*`, nl.obj, value = list(nl.sm13 = <S4 object of class "jobjRef">)) :
+  implicit list embedding of S4 objects is deprecated
+2: In `[<-`(`*tmp*`, nl.obj, value = list(nl.sm13 = <S4 object of class "jobjRef">)) :
+  implicit list embedding of S4 objects is deprecated
+Warnmeldungen:
+1: package 'rJava' was built under R version 3.3.2 
+2: In `[<-`(`*tmp*`, nl.obj, value = list(nl.sm13 = <S4 object of class "jobjRef">)) :
+  implicit list embedding of S4 objects is deprecated
+Warnmeldungen:
+1: package 'rJava' was built under R version 3.3.2 
+2: In `[<-`(`*tmp*`, nl.obj, value = list(nl.sm13 = <S4 object of class "jobjRef">)) :
+  implicit list embedding of S4 objects is deprecated
+starting worker pid=8480 on localhost:11429 at 12:21:17.356
+starting worker pid=5672 on localhost:11429 at 12:21:17.640
+starting worker pid=7508 on localhost:11429 at 12:21:17.899
+starting worker pid=3896 on localhost:11429 at 12:21:18.119
+Loading required package: rJava
+Loading required package: rJava
+Loading required package: rJava
+Loading required package: rJava
+Loading required package: igraph
+
+Attaching package: 'igraph'
+
+The following objects are masked from 'package:stats':
+
+    decompose, spectrum
+
+The following object is masked from 'package:base':
+
+    union
+
+Loading required package: igraph
+
+Attaching package: 'igraph'
+
+The following objects are masked from 'package:stats':
+
+    decompose, spectrum
+
+The following object is masked from 'package:base':
+
+    union
+
+Loading required package: igraph
+Loading required package: igraph
+
+Attaching package: 'igraph'
+
+The following objects are masked from 'package:stats':
+
+    decompose, spectrum
+
+The following object is masked from 'package:base':
+
+    union
+
+
+Attaching package: 'igraph'
+
+The following objects are masked from 'package:stats':
+
+    decompose, spectrum
+
+The following object is masked from 'package:base':
+
+    union
+
+[1] "processed (Morris): 0.333333333333333%"
+[1] "processed (Morris): 0.333333333333333%"
+[1] "processed (Morris): 0.666666666666667%"
+[1] "processed (Morris): 0.333333333333333%"
+[1] "processed (Morris): 0.333333333333333%"
+[1] "processed (Morris): 0.666666666666667%"
+[1] "processed (Morris): 1%"
+[1] "processed (Morris): 0.666666666666667%"
+[1] "processed (Morris): 0.666666666666667%"
+[1] "processed (Morris): 1%"
+[1] "processed (Morris): 1.33333333333333%"
+[1] "processed (Morris): 1%"
+[1] "processed (Morris): 1.66666666666667%"
+[1] "processed (Morris): 1%"
+[1] "processed (Morris): 1.33333333333333%"
+[1] "processed (Morris): 1.66666666666667%"
+[1] "processed (Morris): 2%"
+[1] "processed (Morris): 1.33333333333333%"
+[1] "processed (Morris): 1.33333333333333%"
+[1] "processed (Morris): 1.66666666666667%"
+[1] "processed (Morris): 2%"
+[1] "processed (Morris): 2.33333333333333%"
+[1] "processed (Morris): 1.66666666666667%"
+[1] "processed (Morris): 2.66666666666667%"
+[1] "processed (Morris): 2%"
+[1] "processed (Morris): 2.33333333333333%"
+[1] "processed (Morris): 3%"
+[1] "processed (Morris): 2%"
+[1] "processed (Morris): 2.33333333333333%"
+[1] "processed (Morris): 2.66666666666667%"
+[1] "processed (Morris): 3.33333333333333%"
+[1] "processed (Morris): 2.33333333333333%"
+[1] "processed (Morris): 2.66666666666667%"
+[1] "processed (Morris): 3%"
+[1] "processed (Morris): 3.66666666666667%"
+[1] "processed (Morris): 2.66666666666667%"
+[1] "processed (Morris): 3%"
+[1] "processed (Morris): 4%"
+[1] "processed (Morris): 3.33333333333333%"
+[1] "processed (Morris): 3%"
+[1] "processed (Morris): 3.33333333333333%"
+[1] "processed (Morris): 4.33333333333333%"
+[1] "processed (Morris): 3.66666666666667%"
+[1] "processed (Morris): 3.33333333333333%"
+[1] "processed (Morris): 3.66666666666667%"
+[1] "processed (Morris): 4%"
+[1] "processed (Morris): 4.66666666666667%"
+[1] "processed (Morris): 3.66666666666667%"
+[1] "processed (Morris): 4%"
+[1] "processed (Morris): 5%"
+[1] "processed (Morris): 4.33333333333333%"
+[1] "processed (Morris): 4.33333333333333%"
+[1] "processed (Morris): 4%"
+[1] "processed (Morris): 5.33333333333333%"
+[1] "processed (Morris): 4.66666666666667%"
+[1] "processed (Morris): 4.66666666666667%"
+[1] "processed (Morris): 4.33333333333333%"
+[1] "processed (Morris): 5.66666666666667%"
+[1] "processed (Morris): 5%"
+[1] "processed (Morris): 5%"
+[1] "processed (Morris): 4.66666666666667%"
+[1] "processed (Morris): 6%"
+[1] "processed (Morris): 5.33333333333333%"
+[1] "processed (Morris): 5.33333333333333%"
+[1] "processed (Morris): 6.33333333333333%"
+[1] "processed (Morris): 5%"
+[1] "processed (Morris): 5.66666666666667%"
+[1] "processed (Morris): 5.66666666666667%"
+[1] "processed (Morris): 6.66666666666667%"
+[1] "processed (Morris): 5.33333333333333%"
+[1] "processed (Morris): 6%"
+[1] "processed (Morris): 7%"
+[1] "processed (Morris): 6%"
+[1] "processed (Morris): 5.66666666666667%"
+[1] "processed (Morris): 6.33333333333333%"
+[1] "processed (Morris): 6.33333333333333%"
+[1] "processed (Morris): 7.33333333333333%"
+[1] "processed (Morris): 6%"
+[1] "processed (Morris): 6.66666666666667%"
+[1] "processed (Morris): 7.66666666666667%"
+[1] "processed (Morris): 6.66666666666667%"
+[1] "processed (Morris): 8%"
+[1] "processed (Morris): 6.33333333333333%"
+[1] "processed (Morris): 7%"
+[1] "processed (Morris): 7%"
+[1] "processed (Morris): 8.33333333333333%"
+[1] "processed (Morris): 6.66666666666667%"
+[1] "processed (Morris): 7.33333333333333%"
+[1] "processed (Morris): 7.33333333333333%"
+[1] "processed (Morris): 8.66666666666667%"
+[1] "processed (Morris): 7%"
+[1] "processed (Morris): 7.66666666666667%"
+[1] "processed (Morris): 7.66666666666667%"
+[1] "processed (Morris): 9%"
+[1] "processed (Morris): 7.33333333333333%"
+[1] "processed (Morris): 8%"
+[1] "processed (Morris): 9.33333333333333%"
+[1] "processed (Morris): 8%"
+[1] "processed (Morris): 7.66666666666667%"
+[1] "processed (Morris): 8.33333333333333%"
+[1] "processed (Morris): 9.66666666666667%"
+[1] "processed (Morris): 8.33333333333333%"
+[1] "processed (Morris): 8.66666666666667%"
+[1] "processed (Morris): 8%"
+[1] "processed (Morris): 10%"
+[1] "processed (Morris): 8.66666666666667%"
+[1] "processed (Morris): 10.3333333333333%"
+[1] "processed (Morris): 9%"
+[1] "processed (Morris): 8.33333333333333%"
+[1] "processed (Morris): 9%"
+[1] "processed (Morris): 10.6666666666667%"
+[1] "processed (Morris): 9.33333333333333%"
+[1] "processed (Morris): 8.66666666666667%"
+[1] "processed (Morris): 11%"
+[1] "processed (Morris): 9.66666666666667%"
+[1] "processed (Morris): 9.33333333333333%"
+[1] "processed (Morris): 9%"
+[1] "processed (Morris): 11.3333333333333%"
+[1] "processed (Morris): 10%"
+[1] "processed (Morris): 9.66666666666667%"
+[1] "processed (Morris): 9.33333333333333%"
+[1] "processed (Morris): 11.6666666666667%"
+[1] "processed (Morris): 10.3333333333333%"
+[1] "processed (Morris): 10%"
+[1] "processed (Morris): 12%"
+[1] "processed (Morris): 9.66666666666667%"
+[1] "processed (Morris): 10.6666666666667%"
+[1] "processed (Morris): 10.3333333333333%"
+[1] "processed (Morris): 12.3333333333333%"
+[1] "processed (Morris): 10%"
+[1] "processed (Morris): 11%"
+[1] "processed (Morris): 10.6666666666667%"
+[1] "processed (Morris): 12.6666666666667%"
+[1] "processed (Morris): 11.3333333333333%"
+[1] "processed (Morris): 10.3333333333333%"
+[1] "processed (Morris): 11%"
+[1] "processed (Morris): 13%"
+[1] "processed (Morris): 11.6666666666667%"
+[1] "processed (Morris): 13.3333333333333%"
+[1] "processed (Morris): 11.3333333333333%"
+[1] "processed (Morris): 10.6666666666667%"
+[1] "processed (Morris): 13.6666666666667%"
+[1] "processed (Morris): 12%"
+[1] "processed (Morris): 11%"
+[1] "processed (Morris): 11.6666666666667%"
+[1] "processed (Morris): 14%"
+[1] "processed (Morris): 12.3333333333333%"
+[1] "processed (Morris): 11.3333333333333%"
+[1] "processed (Morris): 12%"
+[1] "processed (Morris): 12.6666666666667%"
+[1] "processed (Morris): 14.3333333333333%"
+[1] "processed (Morris): 12.3333333333333%"
+[1] "processed (Morris): 11.6666666666667%"
+[1] "processed (Morris): 13%"
+[1] "processed (Morris): 14.6666666666667%"
+[1] "processed (Morris): 15%"
+[1] "processed (Morris): 12.6666666666667%"
+[1] "processed (Morris): 12%"
+[1] "processed (Morris): 13.3333333333333%"
+[1] "processed (Morris): 15.3333333333333%"
+[1] "processed (Morris): 13.6666666666667%"
+[1] "processed (Morris): 12.3333333333333%"
+[1] "processed (Morris): 13%"
+[1] "processed (Morris): 15.6666666666667%"
+[1] "processed (Morris): 14%"
+[1] "processed (Morris): 13.3333333333333%"
+[1] "processed (Morris): 12.6666666666667%"
+[1] "processed (Morris): 16%"
+[1] "processed (Morris): 14.3333333333333%"
+[1] "processed (Morris): 13.6666666666667%"
+[1] "processed (Morris): 16.3333333333333%"
+[1] "processed (Morris): 13%"
+[1] "processed (Morris): 14.6666666666667%"
+[1] "processed (Morris): 14%"
+[1] "processed (Morris): 16.6666666666667%"
+[1] "processed (Morris): 13.3333333333333%"
+[1] "processed (Morris): 17%"
+[1] "processed (Morris): 15%"
+[1] "processed (Morris): 14.3333333333333%"
+[1] "processed (Morris): 15.3333333333333%"
+[1] "processed (Morris): 13.6666666666667%"
+[1] "processed (Morris): 17.3333333333333%"
+[1] "processed (Morris): 14.6666666666667%"
+[1] "processed (Morris): 14%"
+[1] "processed (Morris): 15.6666666666667%"
+[1] "processed (Morris): 17.6666666666667%"
+[1] "processed (Morris): 15%"
+[1] "processed (Morris): 14.3333333333333%"
+[1] "processed (Morris): 18%"
+[1] "processed (Morris): 16%"
+[1] "processed (Morris): 15.3333333333333%"
+[1] "processed (Morris): 14.6666666666667%"
+[1] "processed (Morris): 18.3333333333333%"
+[1] "processed (Morris): 15.6666666666667%"
+[1] "processed (Morris): 16.3333333333333%"
+[1] "processed (Morris): 18.6666666666667%"
+[1] "processed (Morris): 15%"
+[1] "processed (Morris): 16.6666666666667%"
+[1] "processed (Morris): 16%"
+[1] "processed (Morris): 19%"
+[1] "processed (Morris): 15.3333333333333%"
+[1] "processed (Morris): 17%"
+[1] "processed (Morris): 16.3333333333333%"
+[1] "processed (Morris): 19.3333333333333%"
+[1] "processed (Morris): 17.3333333333333%"
+[1] "processed (Morris): 16.6666666666667%"
+[1] "processed (Morris): 15.6666666666667%"
+[1] "processed (Morris): 19.6666666666667%"
+[1] "processed (Morris): 17%"
+[1] "processed (Morris): 16%"
+[1] "processed (Morris): 20%"
+[1] "processed (Morris): 17.6666666666667%"
+[1] "processed (Morris): 17.3333333333333%"
+[1] "processed (Morris): 18%"
+[1] "processed (Morris): 16.3333333333333%"
+[1] "processed (Morris): 20.3333333333333%"
+[1] "processed (Morris): 17.6666666666667%"
+[1] "processed (Morris): 18.3333333333333%"
+[1] "processed (Morris): 20.6666666666667%"
+[1] "processed (Morris): 16.6666666666667%"
+[1] "processed (Morris): 18%"
+[1] "processed (Morris): 18.6666666666667%"
+[1] "processed (Morris): 21%"
+[1] "processed (Morris): 18.3333333333333%"
+[1] "processed (Morris): 17%"
+[1] "processed (Morris): 19%"
+[1] "processed (Morris): 21.3333333333333%"
+[1] "processed (Morris): 18.6666666666667%"
+[1] "processed (Morris): 19.3333333333333%"
+[1] "processed (Morris): 21.6666666666667%"
+[1] "processed (Morris): 19%"
+[1] "processed (Morris): 17.3333333333333%"
+[1] "processed (Morris): 19.6666666666667%"
+[1] "processed (Morris): 19.3333333333333%"
+[1] "processed (Morris): 22%"
+[1] "processed (Morris): 20%"
+[1] "processed (Morris): 17.6666666666667%"
+[1] "processed (Morris): 19.6666666666667%"
+[1] "processed (Morris): 22.3333333333333%"
+[1] "processed (Morris): 20.3333333333333%"
+[1] "processed (Morris): 22.6666666666667%"
+[1] "processed (Morris): 20%"
+[1] "processed (Morris): 18%"
+[1] "processed (Morris): 23%"
+[1] "processed (Morris): 20.6666666666667%"
+[1] "processed (Morris): 20.3333333333333%"
+[1] "processed (Morris): 18.3333333333333%"
+[1] "processed (Morris): 21%"
+[1] "processed (Morris): 23.3333333333333%"
+[1] "processed (Morris): 20.6666666666667%"
+[1] "processed (Morris): 21.3333333333333%"
+[1] "processed (Morris): 23.6666666666667%"
+[1] "processed (Morris): 21%"
+[1] "processed (Morris): 24%"
+[1] "processed (Morris): 18.6666666666667%"
+[1] "processed (Morris): 21.6666666666667%"
+[1] "processed (Morris): 21.3333333333333%"
+[1] "processed (Morris): 24.3333333333333%"
+[1] "processed (Morris): 22%"
+[1] "processed (Morris): 19%"
+[1] "processed (Morris): 21.6666666666667%"
+[1] "processed (Morris): 24.6666666666667%"
+[1] "processed (Morris): 22.3333333333333%"
+[1] "processed (Morris): 22%"
+[1] "processed (Morris): 19.3333333333333%"
+[1] "processed (Morris): 25%"
+[1] "processed (Morris): 22.6666666666667%"
+[1] "processed (Morris): 22.3333333333333%"
+[1] "processed (Morris): 19.6666666666667%"
+[1] "processed (Morris): 23%"
+[1] "processed (Morris): 22.6666666666667%"
+[1] "processed (Morris): 20%"
+[1] "processed (Morris): 23.3333333333333%"
+[1] "processed (Morris): 23%"
+[1] "processed (Morris): 20.3333333333333%"
+[1] "processed (Morris): 23.6666666666667%"
+[1] "processed (Morris): 23.3333333333333%"
+[1] "processed (Morris): 20.6666666666667%"
+[1] "processed (Morris): 24%"
+[1] "processed (Morris): 23.6666666666667%"
+[1] "processed (Morris): 21%"
+[1] "processed (Morris): 24.3333333333333%"
+[1] "processed (Morris): 24%"
+[1] "processed (Morris): 21.3333333333333%"
+[1] "processed (Morris): 24.6666666666667%"
+[1] "processed (Morris): 24.3333333333333%"
+[1] "processed (Morris): 25%"
+[1] "processed (Morris): 21.6666666666667%"
+[1] "processed (Morris): 24.6666666666667%"
+[1] "processed (Morris): 22%"
+[1] "processed (Morris): 25%"
+[1] "processed (Morris): 22.3333333333333%"
+[1] "processed (Morris): 22.6666666666667%"
+[1] "processed (Morris): 23%"
+[1] "processed (Morris): 23.3333333333333%"
+[1] "processed (Morris): 23.6666666666667%"
+[1] "processed (Morris): 24%"
+[1] "processed (Morris): 24.3333333333333%"
+[1] "processed (Morris): 24.6666666666667%"
+[1] "processed (Morris): 25%"
+Warnmeldungen:
+1: package 'rJava' was built under R version 3.3.2 
+2: In `[<-`(`*tmp*`, nl.obj, value = list(nl.sm13 = <S4 object of class "jobjRef">)) :
+  implicit list embedding of S4 objects is deprecated
+Warnmeldungen:
+1: package 'rJava' was built under R version 3.3.2 
+2: In `[<-`(`*tmp*`, nl.obj, value = list(nl.sm13 = <S4 object of class "jobjRef">)) :
+ Warnmeldungen:
+ implicit list embedding of S4 objects is deprecated
+1: package 'rJava' was built under R version 3.3.2 
+2: In `[<-`(`*tmp*`, nl.obj, value = list(nl.sm13 = <S4 object of class "jobjRef">)) :
+  implicit list embedding of S4 objects is deprecated
+Warnmeldungen:
+1: package 'rJava' was built under R version 3.3.2 
+2: In `[<-`(`*tmp*`, nl.obj, value = list(nl.sm13 = <S4 object of class "jobjRef">)) :
+  implicit list embedding of S4 objects is deprecated
+Fehler in unserialize(node$con) : Lesefehler aus Verbindung
+Ruft auf: <Anonymous> ... doTryCatch -> recvData -> recvData.SOCKnode -> unserialize
+Zusätzlich: Warnmeldungen:
+1: package 'rJava' was built under R version 3.3.2 
+2: In `[<-`(`*tmp*`, nl.obj, value = list(nl.sm13 = <S4 object of class "jobjRef">)) :
+  implicit list embedding of S4 objects is deprecated
+Ausführung angehalten
+Fehler in unserialize(node$con) : Lesefehler aus Verbindung
+Ruft auf: <Anonymous> ... doTryCatch -> recvData -> recvData.SOCKnode -> unserialize
+Zusätzlich: Warnmeldungen:
+1: package 'rJava' was built under R version 3.3.2 
+2: In `[<-`(`*tmp*`, nl.obj, value = list(nl.sm13 = <S4 object of class "jobjRef">)) :
+  implicit list embedding of S4 objects is deprecated
+Ausführung angehalten
+Fehler in unserialize(node$con) : Lesefehler aus Verbindung
+Ruft auf: <Anonymous> ... doTryCatch -> recvData -> recvData.SOCKnode -> unserialize
+Zusätzlich: Warnmeldungen:
+1: package 'rJava' was built under R version 3.3.2 
+2: In `[<-`(`*tmp*`, nl.obj, value = list(nl.sm13 = <S4 object of class "jobjRef">)) :
+  implicit list embedding of S4 objects is deprecated
+Ausführung angehalten
+Fehler in unserialize(node$con) : Lesefehler aus Verbindung
+Ruft auf: <Anonymous> ... doTryCatch -> recvData -> recvData.SOCKnode -> unserialize
+Zusätzlich: Warnmeldungen:
+1: package 'rJava' was built under R version 3.3.2 
+2: In `[<-`(`*tmp*`, nl.obj, value = list(nl.sm13 = <S4 object of class "jobjRef">)) :
+  implicit list embedding of S4 objects is deprecated
+Ausführung angehalten
+starting worker pid=8840 on localhost:11869 at 15:28:20.495
+starting worker pid=6224 on localhost:11869 at 15:28:20.788
+starting worker pid=11836 on localhost:11869 at 15:28:21.066
+starting worker pid=4448 on localhost:11869 at 15:28:21.373
+Loading required package: rJava
+Loading required package: rJava
+Loading required package: rJava
+Loading required package: rJava
+Loading required package: igraph
+Loading required package: igraph
+Loading required package: igraph
+
+Attaching package: 'igraph'
+
+The following objects are masked from 'package:stats':
+
+    decompose, spectrum
+
+The following object is masked from 'package:base':
+
+    union
+
+
+Attaching package: 'igraph'
+
+The following objects are masked from 'package:stats':
+
+    decompose, spectrum
+
+The following object is masked from 'package:base':
+
+    union
+
+
+Attaching package: 'igraph'
+
+The following objects are masked from 'package:stats':
+
+    decompose, spectrum
+
+The following object is masked from 'package:base':
+
+    union
+
+Loading required package: igraph
+
+Attaching package: 'igraph'
+
+The following objects are masked from 'package:stats':
+
+    decompose, spectrum
+
+The following object is masked from 'package:base':
+
+    union
+
+[1] "processed (Morris): 0.285714285714286%"
+[1] "processed (Morris): 0.285714285714286%"
+[1] "processed (Morris): 0.285714285714286%"
+[1] "processed (Morris): 0.285714285714286%"
+[1] "processed (Morris): 0.571428571428571%"
+[1] "processed (Morris): 0.571428571428571%"
+[1] "processed (Morris): 0.571428571428571%"
+[1] "processed (Morris): 0.857142857142857%"
+[1] "processed (Morris): 0.857142857142857%"
+[1] "processed (Morris): 0.571428571428571%"
+[1] "processed (Morris): 1.14285714285714%"
+[1] "processed (Morris): 1.14285714285714%"
+[1] "processed (Morris): 0.857142857142857%"
+[1] "processed (Morris): 0.857142857142857%"
+[1] "processed (Morris): 1.42857142857143%"
+[1] "processed (Morris): 1.42857142857143%"
+[1] "processed (Morris): 1.14285714285714%"
+[1] "processed (Morris): 1.71428571428571%"
+[1] "processed (Morris): 1.14285714285714%"
+[1] "processed (Morris): 1.71428571428571%"
+[1] "processed (Morris): 1.42857142857143%"
+[1] "processed (Morris): 1.42857142857143%"
+[1] "processed (Morris): 2%"
+[1] "processed (Morris): 2%"
+[1] "processed (Morris): 2.28571428571429%"
+[1] "processed (Morris): 1.71428571428571%"
+[1] "processed (Morris): 2.28571428571429%"
+[1] "processed (Morris): 1.71428571428571%"
+[1] "processed (Morris): 2.57142857142857%"
+[1] "processed (Morris): 2%"
+[1] "processed (Morris): 2.57142857142857%"
+[1] "processed (Morris): 2%"
+[1] "processed (Morris): 2.28571428571429%"
+[1] "processed (Morris): 2.85714285714286%"
+[1] "processed (Morris): 2.85714285714286%"
+[1] "processed (Morris): 2.28571428571429%"
+[1] "processed (Morris): 2.57142857142857%"
+[1] "processed (Morris): 3.14285714285714%"
+[1] "processed (Morris): 3.14285714285714%"
+[1] "processed (Morris): 2.57142857142857%"
+[1] "processed (Morris): 3.42857142857143%"
+[1] "processed (Morris): 3.42857142857143%"
+[1] "processed (Morris): 2.85714285714286%"
+[1] "processed (Morris): 2.85714285714286%"
+[1] "processed (Morris): 3.71428571428571%"
+[1] "processed (Morris): 3.14285714285714%"
+[1] "processed (Morris): 3.71428571428571%"
+[1] "processed (Morris): 3.14285714285714%"
+[1] "processed (Morris): 4%"
+[1] "processed (Morris): 3.42857142857143%"
+[1] "processed (Morris): 4%"
+[1] "processed (Morris): 3.71428571428571%"
+[1] "processed (Morris): 4.28571428571429%"
+[1] "processed (Morris): 3.42857142857143%"
+[1] "processed (Morris): 4.28571428571429%"
+[1] "processed (Morris): 4.57142857142857%"
+[1] "processed (Morris): 4%"
+[1] "processed (Morris): 4.57142857142857%"
+[1] "processed (Morris): 3.71428571428571%"
+[1] "processed (Morris): 4.85714285714286%"
+[1] "processed (Morris): 4.85714285714286%"
+[1] "processed (Morris): 4.28571428571429%"
+[1] "processed (Morris): 4%"
+[1] "processed (Morris): 5.14285714285714%"
+[1] "processed (Morris): 5.14285714285714%"
+[1] "processed (Morris): 4.57142857142857%"
+[1] "processed (Morris): 4.28571428571429%"
+[1] "processed (Morris): 5.42857142857143%"
+[1] "processed (Morris): 4.85714285714286%"
+[1] "processed (Morris): 5.42857142857143%"
+[1] "processed (Morris): 4.57142857142857%"
+[1] "processed (Morris): 5.71428571428571%"
+[1] "processed (Morris): 5.71428571428571%"
+[1] "processed (Morris): 5.14285714285714%"
+[1] "processed (Morris): 4.85714285714286%"
+[1] "processed (Morris): 6%"
+[1] "processed (Morris): 6%"
+[1] "processed (Morris): 5.42857142857143%"
+[1] "processed (Morris): 5.14285714285714%"
+[1] "processed (Morris): 6.28571428571429%"
+[1] "processed (Morris): 6.28571428571429%"
+[1] "processed (Morris): 5.71428571428571%"
+[1] "processed (Morris): 5.42857142857143%"
+[1] "processed (Morris): 6.57142857142857%"
+[1] "processed (Morris): 6%"
+[1] "processed (Morris): 6.57142857142857%"
+[1] "processed (Morris): 5.71428571428571%"
+[1] "processed (Morris): 6.85714285714286%"
+[1] "processed (Morris): 6.85714285714286%"
+[1] "processed (Morris): 6.28571428571429%"
+[1] "processed (Morris): 7.14285714285714%"
+[1] "processed (Morris): 7.14285714285714%"
+[1] "processed (Morris): 6%"
+[1] "processed (Morris): 6.57142857142857%"
+[1] "processed (Morris): 7.42857142857143%"
+[1] "processed (Morris): 7.42857142857143%"
+[1] "processed (Morris): 6.85714285714286%"
+[1] "processed (Morris): 6.28571428571429%"
+[1] "processed (Morris): 7.71428571428571%"
+[1] "processed (Morris): 7.14285714285714%"
+[1] "processed (Morris): 7.71428571428571%"
+[1] "processed (Morris): 6.57142857142857%"
+[1] "processed (Morris): 8%"
+[1] "processed (Morris): 7.42857142857143%"
+[1] "processed (Morris): 8%"
+[1] "processed (Morris): 6.85714285714286%"
+[1] "processed (Morris): 8.28571428571428%"
+[1] "processed (Morris): 8.28571428571428%"
+[1] "processed (Morris): 7.71428571428571%"
+[1] "processed (Morris): 7.14285714285714%"
+[1] "processed (Morris): 8.57142857142857%"
+[1] "processed (Morris): 8.57142857142857%"
+[1] "processed (Morris): 8%"
+[1] "processed (Morris): 7.42857142857143%"
+[1] "processed (Morris): 8.85714285714286%"
+[1] "processed (Morris): 8.85714285714286%"
+[1] "processed (Morris): 8.28571428571428%"
+[1] "processed (Morris): 7.71428571428571%"
+[1] "processed (Morris): 9.14285714285714%"
+[1] "processed (Morris): 9.14285714285714%"
+[1] "processed (Morris): 8.57142857142857%"
+[1] "processed (Morris): 9.42857142857143%"
+[1] "processed (Morris): 8%"
+[1] "processed (Morris): 9.42857142857143%"
+[1] "processed (Morris): 8.85714285714286%"
+[1] "processed (Morris): 9.71428571428571%"
+[1] "processed (Morris): 9.71428571428571%"
+[1] "processed (Morris): 8.28571428571428%"
+[1] "processed (Morris): 9.14285714285714%"
+[1] "processed (Morris): 10%"
+[1] "processed (Morris): 10%"
+[1] "processed (Morris): 9.42857142857143%"
+[1] "processed (Morris): 8.57142857142857%"
+[1] "processed (Morris): 10.2857142857143%"
+[1] "processed (Morris): 10.2857142857143%"
+[1] "processed (Morris): 9.71428571428571%"
+[1] "processed (Morris): 8.85714285714286%"
+[1] "processed (Morris): 10.5714285714286%"
+[1] "processed (Morris): 10.5714285714286%"
+[1] "processed (Morris): 10%"
+[1] "processed (Morris): 9.14285714285714%"
+[1] "processed (Morris): 10.8571428571429%"
+starting worker pid=4888 on localhost:11809 at 15:38:02.449
+starting worker pid=11944 on localhost:11809 at 15:38:02.700
+starting worker pid=4524 on localhost:11809 at 15:38:02.934
+starting worker pid=10148 on localhost:11809 at 15:38:03.162
+Loading required package: rJava
+Loading required package: rJava
+Loading required package: rJava
+Loading required package: rJava
+Loading required package: igraph
+Loading required package: igraph
+Loading required package: igraph
+Loading required package: igraph
+
+Attaching package: 'igraph'
+
+The following objects are masked from 'package:stats':
+
+    decompose, spectrum
+
+The following object is masked from 'package:base':
+
+    union
+
+
+Attaching package: 'igraph'
+
+The following objects are masked from 'package:stats':
+
+    decompose, spectrum
+
+The following object is masked from 'package:base':
+
+    union
+
+
+Attaching package: 'igraph'
+
+The following objects are masked from 'package:stats':
+
+    decompose, spectrum
+
+
+Attaching package: 'igraph'
+
+The following objects are masked from 'package:stats':
+
+    decompose, spectrum
+
+The following object is masked from 'package:base':
+
+    union
+
+The following object is masked from 'package:base':
+
+    union
+
+Fehler in serialize(data, node$con) : Schreibfehler in Verbindung
+Ruft auf: <Anonymous> ... doTryCatch -> sendData -> sendData.SOCKnode -> serialize
+Zusätzlich: Warnmeldungen:
+1: package 'rJava' was built under R version 3.3.2 
+2: In `[<-`(`*tmp*`, nl.obj, value = list(nl.sm13 = <S4 object of class "jobjRef">)) :
+  implicit list embedding of S4 objects is deprecated
+Ausführung angehalten
+Fehler in serialize(data, node$con) : Schreibfehler in Verbindung
+Ruft auf: <Anonymous> ... doTryCatch -> sendData -> sendData.SOCKnode -> serialize
+Zusätzlich: Warnmeldungen:
+1: package 'rJava' was built under R version 3.3.2 
+2: In `[<-`(`*tmp*`, nl.obj, value = list(nl.sm13 = <S4 object of class "jobjRef">)) :
+  implicit list embedding of S4 objects is deprecated
+Ausführung angehalten
+Fehler in unserialize(node$con) : Lesefehler aus Verbindung
+Ruft auf: <Anonymous> ... doTryCatch -> recvData -> recvData.SOCKnode -> unserialize
+Zusätzlich: Warnmeldungen:
+1: package 'rJava' was built under R version 3.3.2 
+2: In `[<-`(`*tmp*`, nl.obj, value = list(nl.sm13 = <S4 object of class "jobjRef">)) :
+  implicit list embedding of S4 objects is deprecated
+Ausführung angehalten
+Fehler in serialize(data, node$con) : Schreibfehler in Verbindung
+Ruft auf: <Anonymous> ... doTryCatch -> sendData -> sendData.SOCKnode -> serialize
+Zusätzlich: Warnmeldungen:
+1: package 'rJava' was built under R version 3.3.2 
+2: In `[<-`(`*tmp*`, nl.obj, value = list(nl.sm13 = <S4 object of class "jobjRef">)) :
+  implicit list embedding of S4 objects is deprecated
+Ausführung angehalten
