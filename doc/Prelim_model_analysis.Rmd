@@ -802,133 +802,22 @@ With regard to infrastructure levels, $\alpha$ seems to have a very non-monotoni
 The effect of $\tau$ is increasing over time for both infrastructure and inequality. It measures how rational agents are where high values indicates that agents always choose the investment option with the highest (expected) utility. The more rational agents are, the stronger infrastructure will decline.
 
 
-## Verification of utility function
-
-12 June 2017
-
-Here, we run the model with the parameters as specified below to further examine the utility function.
-
-
-Variable    | Model name | Value     
------------ | ---------- | --------- 
-Behavioral theory | `scenario` | `social-values`
-Dummy for effect of limited vision | `visioneffect` | `false`
-Dummy for limited communication | `limcom` | `false`
-Strength of aversion to exploiting others $\alpha$ | `alpha` |	0.92
-Degree of cooperative tendency $β$	| `beta` | 0.79
-Weight for different utility values $τ$	| `mu` | 30
-Minimum utility to be satisfied $u_{min}$ | `umin` |  15.5
-Fraction of agents initially to be satisfied $δ$	| `psat` | 0.2
-
-Since NetLogo can only handle numbers up to approx. 1E308, there is a practical limitation to $\tau$. Hence, agents cannot be completely rational (but come relatively close). 
-
-```
-observer> random-seed 1402
-observer> setup go
-observer: "round 1"
-observer: "satisfied: [0 0 0 1 1], past-inv: [0 0 0 0 0], past-harvest: [0 0 0 0 0], infrastructure: 75"
-observer: "investments: [5 5 5 0 0], infrastructure after investing: 90"
-observer: "turnoff: [300 300 300 0 0], actual extraction: [300 310 300 0 0], harvest: [15 15 15 0 0]"
-observer: "actual utility: [15.399999999999999 15.399999999999999 15.399999999999999 15.925 15.925], satisfied: [0 0 0 1 1]"
-```
-In the first round, dissatisfied agents set their investment to 5 tokens by default; satisfied ones stick with their original strategy which is investing 0 tokens.
-
-```
-observer> go
-observer: "round 2"
-observer: "satisfied: [0 0 0 1 1], past-inv: [5 5 5 0 0], past-harvest: [15 15 15 0 0], infrastructure: 65"
-(turtle 2): "own harvest: 15, earningsothers: 15"
-(turtle 2): "randomnumber = 7.356577207134501E205, util: [7.171077600106592E205 6.505454827612369E204 5.9016154717776894E203 5.353824767007538E202 4.856880251331283E201 4.4060623577250134E200 3.9970895915836826E199 3.6260778686287306E198 3.289503627100411E197 2.9841703638863794E196 2.7071782767869983E195]"
-(turtle 2): "inv: 1, totalutility: 7.821623082867829E205"
-(turtle 1): "own harvest: 15, earningsothers: 15"
-(turtle 1): "randomnumber = 7.0161095728264915E205, util: [7.171077600106592E205 6.505454827612369E204 5.9016154717776894E203 5.353824767007538E202 4.856880251331283E201 4.4060623577250134E200 3.9970895915836826E199 3.6260778686287306E198 3.289503627100411E197 2.9841703638863794E196 2.7071782767869983E195]"
-(turtle 1): "inv: 0, totalutility: 7.171077600106592E205"
-(turtle 0): "own harvest: 15, earningsothers: 15"
-(turtle 0): "randomnumber = 2.1966366019248966E205, util: [7.171077600106592E205 6.505454827612369E204 5.9016154717776894E203 5.353824767007538E202 4.856880251331283E201 4.4060623577250134E200 3.9970895915836826E199 3.6260778686287306E198 3.289503627100411E197 2.9841703638863794E196 2.7071782767869983E195]"
-(turtle 0): "inv: 0, totalutility: 7.171077600106592E205"
-observer: "investments: [0 0 1 0 0], infrastructure after investing: 66"
-observer: "turnoff: [300 300 300 0 0], actual extraction: [300 310 300 0 0], harvest: [15 15 15 0 0]"
-observer: "actual utility: [17.87 17.87 18.02 18.69 18.69], satisfied: [1 1 1 1 1]"
-
-```
-In the second round, dissatisfied agents calculate their expected utility based on the function 
-$$ u_i = z_i - \alpha \max(z_i - \bar{z}_{-i, t-1}, 0) + \beta  \max(\bar{z}_{-i, t-1} - z_i, 0) \qquad \text{with} \quad z_i = 10 - I_i + h_{i, t-1} $$
-where $z_i$ represents the earnings of agent $i$ and $\bar{z}_{-i,t-1}$ depicts the other agents' average earnings from last round. $u_i$ values are calculated for earch investment option ($I_i \in \{0, 1, 2, \dots, 10 \}$).  
-However, for that calculation the agents assumes that the other agents maintain their behavior (e.g. current investment and extraction levels equal the ones from last round) and that also they themselves extract as much as in the last round. So, in round 2 each of the dissatisfied agents assumes that the other agents invest 2.5 tokens and harvest 7.5 tokens, yielding them 15 tokens in expected earnings (10 - 2.5 + 7.5 = 15).
-
-On the other hand, their own earnings are calculated based on 15 tokens harvested (10 - $I_i$ + 15). Because $\alpha < 1$, not investing in infrastructure (hence, free-riding on others) outweighs the aversion to exploit others (i.e. utility gain from not spending a token on infrastructure is larger than utility loss due to increased inequality). Therefore, not investing at all yields the highest possibility (turtle 2 invests 1 token because even with the given parameterization agents are not completely rational ($\tau$ cannot be set to a very high value, because the resulting utilities are too high to be handled by NetLogo).
-
-``` 
-observer> go
-observer: "round 3"
-observer: "satisfied: [1 1 1 1 1], past-inv: [0 0 1 0 0], past-harvest: [15 15 15 0 0], infrastructure: 41"
-observer: "investments: [0 0 1 0 0], infrastructure after investing: 42"
-observer: "turnoff: [300 300 300 0 0], actual extraction: [0 0 0 0 0], harvest: [0 0 0 0 0]"
-observer: "actual utility: [9.77 9.77 9.79 9.77 9.77], satisfied: [0 0 0 0 0]"
-```
-All agents were satisfied so they don't change their behavior, which leads to a drastic decline of instrastructure and no harvests. As a consequence, agents end up dissatisfied again.
-
-```
-observer> go
-observer: "round 4"
-observer: "satisfied: [0 0 0 0 0], past-inv: [0 0 1 0 0], past-harvest: [0 0 0 0 0], infrastructure: 17"
-(turtle 0): "own harvest: 0, earningsothers: 9.75"
-(turtle 0): "randomnumber = 3.806773504017139E126, util: [1.9575490181232946E127 9.530035747785128E124 1.750005016891488E122 3.2135425723421724E119 5.901043576777961E116 1.083611450949361E114 1.989840883821514E111 3.6539543204887226E108 6.709773773758969E105 1.232118963353708E103 2.2625459382742927E100]"
-(turtle 0): "inv: 0, totalutility: 1.9575490181232946E127"
-(turtle 1): "own harvest: 0, earningsothers: 9.75"
-(turtle 1): "randomnumber = 7.700774148336404E126, util: [1.9575490181232946E127 9.530035747785128E124 1.750005016891488E122 3.2135425723421724E119 5.901043576777961E116 1.083611450949361E114 1.989840883821514E111 3.6539543204887226E108 6.709773773758969E105 1.232118963353708E103 2.2625459382742927E100]"
-(turtle 1): "inv: 0, totalutility: 1.9575490181232946E127"
-(turtle 3): "own harvest: 0, earningsothers: 9.75"
-(turtle 3): "randomnumber = 1.0402511056656173E127, util: [1.9575490181232946E127 9.530035747785128E124 1.750005016891488E122 3.2135425723421724E119 5.901043576777961E116 1.083611450949361E114 1.989840883821514E111 3.6539543204887226E108 6.709773773758969E105 1.232118963353708E103 2.2625459382742927E100]"
-(turtle 3): "inv: 0, totalutility: 1.9575490181232946E127"
-(turtle 4): "own harvest: 0, earningsothers: 9.75"
-(turtle 4): "randomnumber = 1.2310251558617825E127, util: [1.9575490181232946E127 9.530035747785128E124 1.750005016891488E122 3.2135425723421724E119 5.901043576777961E116 1.083611450949361E114 1.989840883821514E111 3.6539543204887226E108 6.709773773758969E105 1.232118963353708E103 2.2625459382742927E100]"
-(turtle 4): "inv: 0, totalutility: 1.9575490181232946E127"
-(turtle 2): "own harvest: 0, earningsothers: 10"
-(turtle 2): "randomnumber = 2.8244074329097776E129, util: [1.9424263952412558E130 3.5668868686085173E127 6.549891395947424E124 1.2027596859399337E122 2.208633356909263E119 4.055723983997824E116 7.447545326125829E113 1.367596305950479E111 2.5113236296639225E108 4.61155557781725E105 8.468221537080262E102]"
-(turtle 2): "inv: 0, totalutility: 1.9424263952412558E130"
-observer: "investments: [0 0 0 0 0], infrastructure after investing: 17"
-observer: "turnoff: [0 0 0 0 0], actual extraction: [0 0 0 0 0], harvest: [0 0 0 0 0]"
-observer: "actual utility: [10 10 10 10 10], satisfied: [0 0 0 0 0]"
-```
-Here, agents only look at the earnings of others which are more or less equal to not investing and not harvesting at all. The do not see the benefit of investing. Logically, that also generates the highest utility and agents are locked in a state where nobody invests and the whole system breaks down.
-
-```
-observer> go
-observer: "round 5"
-observer: "satisfied: [0 0 0 0 0], past-inv: [0 0 0 0 0], past-harvest: [0 0 0 0 0], infrastructure: 0"
-(turtle 2): "own harvest: 0, earningsothers: 10"
-(turtle 2): "randomnumber = 1.1779977428201563E130, util: [1.9424263952412558E130 3.5668868686085173E127 6.549891395947424E124 1.2027596859399337E122 2.208633356909263E119 4.055723983997824E116 7.447545326125829E113 1.367596305950479E111 2.5113236296639225E108 4.61155557781725E105 8.468221537080262E102]"
-(turtle 2): "inv: 0, totalutility: 1.9424263952412558E130"
-(turtle 4): "own harvest: 0, earningsothers: 10"
-(turtle 4): "randomnumber = 8.252796406406929E129, util: [1.9424263952412558E130 3.5668868686085173E127 6.549891395947424E124 1.2027596859399337E122 2.208633356909263E119 4.055723983997824E116 7.447545326125829E113 1.367596305950479E111 2.5113236296639225E108 4.61155557781725E105 8.468221537080262E102]"
-(turtle 4): "inv: 0, totalutility: 1.9424263952412558E130"
-(turtle 3): "own harvest: 0, earningsothers: 10"
-(turtle 3): "randomnumber = 1.0557323974561204E130, util: [1.9424263952412558E130 3.5668868686085173E127 6.549891395947424E124 1.2027596859399337E122 2.208633356909263E119 4.055723983997824E116 7.447545326125829E113 1.367596305950479E111 2.5113236296639225E108 4.61155557781725E105 8.468221537080262E102]"
-(turtle 3): "inv: 0, totalutility: 1.9424263952412558E130"
-(turtle 1): "own harvest: 0, earningsothers: 10"
-(turtle 1): "randomnumber = 1.8739770692942677E130, util: [1.9424263952412558E130 3.5668868686085173E127 6.549891395947424E124 1.2027596859399337E122 2.208633356909263E119 4.055723983997824E116 7.447545326125829E113 1.367596305950479E111 2.5113236296639225E108 4.61155557781725E105 8.468221537080262E102]"
-(turtle 1): "inv: 0, totalutility: 1.9424263952412558E130"
-(turtle 0): "own harvest: 0, earningsothers: 10"
-(turtle 0): "randomnumber = 6.035846917404946E129, util: [1.9424263952412558E130 3.5668868686085173E127 6.549891395947424E124 1.2027596859399337E122 2.208633356909263E119 4.055723983997824E116 7.447545326125829E113 1.367596305950479E111 2.5113236296639225E108 4.61155557781725E105 8.468221537080262E102]"
-(turtle 0): "inv: 0, totalutility: 1.9424263952412558E130"
-observer: "investments: [0 0 0 0 0], infrastructure after investing: 0"
-observer: "turnoff: [0 0 0 0 0], actual extraction: [0 0 0 0 0], harvest: [0 0 0 0 0]"
-observer: "actual utility: [10 10 10 10 10], satisfied: [0 0 0 0 0]"
-```
-Infrastructure is completely destroyed and agents are locked in a state where nobody invests.
-
 # Questions to Marco
 
-+ Why are $\alpha$ and $\beta$ limited to 1? Is there a reason for that in the literature? Higher values would generate a stronger impact of social values.
++ Why are $\alpha$ and $\beta$ limited to [-1, 1]? Is there a reason for that in the literature? Higher values would generate a stronger impact of social values.
+    + In most cases, $\beta$ is expected to be negative, according to Charness and Rabin (2002). 
 + Should agents really suppose own harvest levels from the previous round even if they recalculate their decisions (= dissatisfied)?
 + Water flow is not included in utility function. Thus, potential returns on investment aren't considered (e.g. in the above example they don't see the use of investing). Should that be included somehow?
 + Why are utilities modeled as exponential function? Does that really make a difference?
     * My answer: It only matters when comparing the different utilities in the investment decision. And since the ultimate investment decision depends on `randomnumber`, it also matters *by how much* utility in-/decreases through investing another token. 
 + Utility function of Charness & Rabin 2002 is different from the one in Janssen & Baggio 2016. Can they mathematically converted into one another?!
-Charness & Rabin 2002: $$ \text{if } \pi_B \geq \pi_A: U_B = (1 - \rho - \theta q) \pi_B + (\rho + \theta q) \pi_A \\
- \text{if } \pi_B \leq \pi_A: U_B = (1 - \sigma - \theta q) \pi_B + (\sigma + \theta q) \pi_A $$ 
+Charness & Rabin 2002: $$ 
+U_B = 
+  \begin{cases} 
+    (1 - \rho - \theta q) \pi_B + (\rho + \theta q) \pi_A       & \text{if } \pi_B \geq \pi_A \\ 
+    (1 - \sigma - \theta q) \pi_B + (\sigma + \theta q) \pi_A   & \text{if } \pi_B \leq \pi_A \end{cases}$$ 
 So they don't directly compare the differences in payoffs, but take take absolute payoffs instead.
+    + *Answer*: Yes, the utility functions can be converted and yield exactly the same equation as in the model ($\rho \widehat{=} \alpha; \sigma \widehat{=} \beta$), as can be shown by expanding the parentheses.
 + Endogenize waterflow in investment decision? When calculating investment decision (see below), `i` does not only decrease income, but also raises infrastructure level, which could generate a greater water stream that would allow a larger extraction. In model terms, `harvest`  would have to be replaced with a dynamic calculation of water flows. That way, the trade-off between individual saving and group-level investment could be included.
 ```
 while [i <= 10]
@@ -944,3 +833,6 @@ while [i <= 10]
 ]
 ```
     + Implementing that would require to convert several procedures into reporter procedures (`calcwaterflow`) --> already started
++ In `calcutility` agents calculate utilities based on an equal distribution of the remaining water while in `invest` they base it on last round's previous extraction. Inconsistency?! -- Ways out:
+    * Always assume equal sharing of the water: naive, but considers actually available water
+    * always assume extraction of previous amount: neglects current infrastructure level, but takes position into account

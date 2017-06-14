@@ -1,5 +1,7 @@
 ;;;;; CHANGELOG: ;;;;;;;;
-; - conversion of calcapacity, calcutility, and calcwaterflow into reporter procedures
+; - calcutility: limit own extraction to 550 cfps
+; - calcutility now reports a list with optimal values for turnoff and corresponding harvests (mewater, otherwater)
+; - calcutility: change index variable from i to w (to avoid potential conflicts when it's called inside invest
 
 ;;;;; TO-DOS: ;;;;;;;;;;;
 
@@ -315,7 +317,9 @@ to go
   set actualwatersupply calcwaterflow capacity
   if scenario = "social-values" [
     ask turtles [if satisfied < 1 [ ; if agent is not satisfied evaluate which level of water maximize utility given the expected water collected of others (
-      set turnoff calcutility actualwatersupply]
+      let calcutility-values calcutility actualwatersupply
+      set turnoff item 0 calcutility-values
+      show (word "real extraction (turnoff - mewater - otherwater): " calcutility-values)]
     ]
   ]
   extract ; agents extract water
@@ -473,15 +477,18 @@ to invest ; this is how investment decisions are made
             ; NEW CODE BLOCK to endogenize positive effects of investments in infrastructure
             let temp-capacity calcapacity (infrastructure + sum [inv-past] of other turtles + i) ; calculate capacity based on own investment i, assuming that others invest as in last round
             let temp-watersupply calcwaterflow temp-capacity ; calculate corresponding watersupply in cfps in the canal
-            let temp-turnoff calcutility temp-watersupply ; calculate optimal turnoff
+            let calcutility-values calcutility temp-watersupply
+            let temp-turnoff item 0 calcutility-values; calculate optimal turnoff
             let temp-harvest calharvest temp-turnoff
+            set earningsothers 10 - mean [inv-past] of other turtles + item 2 calcutility-values
+            show (word "calcutility-values (turnoff - mewater - otherwater): " calcutility-values "; temp-earningsothers: " earningsothers)
             show (word "i = " i ", temp-capacity: " temp-capacity ", temp-watersupply: " temp-watersupply ", temp-turnoff: " temp-turnoff ", temp-harvest: " temp-harvest)
             ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
             ifelse 10 - i + harvest > earningsothers [
-              set utility 10 - i + harvest - alpha * (10 - i + harvest - earningsothers)
+              set utility 10 - i + temp-harvest - alpha * (10 - i + temp-harvest - earningsothers)
             ][
-              set utility 10 - i + harvest + beta * (earningsothers - 10 + i - harvest)
+              set utility 10 - i + temp-harvest + beta * (earningsothers - 10 + i - temp-harvest)
             ]
             set list-utility lput utility list-utility
             set totalutility totalutility + exp (mu * utility)
@@ -570,26 +577,28 @@ to-report calcutility [temp-supply]; in turtle-context - only relevant for scena
   let totalwater 50 * temp-supply ; total water amount available
   let umax 0
   let util 0
-  let i 0
+  let w 0
   let report-turnoff 0
-  while [i < totalwater]
+  let max-mewater 0
+  let max-otherwater 0
+  while [w < totalwater and w < 550]
   [
-    let mewater calharvest i ; calculate earnings from water amount
-    let waterinput 0 ; assumption how much others would extract (given that agent itself extracts i)
+    let mewater calharvest w ; calculate earnings from water amount
+    let waterinput 0 ; assumption how much others would extract (given that agent itself extracts w)
     ifelse limcom = false [
-      set waterinput int (((totalwater - i) / 4))
+      set waterinput int (((totalwater - w) / 4))
     ][ ;with limited communication
       ifelse visioneffect [
         if who = 0 or who = 4 [
-          set waterinput int (totalwater - i)
+          set waterinput int (totalwater - w)
           if waterinput > 500 [set waterinput 500]
         ]
         if who = 1 or who = 2 or who = 3 [
-          set waterinput int ((totalwater - i) / 2)
+          set waterinput int ((totalwater - w) / 2)
           if waterinput > 500 [set waterinput 500]
         ]
       ][ ;without visioneffect
-        set waterinput int (((totalwater - i) / 4))
+        set waterinput int (((totalwater - w) / 4))
       ]
     ]
     let otherwater calharvest waterinput ; calculate average earnings of average water collected by others (note that this is a crude approximation since waterinputs and earnings are not linearly related)
@@ -599,13 +608,15 @@ to-report calcutility [temp-supply]; in turtle-context - only relevant for scena
       set util mewater + beta * (otherwater - mewater)
     ]
     if util > umax [
-      set report-turnoff i ; find water amount that maximize utility, this will be the target of the agent
+      set report-turnoff w ; find water amount that maximize utility, this will be the target of the agent
       set umax util
-      show (word "totalwater: " totalwater ", turnoff: " report-turnoff ", waterinput: " waterinput ", mewater: " mewater ", otherwater: " otherwater ", umax: " umax)
+      set max-mewater mewater
+      set max-otherwater otherwater
     ]
-    set i i + 25
+    show (word "totalwater: " totalwater ", w: " w ", waterinput: " waterinput ", mewater: " mewater ", otherwater: " otherwater ", util: " util)
+    set w w + 25
   ]
-  report report-turnoff
+  report (list report-turnoff max-mewater max-otherwater)
 end
 
 to extract
