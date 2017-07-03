@@ -802,22 +802,308 @@ With regard to infrastructure levels, $\alpha$ seems to have a very non-monotoni
 The effect of $\tau$ is increasing over time for both infrastructure and inequality. It measures how rational agents are where high values indicates that agents always choose the investment option with the highest (expected) utility. The more rational agents are, the stronger infrastructure will decline.
 
 
-# Questions to Marco
+## Morris screening "endogenized water flow"
 
-+ Why are $\alpha$ and $\beta$ limited to [-1, 1]? Is there a reason for that in the literature? Higher values would generate a stronger impact of social values.
-    + In most cases, $\beta$ is expected to be negative, according to Charness and Rabin (2002). 
-+ Should agents really suppose own harvest levels from the previous round even if they recalculate their decisions (= dissatisfied)?
-+ Water flow is not included in utility function. Thus, potential returns on investment aren't considered (e.g. in the above example they don't see the use of investing). Should that be included somehow?
-+ Why are utilities modeled as exponential function? Does that really make a difference?
-    * My answer: It only matters when comparing the different utilities in the investment decision. And since the ultimate investment decision depends on `randomnumber`, it also matters *by how much* utility in-/decreases through investing another token. 
-+ Utility function of Charness & Rabin 2002 is different from the one in Janssen & Baggio 2016. Can they mathematically converted into one another?!
-Charness & Rabin 2002: $$ 
+After changing the investment procedure in the model, we re-run the Morris screening. This time, we also adjust the factor levels: $\alpha, \beta$ can now also have negative values and $\tau$ ranges up to 30 to allow for more rational agents.
+
+As for 'conditionalcooperation' we carry out the Morris screening following the routine laid out by Thiele et al. 2014. We follow the steps as described above, this time varying the following 5 relevant parameters with 50 repetitions and 5 factor levels:
+
+Variable    | Model name | Range     | Experimental design
+----------- | ---------- | --------- | ----------
+Strength of aversion to exploiting others $\alpha$ | `alpha` |	[-1, 1]	|	-1, -0.5, 0, 0.5, 1
+Degree of cooperative tendency $β$	| `beta` | [-1, 1]	| -1, -0.5, 0, 0.5, 1
+Weight for different utility values $τ$	| `mu` | [0, 30]	| 0, 7.5, 15, 22.5, 30
+Minimum utility to be satisfied $u_{min}$ | `umin` |  [0, 30]     | 0, 7.5, 15, 22.5, 30
+Fraction of agents initially to be satisfied $δ$	| `psat` | [0, 1]	|	0, 0.25, 0.5, 0.75, 1
+
+
+Morris screening was carried out for the 5 relevant parameters with 50 repetitions and 5 factor levels. However, setting up the experiment with the `morris()` of the `sensitivity` package creates the sample of all parameter combinations beforehand, based on on the indicated number of repetitions (`no.repetitions_SV`). In our case, generating `r no.repetitions_SV` variations for `r length(input.values_SV)` parameters and running each parameter set `r no.repeated.sim_SV` times, that yielded `r iter.length_SV * no.repeated.sim_SV` runs. 
+
+In this configuration, running the simulation takes about 18 minutes on the Toshiba laptop, running on four cores in parallel. 
+
+```{r run Morris screening SV 2}
+
+#-------------------------------------------------------------------------------------
+# I. Prerequirements
+#-------------------------------------------------------------------------------------
+
+# load RNetLogo package
+# (if not installed already,
+#  execute install.packages("rJava") and install.packages("RNetLogo") )
+require(RNetLogo)
+
+# an R random seed (for beeing reproducible)
+set.seed(-402223867)
+
+# TODO: adapt these paths to your requirements
+# the NetLogo installation path (where the NetLogo.jar is located)
+nl.path     <- "C:/Program Files (x86)/NetLogo 5.2.1"
+# the path to the NetLogo model file
+model.path  <- "C:/Users/johnf/ownCloud/IrriGameABM/src/irrigame_comm.nlogo"
+# the simulation function
+simfun.path <- "C:/Users/johnf/ownCloud/IrriGameABM/src/sim_Morris.R"
+
+# TODO: set values for those parameters that are not changes during the experiment
+#       parameter names have to be the names of the parameters in the NetLogo model
+fix.params_SV <- list(
+  'scenario'      = "\"social-values\"",
+  'limcom'        = "false",
+  'visioneffect'  = "false",
+  'phase2?'       = "false"
+)      
+
+fix.param.names_SV <- names(fix.params)
+
+# TODO: give the value for each input factor, min. and max. values for the inputs      
+input.values_SV <- list(
+               'alpha'     = list(min = -1.0, max = 1.0),
+               'beta'  = list(min = -1.0, max = 1.0),
+               'mu' = list(min = 0.0, max = 30.0),
+               'umin'        = list(min = 0.0, max = 30.0),
+               'psat'    = list(min = 0.0, max = 1.0)
+)
+
+# TODO: give details for the sampling design of the Morris method (see help(morris) for details)
+morris.design_SV <- list(type = "oat", levels = 5, grid.jump = 2)
+# 'levels' indicates the number of factor levels that will be created; 
+# 'grid.jump' refers to how strongly a parameter will varied from one iteration to the next (= how many parameters levels will be jumped over) - recommendation: levels / 2
+
+# TODO: give the number of repetions of morris screening (argument r in function morris)
+no.repetitions_SV <- 50
+
+# TODO: names of output values
+output.names <- c("Infrastructure3","Infrastructure6","Infrastructure10", 
+                  "Gini_ext3", "Gini_ext6", "Gini_ext10")
+
+# how many repetitions for each parameter set should be run (to control stochasticity)?
+# TODO: adapt the number of repetitions, set to 1 if deterministic model
+no.repeated.sim_SV <- 50
+# refers to inter-run variability: repeats the sim the given number of times and reports the mean
+
+# TODO: plot the results on the screen?
+plot.on.screen <- FALSE
+
+# TODO: plot the results in 3D, (3D requires package rgl)
+plot.3d <- FALSE
+
+# TODO: should R report the progress
+trace.progress = TRUE
+
+
+# TODO: set parallelization properties
+parallel <- TRUE
+gui <- FALSE # FALSE for headless mode
+
+## parallelization ####
+# implemented by FJ based on vignette "Parallel processing with the RNetLogo Package" by Jan C. Thiele
+ 
+# load the parallel package
+library(parallel)
+
+# detect the number of cores available
+processors <- detectCores()
+
+
+# the initialization function
+prepro <- function(dummy, gui, nl.path, model.path, nl.obj) {
+  library(RNetLogo)
+  NLStart(nl.path, gui=gui, nl.obj = nl.obj)
+  NLLoadModel(model.path, nl.obj = nl.obj)
+}
+
+# the quit function
+postpro <- function(x) {
+  NLQuit(all = T)
+}
+
+
+# initialize NetLogo
+nl.sm13 <- "nl.sm13"
+if (parallel == TRUE) 
+{
+# create a cluster
+cl <- makeCluster(processors, outfile = "./log.txt")
+
+  invisible(parLapply(cl, 1:processors, prepro, gui=gui,
+                      nl.path = nl.path, model.path = model.path,
+                      nl.obj=nl.sm13))
+} else {
+  NLStart(nl.path, gui=FALSE, nl.obj=nl.sm13)
+  NLLoadModel(model.path,nl.obj=nl.sm13)
+}
+
+#-------------------------------------------------------------------------------------
+# II. Definition of the simulation function to test a parameter set
+#-------------------------------------------------------------------------------------
+
+# load the code of the simulation function (name: simulate)
+source(file=simfun.path)
+
+
+#-------------------------------------------------------------------------------------
+# III. Run of the simulation for all parameter sets
+#-------------------------------------------------------------------------------------
+require(sensitivity)
+
+# variable used for progress tracing
+already.processed <- 0  
+  	
+# get names of parameters
+input.names_SV = names(input.values_SV)
+
+# calculate number of iterations
+iter.length_SV <- no.repetitions_SV * (length(input.values_SV)+1)
+
+# get the min and max values of the input factor ranges
+mins <- sapply(seq(1,length(input.values_SV)), function(i) {
+		input.values_SV[[i]]$min})
+maxs <- sapply(seq(1,length(input.values_SV)), function(i) {
+		input.values_SV[[i]]$max})
+
+# create input sets
+mo_SV <- morris(model = NULL, factors = input.names_SV, r = no.repetitions_SV, 
+                design = morris.design_SV, binf = mins, bsup = maxs, scale=TRUE)
+
+# simulate for all input sets
+# get results of all evalulation criteria as matrix                                                    
+if (parallel == TRUE)
+{
+  # export variables from parent environment (= workspace) to worker nodes
+  clusterExport(cl, c("fix.params_SV", "fix.param.names_SV", "simulate",  
+                      "input.names_SV", "iter.length_SV", "no.repeated.sim_SV",
+                      "nl.sm13", "trace.progress", "already.processed")) 
+  
+  # run simulation on multiple cores
+  sim.results.morris_SV2 <- parApply(cl, mo_SV$X, 1,
+                                function(x) {simulate(param.set=x,
+                                                      no.repeated.sim=no.repeated.sim_SV,
+                                                      nl.obj=nl.sm13, trace.progress=trace.progress,
+                                                      parameter.names=input.names_SV,
+                                                      iter.length=iter.length_SV,
+                                                      function.name="Morris", 
+                                                      fix.params = fix.params_SV,
+                                                      fix.param.names = fix.param.names_SV)}
+  )
+} else {
+  # run simulation on single core
+  sim.results.morris_SV2 <- apply(mo_SV$X, 1, 
+                              function(x) {simulate(param.set=x,                            
+                                                    no.repeated.sim=no.repeated.sim_SV, 
+                                                    nl.obj=nl.sm13, trace.progress=trace.progress,
+                                                    parameter.names=input.names_SV,
+                                                    iter.length=iter.length_SV,
+                                                    function.name="Morris", 
+                                                    fix.params = fix.params_SV,
+                                                    fix.param.names = fix.param.names_SV)}
+  )
+}
+
+
+if(parallel == TRUE)
+{
+  # shut down NetLogo on all cores
+  invisible(parLapply(cl, 1:processors, postpro))
+  
+  # terminate cluster
+  stopCluster(cl)
+} else {
+  # shut down all open NetLogo instances
+  NLQuit(all = T)
+}
+```
+
+```{r Morris analysis SV 2}
+
+#-------------------------------------------------------------------------------------
+# IV. Analysis of the results (postprocessing)
+#-------------------------------------------------------------------------------------
+
+# plot in 3D requires rgl package
+if (plot.3d == TRUE) {
+  require(rgl)
+}
+
+# iterate over evalulation criteria (not shown in the paper)
+# (package sensitivity must be loaded)
+for (i in (1:length(sim.results.morris_SV2[,1])))
+{
+  # add simulation results (as vector) to morris object
+  tell(mo_SV, sim.results.morris_SV2[i,])
+ 
+  # # # ask user for pressing <Enter> for entering the plot
+  # if (plot.on.screen == TRUE) {
+  #   par(ask=TRUE)
+  # }
+  # 
+  # if (plot.3d == TRUE) {
+  #   # plot in 3D (µ, µ*, sigma) requires rgl package
+  #   plot3d.morris(mo)
+  # }
+  # else {
+  #   # plot results in 2D (µ*, sigma) 
+  #   plot(mo)
+  #   title(main=output.names[i])
+  # }
+  
+  # print value table for mu, mu.star, and sigma
+  print(output.names[i])
+  print(mo_SV)
+}
+
+```
+
+
+```{r Morris graphs 2 SV 2}
+# plots as shown in the paper
+# (package sensitivity must be loaded)
+for (i in (1:length(sim.results.morris_SV2[,1])))
+{
+  par(mfrow=c(1,2))
+  tell(mo_SV, sim.results.morris_SV2[i,])
+  mu <- apply(mo_SV$ee, 2, mean)
+  mu.star <- apply(mo_SV$ee, 2, function(x) mean(abs(x)))
+  sigma <- apply(mo_SV$ee, 2, sd)
+  
+  # mu* against mu
+  if (plot.on.screen == TRUE) {
+    par(ask=TRUE)
+  }
+  plot(mu.star, mu, pch = 1:5, col = 1:5, xlab = expression(paste(mu ^ "*")), 
+       ylab = expression(paste(mu)))
+  title(main=output.names[i])
+  text(x = mu.star, y = mu, labels = names(mu), pos = 4, col = 1:5)
+  # mu* against sigma
+  if (plot.on.screen == TRUE) {
+    par(ask=TRUE)
+  }
+  plot(mu.star, sigma, pch = 1:5, col = 1:5, xlab = expression(paste(mu ^ "*")), ylab = expression(sigma))
+  title(main=output.names[i])
+  text(x = mu.star, y = sigma, labels = names(mu), pos = 4, col = 1:5)
+}
+
+```
+With the new investment calculation and the increased values ranges for $\alpha$, $\beta$ and $\tau$ the results of the Morris screening have changed. 
+$\delta$ remains the most influential factor, yet $\tau$ and $\alpha$ have become more important. The effect of $\alpha$ is highly non-monotonic (presumably depending on its sign).
+For inequality, $\delta$ and $\alpha$ have the largest negative impact. For $\alpha$ this seems implausible, because it means that the larger the aversion to exploit others is the higher will be the inequality in extraction. 
+In general, the effects of parameters strongly depend on other parameters settings.
+
+
+# Questions to Marco
+    
+    
+#### Answered questions
+
+
++ Utility function of Charness & Rabin (2002) is different from the one in Janssen & Baggio (2016). Can they mathematically converted into one another?!
+Charness & Rabin 2002: $$
 U_B = 
   \begin{cases} 
     (1 - \rho - \theta q) \pi_B + (\rho + \theta q) \pi_A       & \text{if } \pi_B \geq \pi_A \\ 
     (1 - \sigma - \theta q) \pi_B + (\sigma + \theta q) \pi_A   & \text{if } \pi_B \leq \pi_A \end{cases}$$ 
 So they don't directly compare the differences in payoffs, but take take absolute payoffs instead.
     + *Answer*: Yes, the utility functions can be converted and yield exactly the same equation as in the model ($\rho \widehat{=} \alpha; \sigma \widehat{=} \beta$), as can be shown by expanding the parentheses.
++ Should agents really suppose own harvest levels from the previous round even if they recalculate their decisions (= dissatisfied)?
+    * *Changed.*
 + Endogenize waterflow in investment decision? When calculating investment decision (see below), `i` does not only decrease income, but also raises infrastructure level, which could generate a greater water stream that would allow a larger extraction. In model terms, `harvest`  would have to be replaced with a dynamic calculation of water flows. That way, the trade-off between individual saving and group-level investment could be included.
 ```
 while [i <= 10]
@@ -832,7 +1118,46 @@ while [i <= 10]
   set i i + 1
 ]
 ```
-    + Implementing that would require to convert several procedures into reporter procedures (`calcwaterflow`) --> already started
-+ In `calcutility` agents calculate utilities based on an equal distribution of the remaining water while in `invest` they base it on last round's previous extraction. Inconsistency?! -- Ways out:
-    * Always assume equal sharing of the water: naive, but considers actually available water
-    * always assume extraction of previous amount: neglects current infrastructure level, but takes position into account
+-> *implemented*
+    + Implementing that would require to convert several procedures into reporter procedures (`calcwaterflow`) --> *implemented*
++ Why are $\alpha$ and $\beta$ limited to [-1, 1]? Is there a reason for that in the literature? Higher values would generate a stronger impact of social values.
+    + Charness & Rabin (2002): $\alpha, \beta \leq 1; \beta \leq \alpha$  
+    + Fehr & Schmidt (1999): $- \beta_i \leq \alpha_i; -1 < \beta_i \leq 0$ (Note: Their formulation has been adapted to the way the utility function is specified here.)
+    + Arifovic & Ledyard (2001): $\beta_i \leq 0$, positive effect of group-level payout on individual utility.
+    + *Marco's answer*: There is no clear reason why values have to be within [-1, 1], yet greater effect sizes would be extreme scenarios. I should try out also extreme values to see what happens, yet Marco expects that simulation results will fall in [-1, 1].
++ Why are utilities modeled as exponential function? Does that really make a difference?
+    * *My answer*: It only matters when comparing the different utilities in the investment decision. And since the ultimate investment decision depends on `randomnumber`, it also matters *by how much* utility in-/decreases through investing another token. 
+    * *Marco's answer*: Exponential function is an established way in economics. If I want to set agents to fully rational for testing purposes, it may be recommendable to just include a switch that operates a if-then-else condition.
++ Water flow is not included in utility function (e.g. such that agents have an intrinsic preference for a higher infrastructure level, cf. "Social welfare preference" in Arifovic & Ledyard 2012). Thus, potential returns on investment aren't considered (e.g. in the above example they don't see the use of investing). Should that be included somehow?
++ In `calcutility` agents calculate utilities based on an equal distribution of the remaining water while in `invest` they base it on last round's previous extraction. Inconsistency?! 
+    * `calcutility`: 
+    ```
+    ifelse mewater > otherwater [
+        set util mewater - alpha * (mewater - otherwater)
+      ][
+        set util mewater + beta * (otherwater - mewater)
+    ]
+    ```
+    * `invest`:
+    ```
+    set earningsothers 10 - mean [inv-past] of other turtles + mean [harvest] of other turtles
+    ...
+    set earningsothers 10 - mean [inv-past] of other turtles + item 2 calcutility-values ;NEW!
+    ...
+    ifelse 10 - i + harvest > earningsothers [
+              set utility 10 - i + temp-harvest - alpha * (10 - i + temp-harvest - earningsothers)
+            ][
+              set utility 10 - i + temp-harvest + beta * (earningsothers - 10 + i - temp-harvest)
+            ]
+    ```
+    Note: `item 2 calcutility-values` = `otherwater`
+    * Ways out:
+        * Always assume equal sharing of the water: naive, but considers actually available water
+        * always assume extraction of previous amount: neglects current infrastructure level, but takes position into account
+    * *Marco*: Yes, this is somewhat inconsistent and assuming that the other agents distribute the remaining water equally among themselves is a reasonable abstraction (even though it is not perfect, because deviating slightly from equal distribution might lead to (Pareto) improvements). 
++ Assuming that agents will behave as in previous round neglects the current infrastructure level (and with it the "necessity to invest"): If in one round there is hardly any investment (because infrastructure is in good shape) and agents assume that in the next round the other agents will continue not investing, then it does not pay off for the agent itself to invest. Additionally, these strong fluctuations in investment (often from 10 to 0 and vice versa) do not correspond to the empirical finding that agents prefer small changes in their decisions.
+    * Ways out:
+        * Agents calculate their investment decision with respect to a target level of infrastructure (e.g. 66).
+        * Agents calculate a propensity to change their investment level (i.e. how strongly they want to deviate from the previous investment)
+        * Agents assume that other agents invest as much as oneself 
+    * *Marco*: It is reasonable to assume that agents have the expectation that others want to invest to full capacity (in order to get water flowing). However, that expectation may change over time due to learning (it may strengthen or weaken according to others' actual behavior). **Idea**: Copy over code on `lambda` from conditionalcooperation?!

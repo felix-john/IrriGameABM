@@ -3,6 +3,7 @@ title: "Code verification"
 output:
   html_notebook:
     toc: yes
+    toc_depth: 4
 ---
 
 # Unit tests
@@ -131,7 +132,7 @@ Infrastructure is completely destroyed and agents are locked in a state where no
 
 
 
-#### Modified version
+#### Modified version: Endogenized waterflow
 
 14 June 2017
 
@@ -502,7 +503,7 @@ As agents expect that other would invest as much as in last round ([5 5 5 0 0]),
 observer: "turnoff: [0 0 0 0 0], actual extraction: [0 0 0 0 0], harvest: [0 0 0 0 0]"
 observer: "actual utility: [10 10 10 10 10], satisfied: [0 0 0 0 0]"
 ```
-Here, it shows that if $\beta$ is set too high, agents get a higher utility form not extracting and letting the others split the harvest among themselves. 
+Here, it shows that if $\beta$ is set too high, agents get a higher utility form not extracting and letting the others split the harvest among themselves. However, since every agents thinks like that, nobody actually extracts.
 
 ```
 observer: "round 3"
@@ -650,4 +651,8 @@ observer: "actual utility: [10 10 10 10 10], satisfied: [0 0 0 0 0]"
 + Agents neglect their position along the river (they simply assume that they can extract any amount of water)
 + Assuming that the other agents split remaining water in equal shares underestimates their average harvest (because extraction and harvest are non-linear). There may be smarter ways to distribute the water given the steps in the `calharvest` function E.g.: a total amount of 1000 cfps may be shared equally among the rest, which leads to 250 cfps/person (-> average harvest = 10); but if the agents extract ([350 350 300 0 0]), harvests would be [18 18 15 0 0] (-> avg harvest = 12.75).
     * Is it reasonable that this error will be small because with a more inequal water distribution there will be winners and losers that will balance each other more or less?
-+ Let agents assume that others would simply behave in the same way as the agent in question. -> **implement**!
++ Assuming that agents will behave as in previous round introduces too strong fluctuations: If in one round there is hardly any investment (because infrastructure is in good shape) and agents assume that in the next round the other agents will continue not investing, then it does not pay off for the agent itself to invest. Additionally, these strong fluctuations in investment (often from 10 to 0 and vice versa) do not correspond to the empirical finding that agents prefer small changes in their decisions.
+    * Ways out:
+        * Agents calculate their investment decision with respect to a target level of infrastructure (e.g. 66).
+        * Agents calculate a propensity to change their investment level (i.e. how strongly they want to deviate from the previous investment)
++ Let agents assume that others would simply behave in the same way as oneself. -> **implement**!
