@@ -1,8 +1,7 @@
 ;;;;; CHANGELOG: ;;;;;;;;
-; - calcutility: limit own extraction to 550 cfps
-; - calcutility now reports a list with optimal values for turnoff and corresponding harvests (mewater, otherwater)
-; - calcutility: change index variable from i to w (to avoid potential conflicts when it's called inside invest
-
+; - social-values: parameter introduced that measures how strongly agents deviate from fair investment
+; - social-values: expectations on how others behave depend on past behavior and fair investment, moderated by kappa
+; - calcapacity: ifelse infrastructure-level <= 51 -> ifelse infrastructure-level < 52
 ;;;;; TO-DOS: ;;;;;;;;;;;
 
 
@@ -19,6 +18,7 @@ turtles-own [
   actualutility; utility after the decisions are made
   turnoff ; in social values model - amount of water to be collected that is expected to maximize utility
   satisfied ; boolean defining whether agent is satisfied (=1) or not (=0)
+  kappa ; trust that other fulfill the need to invest
 ]
 globals [
   done ; boolean to define whether the batch of runs is finished (used for behaviorsearch)
@@ -36,7 +36,8 @@ globals [
   sec ; secpnd in game collecting water
 ;  limcom ; boolean that defines whether agents have limited communication of not
   pastinfrastructure ; infrastructure level of previous round
-  ; parameters for phase2
+
+  ; experimental data
   lambda-inv2 lambda2 lambda-ext2 stdev-random2 comlimscore2 gammawatercol2 umin2 alpha2 beta2 mu2
   inf-eff-F inf-eff-L ; infrastructure levels for limited and full communication
   inv-A-F inv-B-F inv-C-F inv-D-F inv-E-F ; data on investment levels per position with full communication
@@ -154,7 +155,7 @@ to setupcleardata
   ask turtles
   [
     set inv 0 set earnings 0 set watercol 0 set gate 0
-    set satisfied 0
+    set satisfied 0 set kappa 1
     set expC mean-expC
   ]
   set infrastructure 100
@@ -299,7 +300,8 @@ to go
     ]
   ]
 
-  show (word "satisfied: " map [[satisfied] of ?] sort turtles ", past-inv: " map [[inv] of ?] sort turtles ", past-harvest: " map [[harvest] of ?] sort turtles ", infrastructure: " infrastructure)
+  show (word "past-inv: " map [[inv] of ?] sort turtles ", past-harvest: " map [[harvest] of ?] sort turtles ", infrastructure: " infrastructure)
+  show (word "satisfied: " map [[satisfied] of ?] sort turtles ", kappa: " map [[kappa] of ?] sort turtles ", maintenance: " maintenance ", infrastructure: " infrastructure)
   invest
   show (word "investments: " map [[inv] of ?] sort turtles ", infrastructure after investing: " infrastructure)
 
@@ -317,6 +319,7 @@ to go
   set actualwatersupply calcwaterflow capacity
   if scenario = "social-values" [
     ask turtles [if satisfied < 1 [ ; if agent is not satisfied evaluate which level of water maximize utility given the expected water collected of others (
+      show (word "capacity: " capacity "; actualwatersupply: " actualwatersupply)
       let calcutility-values calcutility actualwatersupply
       set turnoff item 0 calcutility-values
       show (word "real extraction (turnoff - mewater - otherwater): " calcutility-values)]
@@ -360,11 +363,17 @@ to calcinfrastructuredecline
 
   set infrastructure infrastructure - infrastructure-decline
   if infrastructure < 0 [set infrastructure 0]
-  set maintenance 66 - infrastructure
+  ifelse infrastructure > 66 [set maintenance 0] [ set maintenance 66 - infrastructure ]
   if maintenance > 50 [set maintenance 50] ; if more than 50 units is needed for repair, the maximum investment is still 50
 end
 
 to invest ; this is how investment decisions are made
+  let fairinv 0
+  ifelse infrastructure < 66 [
+    set fairinv maintenance / 5
+  ][
+    set fairinv 0
+  ]
   set pastinfrastructure infrastructure
   ask turtles [set inv-past inv]
 
@@ -475,14 +484,15 @@ to invest ; this is how investment decisions are made
           [
             ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
             ; NEW CODE BLOCK to endogenize positive effects of investments in infrastructure
-            let temp-capacity calcapacity (infrastructure + sum [inv-past] of other turtles + i) ; calculate capacity based on own investment i, assuming that others invest as in last round
+            let temp-invothers kappa * 4 / 5 * maintenance + (1 - kappa) * sum [inv-past] of other turtles
+            let temp-capacity calcapacity (infrastructure + temp-invothers + i) ; calculate capacity based on own investment i, assuming that others invest as in last round
             let temp-watersupply calcwaterflow temp-capacity ; calculate corresponding watersupply in cfps in the canal
-            let calcutility-values calcutility temp-watersupply
-            let temp-turnoff item 0 calcutility-values; calculate optimal turnoff
+            let calcutility-values calcutility temp-watersupply ; calculate optimal turnoff
+            let temp-turnoff item 0 calcutility-values
             let temp-harvest calharvest temp-turnoff
-            set earningsothers 10 - mean [inv-past] of other turtles + item 2 calcutility-values
-            show (word "calcutility-values (turnoff - mewater - otherwater): " calcutility-values "; temp-earningsothers: " earningsothers)
-            show (word "i = " i ", temp-capacity: " temp-capacity ", temp-watersupply: " temp-watersupply ", temp-turnoff: " temp-turnoff ", temp-harvest: " temp-harvest)
+            set earningsothers 10 - kappa * fairinv - (1 - kappa) * mean [inv-past] of other turtles + item 2 calcutility-values
+            show (word "calcutility (turnoff - mewater - otherwater): " calcutility-values ", temp-invothers: " (kappa * fairinv - (1 - kappa) * mean [inv-past] of other turtles) "; temp-earningsothers: " earningsothers)
+            show (word "i = " i ", infra: " (infrastructure + temp-invothers + i) ", temp-capacity: " temp-capacity ", temp-watersupply: " temp-watersupply "; harvest: " temp-harvest "; earnings: " (10 - i + temp-harvest) )
             ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
             ifelse 10 - i + harvest > earningsothers [
@@ -520,18 +530,30 @@ to invest ; this is how investment decisions are made
   set infrastructure infrastructure + sum [inv] of turtles
   if infrastructure > 100 [set infrastructure 100]
   set capacity calcapacity infrastructure
+
+  if scenario = "social-values" [
+    ask turtles [
+      ifelse fairinv < 0.5 [
+        set kappa 1
+      ][
+        set kappa 1 - (fairinv - mean [inv] of other turtles) / fairinv
+        if kappa > 1 [set kappa 1]
+      ]
+    ]
+    show (word "fairinv: " fairinv "; kappa: " map [[kappa] of ?] sort turtles)
+  ]
 end ; end of invest procedure
 
 to-report calcapacity [infrastructure-level]; calculating the capacity of a certain level of infrastructure
    let watercapacity 0
    ifelse infrastructure-level <= 45 [set watercapacity 0 ][
-     ifelse infrastructure-level <= 51 [set watercapacity 5][
-       ifelse infrastructure-level <= 55 [set watercapacity 10][
-         ifelse infrastructure-level <= 58 [set watercapacity 15][
-           ifelse infrastructure-level <= 61 [set watercapacity 20][
-             ifelse infrastructure-level <= 65 [set watercapacity 25][
-               ifelse infrastructure-level <= 70 [set watercapacity 30][
-                 ifelse infrastructure-level <= 80 [set watercapacity 35][set watercapacity 40]]]]]]]]
+     ifelse infrastructure-level < 52 [set watercapacity 5][
+       ifelse infrastructure-level < 56 [set watercapacity 10][
+         ifelse infrastructure-level < 59 [set watercapacity 15][
+           ifelse infrastructure-level < 62 [set watercapacity 20][
+             ifelse infrastructure-level < 66 [set watercapacity 25][
+               ifelse infrastructure-level < 71 [set watercapacity 30][
+                 ifelse infrastructure-level < 81 [set watercapacity 35][set watercapacity 40]]]]]]]]
    report watercapacity
 end
 
@@ -613,7 +635,7 @@ to-report calcutility [temp-supply]; in turtle-context - only relevant for scena
       set max-mewater mewater
       set max-otherwater otherwater
     ]
-    show (word "totalwater: " totalwater ", w: " w ", waterinput: " waterinput ", mewater: " mewater ", otherwater: " otherwater ", util: " util)
+;    show (word "totalwater: " totalwater ", w: " w ", waterinput: " waterinput ", mewater: " mewater ", otherwater: " otherwater ", util: " util)
     set w w + 25
   ]
   report (list report-turnoff max-mewater max-otherwater)
@@ -1589,8 +1611,8 @@ SLIDER
 mu
 mu
 0
-30
-30
+25
+0.55
 0.1
 1
 NIL
