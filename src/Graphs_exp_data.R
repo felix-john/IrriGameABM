@@ -230,3 +230,26 @@ ggplot(test, aes(x = Round, y = mean_diff_Invest_group)) +
        y = "change in investment (mean ± SD)")
 filename <- "diff_Invest_group.png"
 ggsave(filename, path = graph.path, dpi = 300, device = "png", width = 11.69, height = 8.27, units = "in")
+
+
+#### plots based on group level ######
+
+exp.df %>%
+  filter(Position == 1) %>%
+  group_by(treatment2, LimComm, Round, Group) %>%
+  # mutate(mean = mean(Extraction_group),
+  #        SD = sd(Extraction_group),
+  #        max = max(Extraction_group),
+  #        min = min(Extraction_group),
+  #        median = median(Extraction_group)) %>%
+  ggplot() +
+  # geom_line(aes(x = Round, y = Extraction_group, colour = factor(LimComm), group = c(Group))) +
+  # facet_grid(. ~ treatment, labeller = "label_both") +
+  geom_line(aes(x = Round, y = Infra_init, group = c(Group))) +
+  # geom_line(aes(x = Round, y = mean + SD), linetype = "dashed") +
+  # geom_line(aes(x = Round, y = mean - SD), linetype = "dashed") +
+  # geom_line(aes(x = Round, y = min), colour = "grey", linetype = "dashed") +
+  # geom_line(aes(x = Round, y = max), colour = "grey", linetype = "dashed") +
+  # geom_line(aes(x = Round, y = median), colour = "grey") +
+  facet_grid(LimComm ~ treatment2, labeller = "label_both", scales = "free_x") +
+  labs(y = "Infrastructure level", colour = "Limited \nCommunication", title = "Infrastructure levels for different treatments")

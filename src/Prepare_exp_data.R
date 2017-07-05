@@ -94,7 +94,7 @@ agent_summary <- exp.df  %>%
             Gini_earnings_mean = mean(Gini_earnings),
             Gini_earnings_SD = sd(Gini_earnings))
 
-# summarise date across positions for each group and round
+# summarise data across positions for each group and round
 summary_withingroups <- exp.df  %>%
   group_by(treatment, LimComm, Round, Group) %>%
   summarise(n = length(unique(Group)),
@@ -200,6 +200,8 @@ exp.df.new <- merge(exp.df.new, Gini_new, all = T)
 exp.df <- exp.df.new
 
 rm(exp.df.new, Gini_new, Compare_Gini, Ginis, a, group_totals)
+
+
 
 # UPDATE SUMMARY DATAFRAMES FIRST!! (agent_summary, group_summary, summary_withingroups)
 

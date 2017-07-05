@@ -1,12 +1,14 @@
 ;;;;; CHANGELOG: ;;;;;;;;
-; - comment out updateparams and useoptimalparams
-; - add if-conditions for commands that are only used for specific scenarios
+; - commented out console output for debugging
+; - commented new code
+; - highlighted new code with ";FJ NEW CODE"
+; - reduce upper limit of mu to 25 (values of ~ 30 can yield very large utilities that NL interprets as infinity)
 
 ;;;;; TO-DOS: ;;;;;;;;;;;
 
 
 
-turtles-own [	
+turtles-own [
   inv ; Investment in the public infrastructure
   inv-past ; Investment in last round
   earnings ; Earnings in this round
@@ -18,8 +20,9 @@ turtles-own [
   actualutility; utility after the decisions are made
   turnoff ; in social values model - amount of water to be collected that is expected to maximize utility
   satisfied ; boolean defining whether agent is satisfied (=1) or not (=0)
+  kappa ; trust that other fulfill the need to invest
 ]
-globals [	
+globals [
   done ; boolean to define whether the batch of runs is finished (used for behaviorsearch)
   sim-length ; number of rounds (=10 if only phase 1 is simulated; =20 if treatments are considered)
 	infrastructure ; level of public infrastructure
@@ -31,11 +34,12 @@ globals [
 	actualwatersupply ; actual water supply top the system (which is lower than water supply if capacity is lower than supply)
 	gini-inv ; gini of investment decisions
 	gini-ext ; gini of extraction of water
-	maintenance ; the amount of investment needed to keep the infrastructure at a capacity of 30 units of water (= water supply) 
+	maintenance ; the amount of investment needed to keep the infrastructure at a capacity of 30 units of water (= water supply)
   sec ; secpnd in game collecting water
 ;  limcom ; boolean that defines whether agents have limited communication of not
   pastinfrastructure ; infrastructure level of previous round
-  ; parameters for phase2
+
+  ; experimental data
   lambda-inv2 lambda2 lambda-ext2 stdev-random2 comlimscore2 gammawatercol2 umin2 alpha2 beta2 mu2
   inf-eff-F inf-eff-L ; infrastructure levels for limited and full communication
   inv-A-F inv-B-F inv-C-F inv-D-F inv-E-F ; data on investment levels per position with full communication
@@ -79,7 +83,7 @@ globals [
 
   data-inf ; data infrastructure levels
   data-gini-inv data-gini-ext ; data gini investments and extractions
-  data-inv-A data-inv-B data-inv-C data-inv-D data-inv-E ; data investments levels per position 
+  data-inv-A data-inv-B data-inv-C data-inv-D data-inv-E ; data investments levels per position
   data-ext-A data-ext-B data-ext-C data-ext-D data-ext-E ; data extraction earnings per position
 
   list-inf ; list of simulated infrastructure levels
@@ -90,7 +94,7 @@ globals [
   inv-A inv-B inv-C inv-D inv-E ; average simulated investment level for a position
   ext-A ext-B ext-C ext-D ext-E ; average simulated extraction level for a position
   list-change ; list of changes of investments between rounds
-  list-data-change-L ; data of change frequencies for limited communication experiments 
+  list-data-change-L ; data of change frequencies for limited communication experiments
   list-data-change-F ; data of change frequencies for full communication experiments
   list-data-change ; data of change frequencies for two treatments together
 
@@ -103,12 +107,12 @@ globals [
   metric-mult
 
   s-metric-inv ; average for two treatments for the squared differences between data and simulation
-  s-metric-ext 
-  s-metric-inf 
-  s-metric-change 
-  s-metric-gini-inv 
-  s-metric-gini-ext 
-  
+  s-metric-ext
+  s-metric-inf
+  s-metric-change
+  s-metric-gini-inv
+  s-metric-gini-ext
+
   decline-lv-inf
   decline-hv-inf
   supply-lv-wa
@@ -117,36 +121,43 @@ globals [
 
 to setup
   clear-all
-  set metric-mult 0
-  crt 5 
+;  set metric-mult 0
+  crt 5
   set done 0
   set sim-length 10
   if phase2? [set sim-length 20]
 ;  set limcom true
-  
-  loadexpdata
-  
-  ;if phase2? [useoptimalparams] ;resets parameters for phase1 to those obtained from calibration
-   
-  setupcleardata
-  
-  resetlists
 
-  set metric-inv 0 
-  set metric-ext 0
-  set metric-inf 0
-  set metric-change 0
-  set metric-gini-inv 0
-  set metric-gini-ext 0
-  set metric-mult 0
-;  set limcom false 
+;  loadexpdata
+
+  ;if phase2? [useoptimalparams] ;resets parameters for phase1 to those obtained from calibration
+
+  if phase2? [; input data for treatments
+    set decline-lv-inf (list 25 30 25 20 35 20 15 30 30 25)
+    set decline-hv-inf (list 25 10 10 80 10 5 10 80 10 10)
+    set supply-lv-wa (list 27 31 26 35 33 28 29 25 34 32)
+    set supply-hv-wa (list 27 31 22 36 25 32 38 21 29 39)
+  ]
+
+  setupcleardata
+
+;  resetlists
+
+;  set metric-inv 0
+;  set metric-ext 0
+;  set metric-inf 0
+;  set metric-change 0
+;  set metric-gini-inv 0
+;  set metric-gini-ext 0
+;  set metric-mult 0
+;  set limcom false
 end ; end of setup
 
 to setupcleardata
   ask turtles
   [
     set inv 0 set earnings 0 set watercol 0 set gate 0
-    set satisfied 0
+    set satisfied 0 set kappa 1
     set expC mean-expC
   ]
   set infrastructure 100
@@ -189,7 +200,7 @@ to resetlists
   set list-ext-E n-values sim-length [0]
   set list-change n-values 21 [0]
 end
-  
+
 to batch ; batch is used for calibration where 1000 simulations for the same parameter setting are used to calculate the fit
   set metric-inv 0
   set metric-ext 0
@@ -205,13 +216,13 @@ to batch ; batch is used for calibration where 1000 simulations for the same par
   [
    setupcleardata
    while [ticks < sim-length]
-   [ 
+   [
     go
-   ] 
-    set iter iter + 1 
+   ]
+    set iter iter + 1
   ]
   calcmetrics
-  
+
   resetlists
 
   set s-metric-inv metric-inv
@@ -226,20 +237,20 @@ to batch ; batch is used for calibration where 1000 simulations for the same par
   set metric-change 0
   set metric-gini-inv 0
   set metric-gini-ext 0
-  
+
   set iter 0
-;  set limcom true ; since we calculate the fit for two different treatments we now run the 1000 times the other treatment 
+;  set limcom true ; since we calculate the fit for two different treatments we now run the 1000 times the other treatment
   while [iter < 1000]
   [
    setupcleardata
    while [ticks < sim-length]
-   [  
+   [
     go
-   ] 
+   ]
     set iter iter + 1
   ]
   calcmetrics
-  set metric-mult metric-mult / 2 
+  set metric-mult metric-mult / 2
   set s-metric-inv (s-metric-inv + metric-inv) / 2
   set s-metric-ext (s-metric-ext + metric-ext) / 2
   set s-metric-inf (s-metric-inf + metric-inf) / 2
@@ -255,12 +266,14 @@ to go
   if ticks = 10 [
     set infrastructure 100 ; has to be set to 100 because it will still depreciate afterwards
     ; updateparams ; resets parameters to values from interface
-  ] 
+  ]
 
-  createdata ; MJ: translate data list to time series of data
+;  show (word "round " (ticks + 1))
+
+;  createdata ; MJ: translate data list to time series of data
 
   calcinfrastructuredecline ; setup infrastructure decline
-  
+
   ; update expectations from communication and extractions (only for conditionalcooperation)
   if scenario = "conditionalcooperation" [
     ask turtles [
@@ -273,25 +286,27 @@ to go
       ][
         let score 0
         if mean [harvest] of turtles > 0 [
-          ifelse (harvest / mean [harvest] of turtles) < 1 [set score (harvest / mean [harvest] of turtles)] [set score 1] 
+          ifelse (harvest / mean [harvest] of turtles) < 1 [set score (harvest / mean [harvest] of turtles)] [set score 1]
         ]
         ; expected level of cooperation after communication and after feedback on extraction from resource
         ifelse limcom [
-          set expC expC * (1 - lambda) + lambda * comlimscore 
+          set expC expC * (1 - lambda) + lambda * comlimscore
           set expC expC * (1 - lambda-ext) + lambda-ext * score
         ][
-         set expC expC * (1 - lambda) + lambda 
-         set expC expC * (1 - lambda-ext) + lambda-ext * score 
+         set expC expC * (1 - lambda) + lambda
+         set expC expC * (1 - lambda-ext) + lambda-ext * score
         ]
       ]
       if expC < 0 [set expC 0]
-      if expC > 1 [set expC 1]      
+      if expC > 1 [set expC 1]
     ]
   ]
 
+;  show (word "past-inv: " map [[inv] of ?] sort turtles ", past-harvest: " map [[harvest] of ?] sort turtles ", infrastructure: " infrastructure)
+;  show (word "satisfied: " map [[satisfied] of ?] sort turtles ", kappa: " map [[kappa] of ?] sort turtles ", maintenance: " maintenance ", infrastructure: " infrastructure)
   invest
-;  show (word "investments: " map [[inv] of ?] sort turtles ", infrastructure: " infrastructure)
-  
+;  show (word "investments: " map [[inv] of ?] sort turtles ", infrastructure after investing: " infrastructure)
+
   ; update expected cooperation from observed investment levels (only for conditionalcooperation)
   if scenario = "conditionalcooperation" [
     ask turtles [
@@ -302,9 +317,17 @@ to go
       if pastinfrastructure < 66 [set expC expC * (1 - lambda-inv) + lambda-inv * score] ; adjusting expected level of cooperation after getting feedback on relative investments
     ]
   ]
-  
-  calcwaterflow
-  if scenario = "social-values" [ calcutility ]; for social-values
+
+  set actualwatersupply calcwaterflow capacity
+  if scenario = "social-values" [
+    ask turtles [if satisfied < 1 [ ; if agent is not satisfied evaluate which level of water maximize utility given the expected water collected of others (
+;        show (word "capacity: " capacity "; actualwatersupply: " actualwatersupply)
+        let calcutility-values calcutility actualwatersupply
+        set turnoff item 0 calcutility-values
+;        show (word "real extraction (turnoff - mewater - otherwater): " calcutility-values)
+      ]
+    ]
+  ]
   extract ; agents extract water
 
   ask turtles [
@@ -313,13 +336,17 @@ to go
   ]
   set totalearnings sum [earnings] of turtles
   set totalharvest sum [harvest] of turtles
-  
+
   ; after the round calculate the actual utilities (only for social-values)
-  if scenario = "social-values" [ calcactualutility ]
+  if scenario = "social-values" [
+;    show (word "turnoff: " map [[turnoff] of ?] sort turtles ", actual extraction: " map [[watercol] of ?] sort turtles ", harvest: " map [[harvest] of ?] sort turtles)
+    calcactualutility
+;    show (word "actual utility: " map [[actualutility] of ?] sort turtles ", satisfied: " map [[satisfied] of ?] sort turtles)
+  ]
   ; calculate the metrics
   calcgini
-  
-  updatelists
+
+;  updatelists
 
   tick
 end ; end of go procedure
@@ -336,24 +363,32 @@ to calcinfrastructuredecline
   ][
   set infrastructure-decline 25 ; 25 is the round based reduction of the infrastructure (which cannot go below 0)
   ]
-  
+
   set infrastructure infrastructure - infrastructure-decline
   if infrastructure < 0 [set infrastructure 0]
-  set maintenance 66 - infrastructure 
+  ifelse infrastructure > 66 [set maintenance 0] [ set maintenance 66 - infrastructure ]
   if maintenance > 50 [set maintenance 50] ; if more than 50 units is needed for repair, the maximum investment is still 50
 end
 
 to invest ; this is how investment decisions are made
+  ;FJ NEW CODE BLOCK
+  let fairinv 0
+  ifelse infrastructure < 66 [
+    set fairinv maintenance / 5
+  ][
+    set fairinv 0
+  ]
+
   set pastinfrastructure infrastructure
   ask turtles [set inv-past inv]
-  
+
   ask turtles [
     if scenario = "conditionalcooperation" [
       ifelse expC <= 0.5 [set strategy 1][set strategy 2]
-    ]    
-    
+    ]
+
     if strategy = 0 [set inv random 11]
-    
+
     if strategy = 1 [
       set inv 0
       if who = 0 [
@@ -361,44 +396,44 @@ to invest ; this is how investment decisions are made
         let potearnings 0
         if infrastructure < 46 [if (46 - infrastructure) <= 10 [set sizeinvestment 46 - infrastructure set potearnings 10 - sizeinvestment]] ; one can calculate this is the optimal decision for selfish individuals who invest if they expect to get at least the amount out of it that they invest and assume upstream agents are also selfish and rational
         if infrastructure < 52 [if  (52 - infrastructure) <= 10 [
-          if (20 - 52 + infrastructure) > potearnings  [set sizeinvestment 52 - infrastructure set potearnings 20 - sizeinvestment]]] 
-        set inv sizeinvestment  
+          if (20 - 52 + infrastructure) > potearnings  [set sizeinvestment 52 - infrastructure set potearnings 20 - sizeinvestment]]]
+        set inv sizeinvestment
       ]
       if who = 1 [
         let sizeinvestment 0
         let potearnings 0
         if infrastructure < 56 [if (56 - infrastructure) <= 10 [set sizeinvestment 56 - infrastructure set potearnings 10 - sizeinvestment]]
         if infrastructure < 59 [if (59 - infrastructure) <= 10 [
-          if (20 - 59 + infrastructure) > potearnings  [set sizeinvestment 59 - infrastructure set potearnings 20 - sizeinvestment]]] 
-        set inv sizeinvestment 
+          if (20 - 59 + infrastructure) > potearnings  [set sizeinvestment 59 - infrastructure set potearnings 20 - sizeinvestment]]]
+        set inv sizeinvestment
       ]
       if who = 2 [
         let sizeinvestment 0
         let potearnings 0
         if infrastructure < 62 [if (62 - infrastructure) <= 10 [set sizeinvestment 62 - infrastructure set potearnings 10 - sizeinvestment]]
         if infrastructure < 66 [if (66 - infrastructure) <= 10 [if (20 - 66 + infrastructure) > potearnings  [set sizeinvestment 66 - infrastructure set potearnings 20 - sizeinvestment]]]
-        set inv sizeinvestment 
+        set inv sizeinvestment
       ]
       set inv inv + random-normal 0 stdev-random ; the trembling hand in investment decisions
-      set inv int round inv 
-      
+      set inv int round inv
+
       if inv < 0 [set inv 0]
-      if inv > 10 [set inv 10]    
+      if inv > 10 [set inv 10]
     ]
-    
-    
+
+
     if strategy = 2 [
       ifelse limcom [ ; with limcom
         ifelse visioneffect [
           ifelse infrastructure < 66
           [
             if (who = 0 or who = 4) [set inv ceiling (maintenance / 2)]
-            if (who = 1 or who = 2 or who = 3) [set inv ceiling (maintenance / 3)] 
+            if (who = 1 or who = 2 or who = 3) [set inv ceiling (maintenance / 3)]
           ][
             set inv 0
           ]
         ][
-          ifelse infrastructure < 66 [ 
+          ifelse infrastructure < 66 [
             set inv ceiling (maintenance / 5)
           ][
             set inv 0
@@ -413,18 +448,18 @@ to invest ; this is how investment decisions are made
           set inv 0
         ]
       ]
-;      type (word who ": orig. inv: " inv) 
+;      type (word who ": orig. inv: " inv)
       let noise random-normal 0 stdev-random
       set inv inv + noise
-      set inv int round inv 
+      set inv int round inv
       if inv < 0 [set inv 0]
-      if inv > 10 [set inv 10]  
+      if inv > 10 [set inv 10]
 ;      print (word ", noise: " noise ", final inv: " inv)
     ]
-    
+
 ;    show (word "satisfied: " map [[satisfied] of ?] sort turtles)
-    if scenario = "social-values" [ 
-      ifelse satisfied < 1 [ 
+    if scenario = "social-values" [
+      ifelse satisfied < 1 [
         ifelse ticks = 0 [
           set inv 5
         ][
@@ -436,7 +471,7 @@ to invest ; this is how investment decisions are made
           let earningsothers 0
 ;          show (word "inv-past: " map [[inv-past] of ?] sort turtles ", harvest: " map [[harvest] of ?] sort turtles )
           ifelse limcom = false [
-            set earningsothers 10 - mean [inv-past] of other turtles + mean [harvest] of other turtles 
+            set earningsothers 10 - mean [inv-past] of other turtles + mean [harvest] of other turtles
           ][
             ifelse visioneffect [
               if who = 0 [set earningsothers 10 - [inv-past] of turtle 1 + [harvest] of turtle 1]
@@ -445,58 +480,88 @@ to invest ; this is how investment decisions are made
               if who = 3 [set earningsothers 10 - ([inv-past] of turtle 2 + [inv-past] of turtle 4) / 2 + ([harvest] of turtle 2 + [harvest] of turtle 4) / 2]
               if who = 4 [set earningsothers 10 - [inv-past] of turtle 3 + [harvest] of turtle 3]
             ][
-              set earningsothers 10 - mean [inv-past] of other turtles + mean [harvest] of other turtles 
+              set earningsothers 10 - mean [inv-past] of other turtles + mean [harvest] of other turtles
             ]
           ]
-          
+;          show (word "own harvest: " harvest ", earningsothers: " earningsothers)
+
           while [i <= 10]
           [
+            ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+            ;FJ NEW CODE BLOCK to endogenize positive effects of investments in infrastructure
+            let temp-invothers kappa * 4 / 5 * maintenance + (1 - kappa) * sum [inv-past] of other turtles ; expectation of others' behavior
+            let temp-capacity calcapacity (infrastructure + temp-invothers + i) ; calculate capacity based on own investment i and assumed investments of others
+            let temp-watersupply calcwaterflow temp-capacity ; calculate corresponding watersupply in cfps in the canal
+            let calcutility-values calcutility temp-watersupply ; calculate optimal turnoff
+            let temp-turnoff item 0 calcutility-values
+            let temp-harvest calharvest temp-turnoff
+            set earningsothers 10 - kappa * fairinv - (1 - kappa) * mean [inv-past] of other turtles + item 2 calcutility-values
+;            show (word "calcutility (turnoff - mewater - otherwater): " calcutility-values ", temp-invothers: " (kappa * fairinv - (1 - kappa) * mean [inv-past] of other turtles) "; temp-earningsothers: " earningsothers)
+;            show (word "i = " i ", infra: " (infrastructure + temp-invothers + i) ", temp-capacity: " temp-capacity ", temp-watersupply: " temp-watersupply "; harvest: " temp-harvest "; earnings: " (10 - i + temp-harvest) )
+            ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
             ifelse 10 - i + harvest > earningsothers [
-              set utility 10 - i + harvest - alpha * (10 - i + harvest - earningsothers)
+              set utility 10 - i + temp-harvest - alpha * (10 - i + temp-harvest - earningsothers)
             ][
-              set utility 10 - i + harvest + beta * (earningsothers - 10 + i - harvest)
+              set utility 10 - i + temp-harvest + beta * (earningsothers - 10 + i - temp-harvest)
             ]
             set list-utility lput utility list-utility
-            set totalutility totalutility + exp (mu * utility) 
+            set totalutility totalutility + exp (mu * utility)
             set i i + 1
           ]
 ;          show (word "totalutility: " totalutility ", sum list-utility: " sum map [exp (mu * ?)] list-utility)
-          
+
           let randomnumber random-float totalutility
           set i 0
           set totalutility exp (mu * item 0 list-utility)
-;          show (word "randomnumber = " randomnumber ", util: " map [exp (mu * ?)] list-utility) 
+;          show (word "randomnumber = " randomnumber ", util: " map [exp (mu * ?)] list-utility)
           while [i <= 10]
           [
             ifelse randomnumber < totalutility [
               set inv i set i 11
             ][
               set i i + 1
-              set totalutility totalutility + exp (mu * item i list-utility) 
+              if i > 10 [stop]
+              set totalutility totalutility + exp (mu * item i list-utility)
             ]
           ]
-;          show (word ", inv: " inv ", totalutility: " totalutility)
+;          show (word "inv: " inv ", totalutility: " totalutility)
         ]
       ][set inv inv-past] ; agents repeat from the past round if they are satisfied
     ]
-    
+
     set earnings 10 - inv
   ]
   set infrastructure infrastructure + sum [inv] of turtles
   if infrastructure > 100 [set infrastructure 100]
-  calcapacity
+  set capacity calcapacity infrastructure
+
+  ;FJ NEW CODE BLOCK
+  ; update kappa
+  if scenario = "social-values" [
+    ask turtles [
+      ifelse fairinv < 0.5 [
+        set kappa 1 ; threshold of relevance: if others have to invest less than 0.5 tokens on avg, ignore the need to invest
+      ][
+        set kappa 1 - (fairinv - mean [inv] of other turtles) / fairinv
+        if kappa > 1 [set kappa 1]
+      ]
+    ]
+;    show (word "fairinv: " fairinv "; kappa: " map [[kappa] of ?] sort turtles)
+  ]
 end ; end of invest procedure
 
-to calcapacity ; calculating the capacity of a certain level of infrastructure
-   set capacity 0
-   ifelse infrastructure <= 45 [set capacity 0 ][
-     ifelse infrastructure <= 51 [set capacity 5][
-       ifelse infrastructure <= 55 [set capacity 10][
-         ifelse infrastructure <= 58 [set capacity 15][
-           ifelse infrastructure <= 61 [set capacity 20][
-             ifelse infrastructure <= 65 [set capacity 25][
-               ifelse infrastructure <= 70 [set capacity 30][
-                 ifelse infrastructure <= 80 [set capacity 35][set capacity 40]]]]]]]]
+to-report calcapacity [infrastructure-level]; calculating the capacity of a certain level of infrastructure
+   let watercapacity 0
+   ifelse infrastructure-level <= 45 [set watercapacity 0 ][
+     ifelse infrastructure-level < 52 [set watercapacity 5][
+       ifelse infrastructure-level < 56 [set watercapacity 10][
+         ifelse infrastructure-level < 59 [set watercapacity 15][
+           ifelse infrastructure-level < 62 [set watercapacity 20][
+             ifelse infrastructure-level < 66 [set watercapacity 25][
+               ifelse infrastructure-level < 71 [set watercapacity 30][
+                 ifelse infrastructure-level < 81 [set watercapacity 35][set watercapacity 40]]]]]]]]
+   report watercapacity
 end
 
 to-report calharvest [water] ; calculating the earnings from collecting a certain amount of water
@@ -512,13 +577,14 @@ to-report calharvest [water] ; calculating the earnings from collecting a certai
                   ifelse water <= 649 [set crops 19][
                     ifelse water <= 699 [set crops 18][
                       ifelse water <= 749 [set crops 15][
-                        ifelse water <= 799 [set crops 10][ 
+                        ifelse water <= 799 [set crops 10][
                           ifelse water <= 849 [set crops 4][
                             ifelse water <= 899 [set crops 1][set crops 0]]]]]]]]]]]]]]
   report crops
 end
 
-to calcwaterflow
+to-report calcwaterflow [watercapacity]
+  let temp-watersupply 0
   ifelse ticks >= 10 and phase2? and (Variability = "lv-wa" or Variability = "hv-wa")
   [
     if Variability = "lv-wa" [set watersupply item (ticks - 10) supply-lv-wa]
@@ -526,59 +592,60 @@ to calcwaterflow
   ][
     set watersupply 30
   ]
-  
-  ifelse capacity < watersupply [
-    set actualwatersupply capacity
+
+  ifelse watercapacity < watersupply [
+    set temp-watersupply watercapacity
   ]
-  [  
-    set actualwatersupply watersupply
+  [
+    set temp-watersupply watersupply
   ]
+  report temp-watersupply
 end
 
-to calcutility ; only relevant for scenario = "social-values"?!
-  ask turtles [
-    if satisfied < 1 [ ; if agent is not satisfied evaluate which level of water maximize utility given the expected water collected of others (
-      let totalwater 50 * actualwatersupply ; total water amount available
-      let umax 0
-      let util 0
-      let i 0 
-      set turnoff 0
-      while [i < totalwater]
-      [
-        let mewater calharvest i ; calculate earnings from water amount
-        let waterinput 0 ; assumption how much others would extract (given that agent itself extracts i)
-        ifelse limcom = false [
-          set waterinput int (((totalwater - i) / 4))
-        ][ ;with limited communication
-          ifelse visioneffect [
-            if who = 0 or who = 4 [
-              set waterinput int (totalwater - i)
-              if waterinput > 500 [set waterinput 500]
-            ]
-            if who = 1 or who = 2 or who = 3 [
-              set waterinput int ((totalwater - i) / 2)
-              if waterinput > 500 [set waterinput 500]
-            ] 
-          ][ ;without visioneffect
-            set waterinput int (((totalwater - i) / 4))
-          ]     
+to-report calcutility [temp-supply]; in turtle-context - only relevant for scenario = "social-values"
+  let totalwater 50 * temp-supply ; total water amount available
+  let umax 0
+  let util 0
+  let w 0
+  let report-turnoff 0
+  let max-mewater 0
+  let max-otherwater 0
+  while [w < totalwater and w < 550]
+  [
+    let mewater calharvest w ; calculate earnings from water amount
+    let waterinput 0 ; assumption how much others would extract (given that agent itself extracts w)
+    ifelse limcom = false [
+      set waterinput int (((totalwater - w) / 4))
+    ][ ;with limited communication
+      ifelse visioneffect [
+        if who = 0 or who = 4 [
+          set waterinput int (totalwater - w)
+          if waterinput > 500 [set waterinput 500]
         ]
-        let otherwater calharvest waterinput ; calculate average earnings of average water collected by others (note that this is a crude approximation since waterinputs are earnings are not linearly related) 
-        ifelse mewater > otherwater [
-           set util mewater - alpha * (mewater - otherwater)
-          ][
-           set util mewater + beta * (otherwater - mewater)
-         ]
-       if util > umax [
-         set turnoff i ; find water amount that maximize utility, this will be the target of the agent
-         set umax util
-       ]
-       set i i + 25
-     ]
+        if who = 1 or who = 2 or who = 3 [
+          set waterinput int ((totalwater - w) / 2)
+          if waterinput > 500 [set waterinput 500]
+        ]
+      ][ ;without visioneffect
+        set waterinput int (((totalwater - w) / 4))
+      ]
     ]
+    let otherwater calharvest waterinput ; calculate average earnings of average water collected by others (note that this is a crude approximation since waterinputs and earnings are not linearly related)
+    ifelse mewater > otherwater [
+      set util mewater - alpha * (mewater - otherwater)
+    ][
+      set util mewater + beta * (otherwater - mewater)
+    ]
+    if util > umax [
+      set report-turnoff w ; find water amount that maximize utility, this will be the target of the agent
+      set umax util
+      set max-mewater mewater
+      set max-otherwater otherwater
+    ]
+;    show (word "totalwater: " totalwater ", w: " w ", waterinput: " waterinput ", mewater: " mewater ", otherwater: " otherwater ", util: " util)
+    set w w + 25
   ]
-
-  
+  report (list report-turnoff max-mewater max-otherwater)
 end
 
 to extract
@@ -586,10 +653,10 @@ to extract
   ask turtles [
     set watercol 0
     set gate 1 ; initially all gates are open
-  ] 
-  
+  ]
+
   while [sec < 50]
-  [ 
+  [
     set watersupply actualwatersupply
     getwater
     set sec sec + 1
@@ -601,13 +668,13 @@ to getwater ; define when to open and close gates
   let i 0
   let totalwaterremaining watersupply * (50 - sec)
   let equalshare ceiling actualwatersupply * 50 / 5
-  
+
   while [i < 5]
   [
     ask turtle i [
-      
-      if scenario = "conditionalcooperation" [          
-;        let water0 500 - 200 * expC 
+
+      if scenario = "conditionalcooperation" [
+;        let water0 500 - 200 * expC
         let water0 500 - (500 - equalshare) * expC ;new
         ; agents have an intended level of water that they want to collect but may close gate earlier
         ifelse water0 > 0 or watercol > 0 [
@@ -617,29 +684,29 @@ to getwater ; define when to open and close gates
           ]
         ][set gate 0]
       ]
-      
+
       if scenario = "social-values" [
         ifelse watercol < turnoff [set gate 1][set gate 0]
       ]
- 
+
       if scenario != "social-values" and scenario != "conditionalcooperation" [
         if strategy = 0 [ ; scenario = random
           set gate random 2
         ]
-        
+
         if strategy = 1 [ ; scenario = selfish
           ifelse watercol < 500 [set gate 1][set gate 0]
         ]
-        
+
         if strategy = 2 [ ; scenario = cooperative
           ifelse watercol < equalshare [set gate 1][set gate 0]
           ;show (word sec ", " who ", eqshare: " equalshare ", watercol: " watercol ", gate: " gate)
         ]
       ]
-      
+
       if gate = 1 [
         ifelse watersupply >= 25 [ ; maximum capacity of the agents' gate (if actual water supply is lower, all water will be diverted onto field
-          set watercol watercol + 25 
+          set watercol watercol + 25
           set watersupply watersupply - 25 ; if gate is open, reduce amount of water that reaches the next agent
         ][
         	set watercol watercol + watersupply set watersupply 0 ;
@@ -658,19 +725,19 @@ to useoptimalparams
     set lambda2 lambda
     set lambda-ext2 lambda-ext
     set stdev-random2 stdev-random
-    set comlimscore2 comlimscore 
+    set comlimscore2 comlimscore
     set gammawatercol2 gammawatercol
-    set umin2 umin 
+    set umin2 umin
     set alpha2 alpha
     set beta2 beta
     set mu2 mu
-    
+
     ; reset to values from calibration for phase1
     set lambda-inv 0.99
     set lambda 0.81
     set lambda-ext 0.33
     set stdev-random 0.99
-    set comlimscore 0.68 
+    set comlimscore 0.68
     set gammawatercol 8.72
     set umin 13.7
     set alpha 0.97
@@ -687,7 +754,7 @@ to updateparams
   set stdev-random stdev-random2
   set comlimscore comlimscore2
   set gammawatercol gammawatercol2
-  set umin umin2 
+  set umin umin2
   set alpha alpha2
   set beta beta2
   set mu mu2
@@ -697,7 +764,7 @@ to calcactualutility
   ask turtles [
     ifelse limcom = false [ ; full communication
       ifelse earnings > mean [earnings] of other turtles [
-        set actualutility earnings - alpha * (earnings - mean [earnings] of other turtles) 
+        set actualutility earnings - alpha * (earnings - mean [earnings] of other turtles)
       ][
         set actualutility earnings + beta * (mean [earnings] of other turtles - earnings)
       ]
@@ -707,10 +774,10 @@ to calcactualutility
       if who = 1 [ifelse earnings > (([earnings] of turtle 0 + [earnings] of turtle 2) / 2) [set actualutility earnings - alpha * (earnings - (([earnings] of turtle 0 + [earnings] of turtle 2) / 2))][set actualutility earnings + beta * ((([earnings] of turtle 0 + [earnings] of turtle 2) / 2) - earnings)]]
       if who = 2 [ifelse earnings > (([earnings] of turtle 1 + [earnings] of turtle 3) / 2) [set actualutility earnings - alpha * (earnings - (([earnings] of turtle 1 + [earnings] of turtle 3) / 2))][set actualutility earnings + beta * ((([earnings] of turtle 1 + [earnings] of turtle 3) / 2) - earnings)]]
       if who = 3 [ifelse earnings > (([earnings] of turtle 2 + [earnings] of turtle 4) / 2) [set actualutility earnings - alpha * (earnings - (([earnings] of turtle 2 + [earnings] of turtle 4) / 2))][set actualutility earnings + beta * ((([earnings] of turtle 2 + [earnings] of turtle 4) / 2) - earnings)]]
-      if who = 4 [ifelse earnings > [earnings] of turtle 3 [set actualutility earnings - alpha * (earnings - [earnings] of turtle 3)][set actualutility earnings + beta * ([earnings] of turtle 3 - earnings)]] 
+      if who = 4 [ifelse earnings > [earnings] of turtle 3 [set actualutility earnings - alpha * (earnings - [earnings] of turtle 3)][set actualutility earnings + beta * ([earnings] of turtle 3 - earnings)]]
       ][ ; no vision effect
         ifelse earnings > mean [earnings] of other turtles [
-          set actualutility earnings - alpha * (earnings - mean [earnings] of other turtles) 
+          set actualutility earnings - alpha * (earnings - mean [earnings] of other turtles)
         ][
           set actualutility earnings + beta * (mean [earnings] of other turtles - earnings)
         ]
@@ -723,13 +790,13 @@ end
 to calcgini
   set gini-inv 0
   set gini-ext 0
- 
+
   ifelse sum [inv] of turtles > 0 [
     set gini-inv (abs ([inv] of turtle 0 - [inv] of turtle 1) + abs ([inv] of turtle 0 - [inv] of turtle 2) + abs ([inv] of turtle 0 - [inv] of turtle 3) + abs ([inv] of turtle 0 - [inv] of turtle 4) + abs ([inv] of turtle 1 - [inv] of turtle 2) + abs ([inv] of turtle 1 - [inv] of turtle 3) + abs ([inv] of turtle 1 - [inv] of turtle 4) + abs ([inv] of turtle 2 - [inv] of turtle 3) + abs ([inv] of turtle 2 - [inv] of turtle 4) + abs ([inv] of turtle 3 - [inv] of turtle 4)) / (5 * sum [inv] of turtles)
    ][
     set gini-inv 0
    ]
-  
+
   ifelse sum [harvest] of turtles > 0 [
     set gini-ext (abs ([harvest] of turtle 0 - [harvest] of turtle 1) + abs ([harvest] of turtle 0 - [harvest] of turtle 2) + abs ([harvest] of turtle 0 - [harvest] of turtle 3) + abs ([harvest] of turtle 0 - [harvest] of turtle 4) + abs ([harvest] of turtle 1 - [harvest] of turtle 2) + abs ([harvest] of turtle 1 - [harvest] of turtle 3) + abs ([harvest] of turtle 1 - [harvest] of turtle 4) + abs ([harvest] of turtle 2 - [harvest] of turtle 3) + abs ([harvest] of turtle 2 - [harvest] of turtle 4) + abs ([harvest] of turtle 3 - [harvest] of turtle 4)) / (5 * sum [harvest] of turtles)
   ][
@@ -768,7 +835,7 @@ to createdata ; read in the experiment data for a given time step
   set data-ext-D item ticks ext-D-F
   set data-ext-E item ticks ext-E-F
   set list-data-change list-data-change-F
-  ] 
+  ]
 end
 
 to updatelists
@@ -776,7 +843,7 @@ to updatelists
   set list-inf replace-item ticks list-inf (item ticks list-inf + infrastructure)
   set list-gini-inv replace-item ticks list-gini-inv (item ticks list-gini-inv + gini-inv)
   set list-gini-ext replace-item ticks list-gini-ext (item ticks list-gini-ext + gini-ext)
-  set list-inv-A replace-item ticks list-inv-A (item ticks list-inv-A + [inv] of turtle 0) 
+  set list-inv-A replace-item ticks list-inv-A (item ticks list-inv-A + [inv] of turtle 0)
   set list-inv-B replace-item ticks list-inv-B (item ticks list-inv-B + [inv] of turtle 1)
   set list-inv-C replace-item ticks list-inv-C (item ticks list-inv-C + [inv] of turtle 2)
   set list-inv-D replace-item ticks list-inv-D (item ticks list-inv-D + [inv] of turtle 3)
@@ -813,9 +880,9 @@ to updatelists
         if (change = 8) [set list-change replace-item 18 list-change (item 18 list-change + 1)]
         if (change = 9) [set list-change replace-item 19 list-change (item 19 list-change + 1)]
         if (change = 10) [set list-change replace-item 20 list-change (item 20 list-change + 1)]
-      ] 
-    ] 
-  ] 
+      ]
+    ]
+  ]
 end
 
 to calcmetrics ; calculating the metrics to evaluate the fit between data and simulation (only used within batch procedure)
@@ -825,16 +892,16 @@ to calcmetrics ; calculating the metrics to evaluate the fit between data and si
      set list-change replace-item i list-change (item i list-change / (45000)) ;MJ: There are 5 players who have 9 rounds for which a change in the investment level can be calculated. 5 * 9 is 45
      set i i + 1
    ]
-      
-   clear-all-plots 
+
+   clear-all-plots
    reset-ticks
 
-   while [ticks < 10] 
+   while [ticks < 10]
    [
      createdata ; "simulate" data from experiment g
-     
+
      ; calculate the mean for that round across all 1000 iterations
-     set infrastructure (item ticks list-inf / 1000) 
+     set infrastructure (item ticks list-inf / 1000)
      set gini-inv (item ticks list-gini-inv / 1000)
      set gini-ext (item ticks list-gini-ext / 1000)
      set inv-A (item ticks list-inv-A / 1000)
@@ -851,27 +918,27 @@ to calcmetrics ; calculating the metrics to evaluate the fit between data and si
      set metric-inv metric-inv + (inv-A - data-inv-A) ^ 2 + (inv-B - data-inv-B) ^ 2 + (inv-C - data-inv-C) ^ 2 + (inv-D - data-inv-D) ^ 2 + (inv-E - data-inv-E) ^ 2
      set metric-ext metric-ext + (ext-A - data-ext-A) ^ 2 + (ext-B - data-ext-B) ^ 2 + (ext-C - data-ext-C) ^ 2 + (ext-D - data-ext-D) ^ 2 + (ext-E - data-ext-E) ^ 2
      set metric-inf metric-inf + (infrastructure - data-inf) ^ 2
-     
+
      set metric-gini-inv metric-gini-inv + (gini-inv - data-gini-inv) ^ 2
      set metric-gini-ext metric-gini-ext + (gini-ext - data-gini-ext) ^ 2
      tick
    ]
-   set metric-change metric-change +  (item 0 list-data-change - item 0 list-change) ^ 2 + (item 1 list-data-change - item 1 list-change) ^ 2 + (item 2 list-data-change - item 2 list-change) ^ 2 
-     + (item 3 list-data-change - item 3 list-change) ^ 2 + (item 4 list-data-change - item 4 list-change) ^ 2 + (item 5 list-data-change - item 5 list-change) ^ 2 + (item 6 list-data-change - item 6 list-change) ^ 2 
-     + (item 7 list-data-change - item 7 list-change) ^ 2 + (item 8 list-data-change - item 8 list-change) ^ 2 + (item 9 list-data-change - item 9 list-change) ^ 2 + (item 10 list-data-change - item 10 list-change) ^ 2 
-     + (item 11 list-data-change - item 11 list-change) ^ 2 + (item 12 list-data-change - item 12 list-change) ^ 2 + (item 13 list-data-change - item 13 list-change) ^ 2 + (item 14 list-data-change - item 14 list-change) ^ 2 
-     + (item 15 list-data-change - item 15 list-change) ^ 2 + (item 16 list-data-change - item 16 list-change) ^ 2 + (item 17 list-data-change - item 17 list-change) ^ 2 + (item 18 list-data-change - item 18 list-change) ^ 2 
-     + (item 19 list-data-change - item 19 list-change) ^ 2 + (item 20 list-data-change - item 20 list-change) ^ 2 
-     
+   set metric-change metric-change +  (item 0 list-data-change - item 0 list-change) ^ 2 + (item 1 list-data-change - item 1 list-change) ^ 2 + (item 2 list-data-change - item 2 list-change) ^ 2
+     + (item 3 list-data-change - item 3 list-change) ^ 2 + (item 4 list-data-change - item 4 list-change) ^ 2 + (item 5 list-data-change - item 5 list-change) ^ 2 + (item 6 list-data-change - item 6 list-change) ^ 2
+     + (item 7 list-data-change - item 7 list-change) ^ 2 + (item 8 list-data-change - item 8 list-change) ^ 2 + (item 9 list-data-change - item 9 list-change) ^ 2 + (item 10 list-data-change - item 10 list-change) ^ 2
+     + (item 11 list-data-change - item 11 list-change) ^ 2 + (item 12 list-data-change - item 12 list-change) ^ 2 + (item 13 list-data-change - item 13 list-change) ^ 2 + (item 14 list-data-change - item 14 list-change) ^ 2
+     + (item 15 list-data-change - item 15 list-change) ^ 2 + (item 16 list-data-change - item 16 list-change) ^ 2 + (item 17 list-data-change - item 17 list-change) ^ 2 + (item 18 list-data-change - item 18 list-change) ^ 2
+     + (item 19 list-data-change - item 19 list-change) ^ 2 + (item 20 list-data-change - item 20 list-change) ^ 2
+
    set metric-inv ((metric-inv / 50) ^ 0.5) / 10 ;(([cumul. squared diffs] / [# values]) ^ 0.5 / [max. poss value] ;xx does that have to be updated if treatments are analysed?
-   set metric-ext ((metric-ext / 50 ) ^ 0.5) / 20 
-   set metric-inf ((metric-inf / 10) ^ 0.5) / 100 
-   set metric-change ((metric-change / 210) ^ 0.5) 
-   set metric-gini-inv ((metric-gini-inv / 10) ^ 0.5) / 0.8 
-   set metric-gini-ext ((metric-gini-ext / 10) ^ 0.5) / 0.8 
-   
+   set metric-ext ((metric-ext / 50 ) ^ 0.5) / 20
+   set metric-inf ((metric-inf / 10) ^ 0.5) / 100
+   set metric-change ((metric-change / 210) ^ 0.5)
+   set metric-gini-inv ((metric-gini-inv / 10) ^ 0.5) / 0.8
+   set metric-gini-ext ((metric-gini-ext / 10) ^ 0.5) / 0.8
+
    set metric-mult metric-mult + ((1 - metric-inv) * (1 - metric-ext) * (1 - metric-inf) * (1 - metric-change)  * (1 - metric-gini-inv) * (1 - metric-gini-ext))
-end  
+end
 
 
 to loadexpdata
@@ -904,16 +971,10 @@ to loadexpdata
   set gini-ext-L (list 0.456 0.426 0.421 0.417 0.392 0.380 0.377 0.372 0.333 0.327)
   set list-data-change-L (list 0.004830918 0.000966184 0 0.004830918 0.001932367 0.025120773 0.021256039 0.043478261 0.066666667 0.127536232 0.403864734 0.142995169 0.07826087 0.036714976 0.015458937 0.011594203 0.004830918 0.004830918 0.001932367 0 0.002898551)
   set list-data-change-F (list 0.001058201 0.001058201 0.002116402 0.008465608 0.006349206 0.015873016 0.028571429 0.034920635 0.067724868 0.106878307 0.397883598 0.138624339 0.070899471 0.050793651 0.033862434 0.015873016 0.007407407 0.007407407 0.001058201 0.001058201 0.002116402)
-  
+
   ;create and add lists for treatments
-  
+
   if phase2? [ ; extend experimental data by treatment
-    ; input data for treatments
-    set decline-lv-inf (list 25 30 25 20 35 20 15 30 30 25)
-    set decline-hv-inf (list 25 10 10 80 10 5 10 80 10 10)
-    set supply-lv-wa (list 27 31 26 35 33 28 29 25 34 32)
-    set supply-hv-wa (list 27 31 22 36 25 32 38 21 29 39)
-    
     ; data for low infrastructure variation
     set inf-eff-F-lv-inf (list 95.6 84.4 79.4 75.4 75.8 68.0 68.8 69.4 71.6 70.6 90.2 73.0 68.6 71.4 68.2 76.4 79.2 74.0 68.2 66.6)
     set inf-eff-L-lv-inf (list 97.2 89.8 85.2 81.8 79.8 79.4 81.0 80.2 80.2 79.6 98.0 82.8 81.0 83.2 78.0 78.6 81.6 74.4 74.8 76.6)
@@ -941,7 +1002,7 @@ to loadexpdata
     set gini-inv-L-lv-inf (list 0.258 0.370 0.280 0.232 0.147 0.151 0.161 0.197 0.233 0.209 0.226 0.294 0.207 0.221 0.185 0.250 0.260 0.279 0.203 0.202)
     set gini-ext-F-lv-inf (list 0.359 0.331 0.387 0.210 0.357 0.348 0.348 0.189 0.311 0.364 0.388 0.456 0.292 0.268 0.357 0.321 0.309 0.298 0.321 0.399)
     set gini-ext-L-lv-inf (list 0.483 0.398 0.384 0.389 0.322 0.354 0.363 0.330 0.301 0.297 0.310 0.298 0.281 0.216 0.240 0.270 0.298 0.289 0.359 0.320)
-    
+
     ; data for high infrastructure variation
     set inf-eff-F-hv-inf (list 93.17 85.50 82.50 81.50 81.33 79.67 79.17 79.17 79.50 76.50 84.50 79.67 77.50 41.00 54.83 68.17 66.83 49.83 71.67 74.50)
     set inf-eff-L-hv-inf (list 98.8 92.8 88.8 88.6 90.2 89.4 90.2 88.6 84.8 78.6 92.6 96.2 93.8 35.0 52.0 74.4 83.4 23.6 37.8 49.0)
@@ -969,7 +1030,7 @@ to loadexpdata
     set gini-inv-L-hv-inf (list 0.174 0.384 0.240 0.233 0.178 0.306 0.256 0.233 0.191 0.342 0.414 0.395 0.444 0.426 0.310 0.284 0.287 0.572 0.267 0.502)
     set gini-ext-F-hv-inf (list 0.146 0.266 0.242 0.159 0.182 0.182 0.240 0.181 0.170 0.195 0.137 0.149 0.157 0.145 0.188 0.121 0.131 0.260 0.146 0.263)
     set gini-ext-L-hv-inf (list 0.393 0.392 0.388 0.407 0.383 0.402 0.400 0.386 0.344 0.394 0.368 0.390 0.414 0.000 0.299 0.395 0.380 0.160 0.081 0.237)
-    
+
     ; data for low water variation
     set inf-eff-F-lv-wa (list 96.0 87.2 81.0 82.6 81.6 74.8 73.6 73.0 70.8 69.8 84.6 78.8 72.6 69.2 69.8 64.6 66.2 64.2 66.6 64.8)
     set inf-eff-L-lv-wa (list 98.4 94.6 90.6 89.4 87.4 85.2 84.2 84.2 84.0 79.6 96.6 89.6 84.8 80.8 77.8 77.0 77.6 76.2 73.8 69.2)
@@ -997,7 +1058,7 @@ to loadexpdata
     set gini-inv-L-lv-wa (list 0.267 0.315 0.334 0.247 0.308 0.293 0.274 0.311 0.324 0.383 0.340 0.411 0.350 0.358 0.340 0.299 0.304 0.317 0.322 0.294)
     set gini-ext-F-lv-wa (list 0.360 0.302 0.327 0.327 0.240 0.241 0.304 0.176 0.164 0.272 0.258 0.204 0.160 0.105 0.121 0.130 0.140 0.211 0.139 0.138)
     set gini-ext-L-lv-wa (list 0.419 0.457 0.403 0.377 0.365 0.347 0.391 0.387 0.263 0.220 0.368 0.331 0.406 0.265 0.283 0.378 0.324 0.371 0.273 0.299)
-    
+
     ; data for high water variation
     set inf-eff-F-hv-wa (list 87.0 76.0 73.0 73.6 74.4 73.2 72.4 73.4 74.0 72.6 85.8 74.6 67.0 71.0 63.6 64.8 67.4 61.8 57.4 69.8)
     set inf-eff-L-hv-wa (list 94.50 86.75 84.88 79.38 76.38 73.00 69.00 66.25 69.62 70.12 93.38 85.00 78.12 76.00 71.75 72.25 78.88 73.12 74.12 78.75)
@@ -1025,10 +1086,10 @@ to loadexpdata
     set gini-inv-L-hv-wa (list 0.330 0.342 0.240 0.290 0.307 0.303 0.305 0.182 0.278 0.288 0.410 0.448 0.341 0.295 0.268 0.309 0.228 0.343 0.303 0.279)
     set gini-ext-F-hv-wa (list 0.326 0.238 0.171 0.209 0.228 0.207 0.168 0.111 0.197 0.210 0.254 0.168 0.348 0.251 0.365 0.100 0.054 0.283 0.181 0.144)
     set gini-ext-L-hv-wa (list 0.502 0.445 0.476 0.466 0.457 0.357 0.317 0.334 0.307 0.287 0.393 0.321 0.469 0.320 0.403 0.384 0.315 0.552 0.371 0.253)
-    
+
     if Variability = "lv-inf" [
       set inf-eff-L inf-eff-L-lv-inf
-      set inf-eff-F inf-eff-F-lv-inf 
+      set inf-eff-F inf-eff-F-lv-inf
       set inv-A-F inv-A-F-lv-inf
       set inv-B-F inv-B-F-lv-inf
       set inv-C-F inv-C-F-lv-inf
@@ -1037,7 +1098,7 @@ to loadexpdata
       set ext-A-F ext-A-F-lv-inf
       set ext-B-F ext-B-F-lv-inf
       set ext-C-F ext-C-F-lv-inf
-      set ext-D-F ext-D-F-lv-inf 
+      set ext-D-F ext-D-F-lv-inf
       set ext-E-F ext-E-F-lv-inf
       set inv-A-L inv-A-L-lv-inf
       set inv-B-L inv-B-L-lv-inf
@@ -1110,7 +1171,7 @@ to loadexpdata
       set gini-ext-F gini-ext-F-lv-wa
       set gini-ext-L gini-ext-L-lv-wa
     ]
-    if Variability = "hv-wa" [      
+    if Variability = "hv-wa" [
       set inf-eff-L inf-eff-L-hv-wa
       set inf-eff-F inf-eff-F-hv-wa
       set inv-A-F inv-A-F-hv-wa
@@ -1230,7 +1291,7 @@ CHOOSER
 scenario
 scenario
 "selfish" "cooperative" "random" "conditionalcooperation" "mix" "social-values"
-2
+5
 
 PLOT
 1006
@@ -1340,7 +1401,7 @@ sharerandom
 sharerandom
 0
 1
-0.06
+0.11
 0.01
 1
 NIL
@@ -1355,7 +1416,7 @@ shareselfish
 shareselfish
 0
 1
-0.07
+0.06
 0.01
 1
 NIL
@@ -1370,7 +1431,7 @@ stdev-random
 stdev-random
 0
 10
-0.99
+0.35
 0.01
 1
 NIL
@@ -1395,7 +1456,7 @@ CHOOSER
 Variability
 Variability
 "lv-inf" "hv-inf" "lv-wa" "hv-wa"
-0
+2
 
 SWITCH
 22
@@ -1438,7 +1499,7 @@ lambda-inv
 lambda-inv
 0
 1
-0.99
+0.3
 0.01
 1
 NIL
@@ -1453,7 +1514,7 @@ lambda
 lambda
 0
 1
-0.81
+0.44
 0.01
 1
 NIL
@@ -1468,7 +1529,7 @@ lambda-ext
 lambda-ext
 0
 1
-0.33
+0.54
 0.01
 1
 NIL
@@ -1483,7 +1544,7 @@ mean-expC
 mean-expC
 0
 1
-0.66
+0.54
 0.01
 1
 NIL
@@ -1498,7 +1559,7 @@ psat
 psat
 0
 1
-0.22
+0.2
 0.01
 1
 NIL
@@ -1513,7 +1574,7 @@ umin
 umin
 0
 50
-13.7
+15.5
 0.1
 1
 NIL
@@ -1528,7 +1589,7 @@ alpha
 alpha
 -1
 1
-0.97
+0.92
 0.01
 1
 NIL
@@ -1543,7 +1604,7 @@ beta
 beta
 -1
 1
-0.54
+0.79
 0.01
 1
 NIL
@@ -1557,8 +1618,8 @@ SLIDER
 mu
 mu
 0
-100
-37
+25
+0.55
 0.1
 1
 NIL
@@ -1573,7 +1634,7 @@ comlimscore
 comlimscore
 0
 1
-0.68
+0.31
 0.01
 1
 NIL
@@ -1588,7 +1649,7 @@ gammawatercol
 gammawatercol
 0
 20
-8.72
+6.9
 0.01
 1
 NIL
@@ -1610,6 +1671,26 @@ TEXTBOX
 552
 292
 Parameters for social-values
+13
+0.0
+1
+
+TEXTBOX
+21
+403
+194
+571
+lambda           0.44\nlambda-inv     0.30\nlambda-ext    0.54\nmean-expC    0.54\ncomlimscore   0.31\nstdev-random  0.35\ngammawatercol 6.9\npsat           0.2\numin          15.5\nalpha         0.92\nbeta          0.79\nmu             0.55
+11
+0.0
+1
+
+TEXTBOX
+16
+374
+166
+392
+Calibrated values
 13
 0.0
 1
@@ -1957,7 +2038,7 @@ Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 
 @#$#@#$#@
-NetLogo 5.2.0
+NetLogo 5.2.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
@@ -2263,6 +2344,144 @@ NetLogo 5.2.0
     </enumeratedValueSet>
     <enumeratedValueSet variable="lambda-ext">
       <value value="0.09"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="CoV - socval-F-baseline" repetitions="10000" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go</go>
+    <metric>infrastructure</metric>
+    <metric>gini-ext</metric>
+    <enumeratedValueSet variable="umin">
+      <value value="15.5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="sharerandom">
+      <value value="0.11"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="mu">
+      <value value="0.55"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="shareselfish">
+      <value value="0.06"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="scenario">
+      <value value="&quot;social-values&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="lambda">
+      <value value="0.44"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="stdev-random">
+      <value value="0.35"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="psat">
+      <value value="0.2"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="visioneffect">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="gammawatercol">
+      <value value="6.9"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="phase2?">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="mean-expC">
+      <value value="0.54"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Variability">
+      <value value="&quot;lv-wa&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="comlimscore">
+      <value value="0.31"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="alpha">
+      <value value="0.92"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="limcom">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="beta">
+      <value value="0.79"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="lambda-inv">
+      <value value="0.3"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="lambda-ext">
+      <value value="0.54"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="3k - condcoop-F-baseline" repetitions="50" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go</go>
+    <metric>infrastructure</metric>
+    <metric>gini-ext</metric>
+    <enumeratedValueSet variable="umin">
+      <value value="15.5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="sharerandom">
+      <value value="0.11"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="mu">
+      <value value="0.55"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="shareselfish">
+      <value value="0.06"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="scenario">
+      <value value="&quot;conditionalcooperation&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="lambda">
+      <value value="0.2"/>
+      <value value="0.44"/>
+      <value value="0.8"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="stdev-random">
+      <value value="0.1"/>
+      <value value="0.35"/>
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="psat">
+      <value value="0.2"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="visioneffect">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="gammawatercol">
+      <value value="3"/>
+      <value value="6.9"/>
+      <value value="11"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="phase2?">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="mean-expC">
+      <value value="0.2"/>
+      <value value="0.54"/>
+      <value value="0.9"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Variability">
+      <value value="&quot;lv-wa&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="comlimscore">
+      <value value="0.31"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="alpha">
+      <value value="0.92"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="limcom">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="beta">
+      <value value="0.79"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="lambda-inv">
+      <value value="0.1"/>
+      <value value="0.3"/>
+      <value value="0.6"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="lambda-ext">
+      <value value="0.2"/>
+      <value value="0.54"/>
+      <value value="0.8"/>
     </enumeratedValueSet>
   </experiment>
 </experiments>

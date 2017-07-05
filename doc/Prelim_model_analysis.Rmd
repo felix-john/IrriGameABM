@@ -1,0 +1,1165 @@
+---
+title: "Preliminary IrriGame model analysis"
+output:
+  html_notebook:
+    toc: yes
+---
+
+
+<a name="conditionalcooperation"></a>
+
+# Behavioral type 'Conditionalcooperation' 
+
+```{r setup, include=FALSE}
+library(ggplot2)
+library(reshape2)
+library(dplyr)
+library(sensitivity)
+knitr::opts_chunk$set(cache = TRUE) # define global options for code chunks
+
+```
+
+<a name="cov"></a>
+
+## Check for inter-run variability 
+
+30 May 2017
+
+In order to assess the number of variations needed to obtain a representative outcome, we analyze the coefficient of variation for different sample sizes. We use the optimal parameterization for the 'conditionalcooperation' behavioral type for unconstrained communication as reported in the online appendix of Janssen/Baggio 2016.
+
+For unconstrained communication, these are:
+
+Variable    | Model name | Range     | Calibrated
+----------- | ---------- | --------- | ----------
+Initial expected level of cooperation $EC_0$      | `mean-expC` | [0, 1]  | 0.54
+Standard deviation of noise $\sigma_T$ | `stdev-random` | [0, 10] | 0.35
+Parameter defining the strength of trembling hand $\gamma_W$	| `gammawatercol` | [0, 10]	| 6.9
+Relative update of EC due to communication $λ$	| `lambda` | [0, 1]	| 	0.44
+Impact of constrained communication on EC $comC$ | `comlimscore` |	[0, 1]	|	0.31	
+Relative update of EC due to extraction $λ_E$ | `lambda-ext`	| [0, 1]	|	0.54	
+Relative update of EC due to investment $λ_I$	| `lambda-inv` | [0, 1]	|	0.30
+ |  |  | |
+Strength of aversion to exploiting others $\alpha$ | `alpha` |	[-1, 1]	|	0.92
+Degree of cooperative tendency $β$	| `beta` | [-1, 1]	| 0.79	
+Weight for different utility values $τ$	| `mu` | [0, 1]	| 0.55
+Minimum utility to be satisfied $u_{min}$ | `umin` |  [0, 30]     | 15.5
+Fraction of agents initially to be satisfied $δ$	| `psat` | [0, 1]	|	0.2
+ |  |  | |
+Share of selfish agents | `shareselfish` |  [0, 1] |	0.06	
+Share of random agents  | `sharerandom` |  [0, 1] |	0.11	
+
+
+
+
+
+```{r read CoV data}
+getwd()
+CoV_data <- read.csv("../data/output/CoV_condcoop-F-baseline.csv", header = T, skip = 6)
+names(CoV_data)[c(1, 21)] <- c("runID", "round")
+summary(CoV_data)
+```
+
+We now calculate the coefficient of variation for different sample sizes of up to 500 repetitions.
+
+```{r calculate CoV}
+calcCoV <- function(data, sample.size, curr.round) {
+  sample <- data %>%
+    filter(runID <= sample.size & round == curr.round) %>%
+    group_by(round) %>%
+    summarize(infrastructure.mean = mean(infrastructure),
+              infrastructure.SD = sd(infrastructure),
+              gini.ext.mean = mean(gini.ext),
+              gini.ext.SD = sd(gini.ext)) %>%
+    mutate(infrastructure.CoV = infrastructure.SD / infrastructure.mean,
+           gini.ext.CoV = gini.ext.SD / gini.ext.mean) %>%
+    select(round, infrastructure.CoV, gini.ext.CoV) %>% as.matrix()
+  return(c(sample.size, as.vector(sample)))
+}
+
+
+sampleCoV <- function(data, sample.sizes, sampled.rounds) {
+  results <- data.frame(sample.size = numeric(), round = numeric(), infrastructure.CoV = numeric(), gini.ext.CoV = numeric())
+  counter <- 0
+  for(i in sample.sizes) {
+    for(j in sampled.rounds){
+      ind <- calcCoV(data, i, j)
+      counter <- counter + 1
+      results[counter, ] <- ind
+    }
+  }
+  return(results)
+}
+
+# indicate the sample sizes and rounds to be calculated here
+sample.sizes <- seq(from = 5, to = 500, by = 5)
+sampled.rounds <- c(1:10)
+CoV_array <- sampleCoV(CoV_data, sample.sizes, sampled.rounds)
+
+CoV_array_long <- melt(CoV_array, id.vars = c("sample.size", "round"), measure.vars = 3:4)
+
+
+CoV_array_long %>%
+  filter(variable == "infrastructure.CoV" & round %in% c(3, 6, 10)) %>%
+  ggplot() +
+  geom_line(aes(x = sample.size, y = value)) +
+  labs(y = "CoV Infrastructure level", x = "repetitions", title = "Coefficient of Variation for individual rounds") +
+  facet_grid(round ~ ., labeller = label_both)
+
+CoV_array_long %>%
+  filter(variable == "gini.ext.CoV" & round %in% c(3, 6, 10)) %>%
+  ggplot() +
+  geom_line(aes(x = sample.size, y = value)) +
+  labs(y = "CoV of extraction inequality", x = "repetitions", title = "Coefficient of Variation for individual rounds") +
+  facet_grid(round ~ ., labeller = label_both)
+
+```
+
+CoV starts sinking at around 70 repetitions of the model. Here, we decided to settle for 50 repetitions as a compromise between precision and model runtime, also bearing in mind that this is just a preliminary analysis to get a feeling for the model behavior. 
+
+
+<a name="Morris"></a>
+
+## Morris screening
+
+31 May 2017
+
+To get an idea of how strongly parameters influence model outcome, we perform a Morris screening with $3^k$ factors for the baseline scenario (= 10 rounds) with full communication.
+
+We varied the following parameters, choosing always the calibrated value and one each below and above that. Each parameter set was run 50 times.
+
+Variable    | Model name | Range     | Experimental design
+----------- | ---------- | --------- | ----------
+Initial expected level of cooperation $EC_0$      | `mean-expC` | [0, 1]  | 0.2, 0.54, 0.8
+Standard deviation of noise $\sigma_T$ | `stdev-random` | [0, 10] | 0.1, 0.35, 1
+Parameter defining the strength of trembling hand $\gamma_W$	| `gammawatercol` | [0, 10]	| 3, 6.9, 11
+Relative update of EC due to communication $λ$	| `lambda` | [0, 1]	| 	0.2, 0.44, 0.8
+Relative update of EC due to extraction $λ_E$ | `lambda-ext`	| [0, 1]	|	0.2, 0.54, 0.8
+Relative update of EC due to investment $λ_I$	| `lambda-inv` | [0, 1]	|	0.1, 0.3, 0.6
+
+This yields $3^6$ (= `r 3**6`) factor combinations, totaling `r 3**6 * 50` runs.
+
+```{r read DoE data}
+DoE_data<- read.csv("../data/output/DoE_3k_condcoop-F-baseline.csv", header = T, skip = 6)
+names(DoE_data)[c(1, 21)] <- c("runID", "round")
+summary(DoE_data)
+DoE_summ <- DoE_data %>% 
+  group_by(round, mean.expC, stdev.random, gammawatercol, lambda, lambda.inv, lambda.ext) %>%
+  summarize(infrastructure = mean(infrastructure),
+            gini.ext = mean(gini.ext))
+summary(DoE_summ)
+```
+
+Because of difficulties in finding out how to structure the data, so that they can be used for the morris screening, we dropped analyzing this data set and followed the cookbook of Thiele et al. 2014 below. 
+
+However, generating the data via the BehaviorSpace is considerably faster. It took only approx. 2 minutes to run the 36,450 simulations for the $3^6$ design with 50 repetitions.
+
+
+
+
+### Version based on Thiele et al.
+
+
+
+We follow the procedure laid out in  Thiele et al. 2014 and also build upon the scripts provided therein.
+
+
+```{r run Morris screening}
+
+#-------------------------------------------------------------------------------------
+# I. Prerequirements
+#-------------------------------------------------------------------------------------
+
+# load RNetLogo package
+# (if not installed already,
+#  execute install.packages("rJava") and install.packages("RNetLogo") )
+require(RNetLogo)
+
+# an R random seed (for beeing reproducible)
+set.seed(-402223867)
+
+# TODO: adapt these paths to your requirements
+# the NetLogo installation path (where the NetLogo.jar is located)
+nl.path     <- "C:/Program Files (x86)/NetLogo 5.2.1"
+# the path to the NetLogo model file
+model.path  <- "C:/Users/johnf/ownCloud/IrriGameABM/src/irrigame_comm.nlogo"
+# the simulation function
+simfun.path <- "C:/Users/johnf/ownCloud/IrriGameABM/src/sim_Morris.R"
+
+# TODO: set values for those parameters that are not changes during the experiment
+#       parameter names have to be the names of the parameters in the NetLogo model
+fix.params <- list(
+  'scenario'      = "\"conditionalcooperation\"",
+  'limcom'        = "false",
+  'visioneffect'  = "false",
+  'phase2?'       = "false"
+)      
+
+fix.param.names <- names(fix.params)
+
+# TODO: give the value for each input factor, min. and max. values for the inputs      
+input.values <- list(
+               'mean-expC'     = list(min = 0.0, max = 1.0),
+               'stdev-random'  = list(min = 0.0, max = 2.0),
+               'gammawatercol' = list(min = 0.0, max = 15),
+               'lambda'        = list(min = 0.0, max = 1.0),
+               'lambda-ext'    = list(min = 0.0, max = 1.0),
+               'lambda-inv'    = list(min = 0.0, max = 1.0)
+              )
+
+# TODO: give details for the sampling design of the Morris method (see help(morris) for details)
+morris.design <- list(type = "oat", levels = 5, grid.jump = 2)
+# 'levels' indicates the number of factor levels that will be created; 
+# 'grid.jump' refers to how strongly a parameter will varied from one iteration to the next (= how many parameters levels will be jumped over) - recommendation: levels / 2
+
+# TODO: give the number of repetions of morris screening (argument r in function morris)
+no.repetitions <- 50
+
+# TODO: names of output values
+output.names <- c("Infrastructure3","Infrastructure6","Infrastructure10", 
+                  "Gini_ext3", "Gini_ext6", "Gini_ext10")
+
+# how many repetitions for each parameter set should be run (to control stochasticity)?
+# TODO: adapt the number of repetitions, set to 1 if deterministic model
+no.repeated.sim <- 50
+# refers to inter-run variability: repeats the sim the given number of times and reports the mean
+
+# TODO: plot the results on the screen?
+plot.on.screen <- FALSE
+
+# TODO: plot the results in 3D, (3D requires package rgl)
+plot.3d <- FALSE
+
+# TODO: should R report the progress
+trace.progress = TRUE
+
+
+# TODO: set parallelization properties
+parallel <- TRUE
+gui <- FALSE # FALSE for headless mode
+
+## parallelization ####
+# implemented by FJ based on vignette "Parallel processing with the RNetLogo Package" by Jan C. Thiele
+ 
+# load the parallel package
+library(parallel)
+
+# detect the number of cores available
+processors <- detectCores()
+
+
+# the initialization function
+prepro <- function(dummy, gui, nl.path, model.path, nl.obj) {
+  library(RNetLogo)
+  NLStart(nl.path, gui=gui, nl.obj = nl.obj)
+  NLLoadModel(model.path, nl.obj = nl.obj)
+}
+
+# the quit function
+postpro <- function(x) {
+  NLQuit(all = T)
+}
+
+
+# initialize NetLogo
+nl.sm13 <- "nl.sm13"
+if (parallel == TRUE) 
+{
+# create a cluster
+cl <- makeCluster(processors, outfile = "./log.txt")
+
+  invisible(parLapply(cl, 1:processors, prepro, gui=gui,
+                      nl.path = nl.path, model.path = model.path,
+                      nl.obj=nl.sm13))
+} else {
+  NLStart(nl.path, gui=FALSE, nl.obj=nl.sm13)
+  NLLoadModel(model.path,nl.obj=nl.sm13)
+}
+
+#-------------------------------------------------------------------------------------
+# II. Definition of the simulation function to test a parameter set
+#-------------------------------------------------------------------------------------
+
+# load the code of the simulation function (name: simulate)
+source(file=simfun.path)
+
+
+#-------------------------------------------------------------------------------------
+# III. Run of the simulation for all parameter sets
+#-------------------------------------------------------------------------------------
+require(sensitivity)
+
+# variable used for progress tracing
+already.processed <- 0  
+  	
+# get names of parameters
+input.names = names(input.values)
+
+# calculate number of iterations
+iter.length <- no.repetitions * (length(input.values)+1)
+
+# get the min and max values of the input factor ranges
+mins <- sapply(seq(1,length(input.values)), function(i) {
+		input.values[[i]]$min})
+maxs <- sapply(seq(1,length(input.values)), function(i) {
+		input.values[[i]]$max})
+
+# create input sets
+mo <- morris(model = NULL, factors = input.names, r = no.repetitions, design = morris.design,
+            binf = mins, bsup = maxs, scale=TRUE)
+
+# simulate for all input sets
+# get results of all evalulation criteria as matrix                                                    
+if (parallel == TRUE)
+{
+  # export variables from parent environment (= workspace) to worker nodes
+  clusterExport(cl, c("fix.params", "fix.param.names", "simulate",  
+                      "input.names", "iter.length", "no.repeated.sim",
+                      "nl.sm13", "trace.progress", "already.processed")) 
+  
+  # run simulation on multiple cores
+  sim.results.morris <- parApply(cl, mo$X, 1,
+                                function(x) {simulate(param.set=x,
+                                                      no.repeated.sim=no.repeated.sim,
+                                                      nl.obj=nl.sm13, trace.progress=trace.progress,
+                                                      parameter.names=input.names,
+                                                      iter.length=iter.length,
+                                                      function.name="Morris", 
+                                                      fix.params = fix.params,
+                                                      fix.param.names = fix.param.names)}
+  )
+} else {
+  # run simulation on single core
+  sim.results.morris <- apply(mo$X, 1, 
+                              function(x) {simulate(param.set=x,                            
+                                                    no.repeated.sim=no.repeated.sim, 
+                                                    nl.obj=nl.sm13, trace.progress=trace.progress,
+                                                    parameter.names=input.names,
+                                                    iter.length=iter.length,
+                                                    function.name="Morris", 
+                                                    fix.params = fix.params,
+                                                    fix.param.names = fix.param.names)}
+  )
+}
+
+
+if(parallel == TRUE)
+{
+  # shut down NetLogo on all cores
+  invisible(parLapply(cl, 1:processors, postpro))
+  
+  # terminate cluster
+  stopCluster(cl)
+} else {
+  # shut down all open NetLogo instances
+  NLQuit(all = T)
+}
+```
+
+The simulation function that runs the model is included from the R script sim_Morris.R in the src folder. Results are compared for the infrastructure level and the Gini coefficient of water extraction at the end of round 3, 6 and 10. 
+
+Morris screening was carried out for the 6 relevant parameters with 50 repetitions and 5 factor levels. However, setting up the experiment with the `morris()` of the `sensitivity` package creates the sample of all parameter combinations beforehand, based on on the indicated number of repetitions (`no.repetitions`). In our case, generating `r no.repetitions` variations for `r length(input.values)` parameters and running each parameter set `r no.repeated.sim` times, that yielded `r iter.length * no.repeated.sim` runs. 
+
+In this configuration, running the simulation takes about 22 minutes on the Toshiba laptop, running on four cores in parallel. 
+
+
+Variable    | Model name | Range     | Experimental design
+----------- | ---------- | --------- | ----------
+Initial expected level of cooperation $EC_0$      | `mean-expC` | [0, 1]  | 0, 0.25, 0.5, 0.75, 1
+Standard deviation of noise $\sigma_T$ | `stdev-random` | [0, 2] | 0, 0.5, 1, 1.5, 2
+Parameter defining the strength of trembling hand $\gamma_W$	| `gammawatercol` | [0, 15]	| 0, 3.75, 7.5, 11.25, 15
+Relative update of EC due to communication $λ$	| `lambda` | [0, 1]	| 	0, 0.25, 0.5, 0.75, 1
+Relative update of EC due to extraction $λ_E$ | `lambda-ext`	| [0, 1]	|	0, 0.25, 0.5, 0.75, 1
+Relative update of EC due to investment $λ_I$	| `lambda-inv` | [0, 1]	|	0, 0.25, 0.5, 0.75, 1
+  
+
+
+### Analysis of Morris screening
+
+
+1 June 2017
+
+> For the interpretation of the results, Saltelli et al. (2004) recommend comparing the values of $\sigma$ and $\mu$, or better $\mu^*$. High values of $\mu$ indicate that a factor has an important overall influence on the output and that this effect always has the same sign (Saltelli et al. 2004). In contrast, when there is a high value of $\mu^*$ and a low value of $\mu$, it indicates that there is a non-monotonic effect on the output. High values of $\sigma$ indicate that the elementary effects strongly depend on the choice of the other input factors, whereas a high $\mu$ or $\mu^*$ and a low $\sigma$ indicate that the elementary effect is almost independent of the values of the other factors, which means that it is a first-order/main effect. In summary, the Morris screening method delivers measures of relative importance but cannot quantify the strength of the effects. [Thiele et al. 2014, 3.13]
+
+
+```{r Morris analysis}
+
+#-------------------------------------------------------------------------------------
+# IV. Analysis of the results (postprocessing)
+#-------------------------------------------------------------------------------------
+
+# plot in 3D requires rgl package
+if (plot.3d == TRUE) {
+  require(rgl)
+}
+
+# iterate over evalulation criteria (not shown in the paper)
+# (package sensitivity must be loaded)
+for (i in (1:length(sim.results.morris[,1])))
+{
+  # add simulation results (as vector) to morris object
+  tell(mo, sim.results.morris[i,])
+ 
+  # # # ask user for pressing <Enter> for entering the plot
+  # if (plot.on.screen == TRUE) {
+  #   par(ask=TRUE)
+  # }
+  # 
+  # if (plot.3d == TRUE) {
+  #   # plot in 3D (µ, µ*, sigma) requires rgl package
+  #   plot3d.morris(mo)
+  # }
+  # else {
+  #   # plot results in 2D (µ*, sigma) 
+  #   plot(mo)
+  #   title(main=output.names[i])
+  # }
+  
+  # print value table for mu, mu.star, and sigma
+  print(output.names[i])
+  print(mo)
+}
+
+```
+
+
+```{r Morris graphs 2}
+# plots as shown in the paper
+# (package sensitivity must be loaded)
+for (i in (1:length(sim.results.morris[,1])))
+{
+  par(mfrow=c(1,2))
+  tell(mo, sim.results.morris[i,])
+  mu <- apply(mo$ee, 2, mean)
+  mu.star <- apply(mo$ee, 2, function(x) mean(abs(x)))
+  sigma <- apply(mo$ee, 2, sd)
+  
+  # mu* against mu
+  if (plot.on.screen == TRUE) {
+    par(ask=TRUE)
+  }
+  plot(mu.star, mu, pch = 1:6, col = 1:6, xlab = expression(paste(mu ^ "*")), 
+       ylab = expression(paste(mu)))
+  title(main=output.names[i])
+  text(x = mu.star, y = mu, labels = names(mu), pos = 4, col = 1:6)
+  # mu* against sigma
+  if (plot.on.screen == TRUE) {
+    par(ask=TRUE)
+  }
+  plot(mu.star, sigma, pch = 1:6, col = 1:6, xlab = expression(paste(mu ^ "*")), ylab = expression(sigma))
+  title(main=output.names[i])
+  text(x = mu.star, y = sigma, labels = names(mu), pos = 4, col = 1:6)
+}
+
+```
+
+Let us first look at the **monotonicity**, i.e. compare $\mu$ and $\mu^*$. If $\mu$ and $\mu^*$ have the same magnitude, their effects are monotonic. If the magnitude is similar and the signs are equal (different), the variable has a monotonic, positive (negative) effect on the output. 
+
+For the *infrastructure* levels, we observe that over time effects get less clear (for round 3, values of $\mu$ and $\mu^*$ are more similar than for round 10). 
+
+Effects are strongest for $\gamma_W$ and $\lambda_E$, meaning that they influence infrastructure levels the most, whereas the influence of $EC_0$ and $\lambda_I$ is smallest. The interpretation for $\lambda_E$ is that the more sensitive an agent is to getting less water than others, the worse the infrastructure level. The sensitivity to investing more than others ($\lambda_I$), however, has a very small effect.
+
+$EC_0$, $\gamma_W$ and $\lambda$ have monotonic positive impacts, while the effect of $\lambda_E$ is monotonically negative. Since $\lambda$ basically describes a learning process, its positive impact does not really come as a surprise.  
+For $\lambda_I$ and $\sigma_T$, the effects are mixed. While in round 3 still positive, they turn negative for rounds 6 and 10, which signals a non-monotonic relationship. The negative value for $\sigma_T$ could indicate that noise (deviation from the optimum by either extracting too much or too little) has a negative impact on infrastructure level.
+
+The effects on *inequality* are in general very small. The largest effect can be observed for $\gamma_W$. Considering that this is an error term, it is worrisome that it drives results the most.
+
+**Interaction or non-linear effects** can be assessed through the comparison of $\mu^*$ and $\sigma$ where high values of $\sigma$ indicate that the elementary effects are non-linear or strongly depend on the choice of the other input variables.
+
+Here too, $\gamma_W$ and $\lambda_E$ show the strongest dependence on other variables for both  *infrastructure* and *inequality of extraction*.
+
+
+
+# Behavioral type 'social-values' 
+
+04 July 2017
+
+## Check for inter-run variability 
+
+
+In order to assess the number of variations needed to obtain a representative outcome, we analyze the coefficient of variation for different sample sizes. We use the optimal parameterization for the 'social-values' behavioral type for unconstrained communication as reported in the online appendix of Janssen/Baggio 2016 (see above). 
+
+
+```{r read CoV data SV}
+CoV_data_SV <- read.csv("../data/output/CoV_socval-F-baseline_endogwaterflow.csv", header = T, skip = 6)
+names(CoV_data_SV)[c(1, 21)] <- c("runID", "round")
+summary(CoV_data_SV)
+```
+
+```{r calculate CoV SV}
+# indicate the sample sizes and rounds to be calculated here
+sample.sizes <- seq(from = 5, to = 3000, by = 5)
+sampled.rounds <- c(1:10)
+CoV_array_SV <- sampleCoV(CoV_data_SV, sample.sizes, sampled.rounds)
+
+CoV_array_long_SV <- melt(CoV_array_SV, id.vars = c("sample.size", "round"), measure.vars = 3:4)
+
+
+CoV_array_long_SV %>%
+  filter(variable == "infrastructure.CoV" & round %in% c(3, 6, 10)) %>%
+  ggplot() +
+  geom_line(aes(x = sample.size, y = value)) +
+  labs(y = "CoV Infrastructure level", x = "repetitions", title = "Coefficient of Variation for individual rounds") +
+  facet_grid(round ~ ., labeller = label_value)
+
+CoV_array_long_SV %>%
+  filter(variable == "gini.ext.CoV" & round %in% c(3, 6, 10)) %>%
+  ggplot() +
+  geom_line(aes(x = sample.size, y = value)) +
+  labs(y = "CoV of extraction inequality", x = "repetitions", title = "Coefficient of Variation for individual rounds") +
+  facet_grid(round ~ ., labeller = label_value)
+
+```
+
+
+Also for the 'social-values' scenario, 50 repetitions seems to be a reasonable value to obtain a representative result.
+
+
+## Morris screening
+
+As for 'conditionalcooperation' we carry out the Morris screening following the routine laid out by Thiele et al. 2014. We follow the steps as described above, this time varying the following 5 relevant parameters with 50 repetitions and 5 factor levels:
+
+Variable    | Model name | Range     | Experimental design
+----------- | ---------- | --------- | ----------
+Strength of aversion to exploiting others $\alpha$ | `alpha` |	[-1, 1]	|	0, 0.25, 0.5, 0.75, 1
+Degree of cooperative tendency $β$	| `beta` | [-1, 1]	| 0, 0.25, 0.5, 0.75, 1	
+Weight for different utility values $τ$	| `mu` | [0, 1]	| 0, 0.25, 0.5, 0.75, 1
+Minimum utility to be satisfied $u_{min}$ | `umin` |  [0, 30]     | 0, 7.5, 15, 22.5, 30
+Fraction of agents initially to be satisfied $δ$	| `psat` | [0, 1]	|	0, 0.25, 0.5, 0.75, 1
+
+
+Morris screening was carried out for the 5 relevant parameters with 50 repetitions and 5 factor levels. However, setting up the experiment with the `morris()` of the `sensitivity` package creates the sample of all parameter combinations beforehand, based on on the indicated number of repetitions (`no.repetitions_SV`). In our case, generating `r no.repetitions_SV` variations for `r length(input.values_SV)` parameters and running each parameter set `r no.repeated.sim_SV` times, that yielded `r iter.length_SV * no.repeated.sim_SV` runs. 
+
+In this configuration, running the simulation takes about 18 minutes on the Toshiba laptop, running on four cores in parallel. 
+
+```{r run Morris screening SV}
+
+#-------------------------------------------------------------------------------------
+# I. Prerequirements
+#-------------------------------------------------------------------------------------
+
+# load RNetLogo package
+# (if not installed already,
+#  execute install.packages("rJava") and install.packages("RNetLogo") )
+require(RNetLogo)
+
+# an R random seed (for beeing reproducible)
+set.seed(-402223867)
+
+# TODO: adapt these paths to your requirements
+# the NetLogo installation path (where the NetLogo.jar is located)
+nl.path     <- "C:/Program Files (x86)/NetLogo 5.2.1"
+# the path to the NetLogo model file
+model.path  <- "C:/Users/johnf/ownCloud/IrriGameABM/src/irrigame_comm.nlogo"
+# the simulation function
+simfun.path <- "C:/Users/johnf/ownCloud/IrriGameABM/src/sim_Morris.R"
+
+# TODO: set values for those parameters that are not changes during the experiment
+#       parameter names have to be the names of the parameters in the NetLogo model
+fix.params_SV <- list(
+  'scenario'      = "\"social-values\"",
+  'limcom'        = "false",
+  'visioneffect'  = "false",
+  'phase2?'       = "false"
+)      
+
+fix.param.names_SV <- names(fix.params)
+
+# TODO: give the value for each input factor, min. and max. values for the inputs      
+input.values_SV <- list(
+               'alpha'     = list(min = 0.0, max = 1.0),
+               'beta'  = list(min = 0.0, max = 1.0),
+               'mu' = list(min = 0.0, max = 1),
+               'umin'        = list(min = 0.0, max = 30.0),
+               'psat'    = list(min = 0.0, max = 1.0)
+)
+
+# TODO: give details for the sampling design of the Morris method (see help(morris) for details)
+morris.design_SV <- list(type = "oat", levels = 5, grid.jump = 2)
+# 'levels' indicates the number of factor levels that will be created; 
+# 'grid.jump' refers to how strongly a parameter will varied from one iteration to the next (= how many parameters levels will be jumped over) - recommendation: levels / 2
+
+# TODO: give the number of repetions of morris screening (argument r in function morris)
+no.repetitions_SV <- 50
+
+# TODO: names of output values
+output.names <- c("Infrastructure3","Infrastructure6","Infrastructure10", 
+                  "Gini_ext3", "Gini_ext6", "Gini_ext10")
+
+# how many repetitions for each parameter set should be run (to control stochasticity)?
+# TODO: adapt the number of repetitions, set to 1 if deterministic model
+no.repeated.sim_SV <- 50
+# refers to inter-run variability: repeats the sim the given number of times and reports the mean
+
+# TODO: plot the results on the screen?
+plot.on.screen <- FALSE
+
+# TODO: plot the results in 3D, (3D requires package rgl)
+plot.3d <- FALSE
+
+# TODO: should R report the progress
+trace.progress = TRUE
+
+
+# TODO: set parallelization properties
+parallel <- TRUE
+gui <- FALSE # FALSE for headless mode
+
+## parallelization ####
+# implemented by FJ based on vignette "Parallel processing with the RNetLogo Package" by Jan C. Thiele
+ 
+# load the parallel package
+library(parallel)
+
+# detect the number of cores available
+processors <- detectCores()
+
+
+# the initialization function
+prepro <- function(dummy, gui, nl.path, model.path, nl.obj) {
+  library(RNetLogo)
+  NLStart(nl.path, gui=gui, nl.obj = nl.obj)
+  NLLoadModel(model.path, nl.obj = nl.obj)
+}
+
+# the quit function
+postpro <- function(x) {
+  NLQuit(all = T)
+}
+
+
+# initialize NetLogo
+nl.sm13 <- "nl.sm13"
+if (parallel == TRUE) 
+{
+# create a cluster
+cl <- makeCluster(processors, outfile = "./log.txt")
+
+  invisible(parLapply(cl, 1:processors, prepro, gui=gui,
+                      nl.path = nl.path, model.path = model.path,
+                      nl.obj=nl.sm13))
+} else {
+  NLStart(nl.path, gui=FALSE, nl.obj=nl.sm13)
+  NLLoadModel(model.path,nl.obj=nl.sm13)
+}
+
+#-------------------------------------------------------------------------------------
+# II. Definition of the simulation function to test a parameter set
+#-------------------------------------------------------------------------------------
+
+# load the code of the simulation function (name: simulate)
+source(file=simfun.path)
+
+
+#-------------------------------------------------------------------------------------
+# III. Run of the simulation for all parameter sets
+#-------------------------------------------------------------------------------------
+require(sensitivity)
+
+# variable used for progress tracing
+already.processed <- 0  
+  	
+# get names of parameters
+input.names_SV = names(input.values_SV)
+
+# calculate number of iterations
+iter.length_SV <- no.repetitions_SV * (length(input.values_SV)+1)
+
+# get the min and max values of the input factor ranges
+mins <- sapply(seq(1,length(input.values_SV)), function(i) {
+		input.values_SV[[i]]$min})
+maxs <- sapply(seq(1,length(input.values_SV)), function(i) {
+		input.values_SV[[i]]$max})
+
+# create input sets
+mo_SV <- morris(model = NULL, factors = input.names_SV, r = no.repetitions_SV, 
+                design = morris.design_SV, binf = mins, bsup = maxs, scale=TRUE)
+
+# simulate for all input sets
+# get results of all evalulation criteria as matrix                                                    
+if (parallel == TRUE)
+{
+  # export variables from parent environment (= workspace) to worker nodes
+  clusterExport(cl, c("fix.params_SV", "fix.param.names_SV", "simulate",  
+                      "input.names_SV", "iter.length_SV", "no.repeated.sim_SV",
+                      "nl.sm13", "trace.progress", "already.processed")) 
+  
+  # run simulation on multiple cores
+  sim.results.morris_SV <- parApply(cl, mo_SV$X, 1,
+                                function(x) {simulate(param.set=x,
+                                                      no.repeated.sim=no.repeated.sim_SV,
+                                                      nl.obj=nl.sm13, trace.progress=trace.progress,
+                                                      parameter.names=input.names_SV,
+                                                      iter.length=iter.length_SV,
+                                                      function.name="Morris", 
+                                                      fix.params = fix.params_SV,
+                                                      fix.param.names = fix.param.names_SV)}
+  )
+} else {
+  # run simulation on single core
+  sim.results.morris_SV <- apply(mo_SV$X, 1, 
+                              function(x) {simulate(param.set=x,                            
+                                                    no.repeated.sim=no.repeated.sim_SV, 
+                                                    nl.obj=nl.sm13, trace.progress=trace.progress,
+                                                    parameter.names=input.names_SV,
+                                                    iter.length=iter.length_SV,
+                                                    function.name="Morris", 
+                                                    fix.params = fix.params_SV,
+                                                    fix.param.names = fix.param.names_SV)}
+  )
+}
+
+
+if(parallel == TRUE)
+{
+  # shut down NetLogo on all cores
+  invisible(parLapply(cl, 1:processors, postpro))
+  
+  # terminate cluster
+  stopCluster(cl)
+} else {
+  # shut down all open NetLogo instances
+  NLQuit(all = T)
+}
+```
+
+```{r Morris analysis SV}
+
+#-------------------------------------------------------------------------------------
+# IV. Analysis of the results (postprocessing)
+#-------------------------------------------------------------------------------------
+
+# plot in 3D requires rgl package
+if (plot.3d == TRUE) {
+  require(rgl)
+}
+
+# iterate over evalulation criteria (not shown in the paper)
+# (package sensitivity must be loaded)
+for (i in (1:length(sim.results.morris_SV[,1])))
+{
+  # add simulation results (as vector) to morris object
+  tell(mo_SV, sim.results.morris_SV[i,])
+ 
+  # # # ask user for pressing <Enter> for entering the plot
+  # if (plot.on.screen == TRUE) {
+  #   par(ask=TRUE)
+  # }
+  # 
+  # if (plot.3d == TRUE) {
+  #   # plot in 3D (µ, µ*, sigma) requires rgl package
+  #   plot3d.morris(mo)
+  # }
+  # else {
+  #   # plot results in 2D (µ*, sigma) 
+  #   plot(mo)
+  #   title(main=output.names[i])
+  # }
+  
+  # print value table for mu, mu.star, and sigma
+  print(output.names[i])
+  print(mo_SV)
+}
+
+```
+
+
+```{r Morris graphs 2 SV}
+# plots as shown in the paper
+# (package sensitivity must be loaded)
+for (i in (1:length(sim.results.morris_SV[,1])))
+{
+  par(mfrow=c(1,2))
+  tell(mo_SV, sim.results.morris_SV[i,])
+  mu <- apply(mo_SV$ee, 2, mean)
+  mu.star <- apply(mo_SV$ee, 2, function(x) mean(abs(x)))
+  sigma <- apply(mo_SV$ee, 2, sd)
+  
+  # mu* against mu
+  if (plot.on.screen == TRUE) {
+    par(ask=TRUE)
+  }
+  plot(mu.star, mu, pch = 1:5, col = 1:5, xlab = expression(paste(mu ^ "*")), 
+       ylab = expression(paste(mu)))
+  title(main=output.names[i])
+  text(x = mu.star, y = mu, labels = names(mu), pos = 4, col = 1:5)
+  # mu* against sigma
+  if (plot.on.screen == TRUE) {
+    par(ask=TRUE)
+  }
+  plot(mu.star, sigma, pch = 1:5, col = 1:5, xlab = expression(paste(mu ^ "*")), ylab = expression(sigma))
+  title(main=output.names[i])
+  text(x = mu.star, y = sigma, labels = names(mu), pos = 4, col = 1:5)
+}
+
+```
+
+Strongest effects can be observed for $\delta$ which indicates the fraction of agents that need to be satisfied in the beginning. This is the case for both infrastructure levels and extraction inequality. The effect is negative meaning that a higher initial fraction of satisfied agents leads to worse infrastructure conditions and lower extraction inequality.
+
+12 June 2017
+
+With regard to infrastructure levels, $\alpha$ seems to have a very non-monotonic effect that also strongly depends on the settings of other variables. While its effect sizes are comparatively small for infrastructure, it has a highly negative impact on inequality. Seeing that $\alpha$ measures the disutility from earning more than others, this results corroborates the correct model setup. 
+
+The effect of $\tau$ is increasing over time for both infrastructure and inequality. It measures how rational agents are where high values indicates that agents always choose the investment option with the highest (expected) utility. The more rational agents are, the stronger infrastructure will decline.
+
+
+## Morris screening "endogenized water flow"
+
+04 July 2017
+
+After changing the investment procedure in the model, we re-run the Morris screening. This time, we also adjust the factor levels: $\alpha, \beta$ can now also have negative values and $\tau$ ranges up to 30 to allow for more rational agents.
+
+As for 'conditionalcooperation' we carry out the Morris screening following the routine laid out by Thiele et al. 2014. We follow the steps as described above, this time varying the following 5 relevant parameters with 50 repetitions and 5 factor levels:
+
+Variable    | Model name | Range     | Experimental design
+----------- | ---------- | --------- | ----------
+Strength of aversion to exploiting others $\alpha$ | `alpha` |	[-1, 1]	|	-1, -0.5, 0, 0.5, 1
+Degree of cooperative tendency $β$	| `beta` | [-1, 1]	| -1, -0.5, 0, 0.5, 1
+Weight for different utility values $τ$	| `mu` | [0, 25]	| 0, 6.25, 12.5, 18.755, 25
+Minimum utility to be satisfied $u_{min}$ | `umin` |  [0, 30]     | 0, 7.5, 15, 22.5, 30
+Fraction of agents initially to be satisfied $δ$	| `psat` | [0, 1]	|	0, 0.25, 0.5, 0.75, 1
+
+
+Morris screening was carried out for the 5 relevant parameters with 50 repetitions and 5 factor levels. However, setting up the experiment with the `morris()` of the `sensitivity` package creates the sample of all parameter combinations beforehand, based on on the indicated number of repetitions (`no.repetitions_SV`). In our case, generating `r no.repetitions_SV` variations for `r length(input.values_SV)` parameters and running each parameter set `r no.repeated.sim_SV` times, that yielded `r iter.length_SV * no.repeated.sim_SV` runs. 
+
+In this configuration, running the simulation takes about 23 minutes on the Toshiba laptop, running on four cores in parallel. 
+
+```{r run Morris screening SV 2}
+
+print(Sys.time())
+#-------------------------------------------------------------------------------------
+# I. Prerequirements
+#-------------------------------------------------------------------------------------
+
+# load RNetLogo package
+# (if not installed already,
+#  execute install.packages("rJava") and install.packages("RNetLogo") )
+require(RNetLogo)
+
+# an R random seed (for beeing reproducible)
+set.seed(-402223867)
+
+# TODO: adapt these paths to your requirements
+# the NetLogo installation path (where the NetLogo.jar is located)
+nl.path     <- "C:/Program Files (x86)/NetLogo 5.2.1"
+# the path to the NetLogo model file
+model.path  <- "C:/Users/johnf/ownCloud/IrriGameABM/src/irrigame_comm.nlogo"
+# the simulation function
+simfun.path <- "C:/Users/johnf/ownCloud/IrriGameABM/src/sim_Morris.R"
+
+# TODO: set values for those parameters that are not changes during the experiment
+#       parameter names have to be the names of the parameters in the NetLogo model
+fix.params_SV <- list(
+  'scenario'      = "\"social-values\"",
+  'limcom'        = "false",
+  'visioneffect'  = "false",
+  'phase2?'       = "false"
+)      
+
+fix.param.names_SV <- names(fix.params_SV)
+
+# TODO: give the value for each input factor, min. and max. values for the inputs      
+input.values_SV <- list(
+               'alpha'     = list(min = -1.0, max = 1.0),
+               'beta'  = list(min = -1.0, max = 1.0),
+               'mu' = list(min = 0.0, max = 25.0),
+               'umin'        = list(min = 0.0, max = 30.0),
+               'psat'    = list(min = 0.0, max = 1.0)
+)
+
+# TODO: give details for the sampling design of the Morris method (see help(morris) for details)
+morris.design_SV <- list(type = "oat", levels = 5, grid.jump = 2)
+# 'levels' indicates the number of factor levels that will be created; 
+# 'grid.jump' refers to how strongly a parameter will varied from one iteration to the next (= how many parameters levels will be jumped over) - recommendation: levels / 2
+
+# TODO: give the number of repetions of morris screening (argument r in function morris)
+no.repetitions_SV <- 50
+
+# TODO: names of output values
+output.names <- c("Infrastructure3","Infrastructure6","Infrastructure10", 
+                  "Gini_ext3", "Gini_ext6", "Gini_ext10")
+
+# how many repetitions for each parameter set should be run (to control stochasticity)?
+# TODO: adapt the number of repetitions, set to 1 if deterministic model
+no.repeated.sim_SV <- 50
+# refers to inter-run variability: repeats the sim the given number of times and reports the mean
+
+# TODO: plot the results on the screen?
+plot.on.screen <- FALSE
+
+# TODO: plot the results in 3D, (3D requires package rgl)
+plot.3d <- FALSE
+
+# TODO: should R report the progress
+trace.progress = TRUE
+
+
+# TODO: set parallelization properties
+parallel <- TRUE
+gui <- FALSE # FALSE for headless mode
+
+## parallelization ####
+# implemented by FJ based on vignette "Parallel processing with the RNetLogo Package" by Jan C. Thiele
+ 
+# load the parallel package
+library(parallel)
+
+# detect the number of cores available
+processors <- detectCores()
+
+
+# the initialization function
+prepro <- function(dummy, gui, nl.path, model.path, nl.obj) {
+  library(RNetLogo)
+  NLStart(nl.path, gui=gui, nl.obj = nl.obj)
+  NLLoadModel(model.path, nl.obj = nl.obj)
+}
+
+# the quit function
+postpro <- function(x) {
+  NLQuit(all = T)
+}
+
+
+# initialize NetLogo
+nl.sm13 <- "nl.sm13"
+if (parallel == TRUE) 
+{
+# create a cluster
+cl <- makeCluster(processors, outfile = "./log.txt")
+
+  invisible(parLapply(cl, 1:processors, prepro, gui=gui,
+                      nl.path = nl.path, model.path = model.path,
+                      nl.obj=nl.sm13))
+} else {
+  NLStart(nl.path, gui=FALSE, nl.obj=nl.sm13)
+  NLLoadModel(model.path,nl.obj=nl.sm13)
+}
+
+#-------------------------------------------------------------------------------------
+# II. Definition of the simulation function to test a parameter set
+#-------------------------------------------------------------------------------------
+
+# load the code of the simulation function (name: simulate)
+source(file=simfun.path)
+
+
+#-------------------------------------------------------------------------------------
+# III. Run of the simulation for all parameter sets
+#-------------------------------------------------------------------------------------
+require(sensitivity)
+
+# variable used for progress tracing
+already.processed <- 0  
+  	
+# get names of parameters
+input.names_SV = names(input.values_SV)
+
+# calculate number of iterations
+iter.length_SV <- no.repetitions_SV * (length(input.values_SV)+1)
+
+# get the min and max values of the input factor ranges
+mins <- sapply(seq(1,length(input.values_SV)), function(i) {
+		input.values_SV[[i]]$min})
+maxs <- sapply(seq(1,length(input.values_SV)), function(i) {
+		input.values_SV[[i]]$max})
+
+# create input sets
+mo_SV <- morris(model = NULL, factors = input.names_SV, r = no.repetitions_SV, 
+                design = morris.design_SV, binf = mins, bsup = maxs, scale=TRUE)
+
+# simulate for all input sets
+# get results of all evalulation criteria as matrix                                                    
+if (parallel == TRUE)
+{
+  # export variables from parent environment (= workspace) to worker nodes
+  clusterExport(cl, c("fix.params_SV", "fix.param.names_SV", "simulate",  
+                      "input.names_SV", "iter.length_SV", "no.repeated.sim_SV",
+                      "nl.sm13", "trace.progress", "already.processed")) 
+  
+  # run simulation on multiple cores
+  sim.results.morris_SV2 <- parApply(cl, mo_SV$X, 1,
+                                function(x) {simulate(param.set=x,
+                                                      no.repeated.sim=no.repeated.sim_SV,
+                                                      nl.obj=nl.sm13, trace.progress=trace.progress,
+                                                      parameter.names=input.names_SV,
+                                                      iter.length=iter.length_SV,
+                                                      function.name="Morris", 
+                                                      fix.params = fix.params_SV,
+                                                      fix.param.names = fix.param.names_SV)}
+  )
+} else {
+  # run simulation on single core
+  sim.results.morris_SV2 <- apply(mo_SV$X, 1, 
+                              function(x) {simulate(param.set=x,                            
+                                                    no.repeated.sim=no.repeated.sim_SV, 
+                                                    nl.obj=nl.sm13, trace.progress=trace.progress,
+                                                    parameter.names=input.names_SV,
+                                                    iter.length=iter.length_SV,
+                                                    function.name="Morris", 
+                                                    fix.params = fix.params_SV,
+                                                    fix.param.names = fix.param.names_SV)}
+  )
+}
+
+
+if(parallel == TRUE)
+{
+  # shut down NetLogo on all cores
+  invisible(parLapply(cl, 1:processors, postpro))
+  
+  # terminate cluster
+  stopCluster(cl)
+} else {
+  # shut down all open NetLogo instances
+  NLQuit(all = T)
+}
+```
+
+```{r Morris analysis SV 2}
+
+#-------------------------------------------------------------------------------------
+# IV. Analysis of the results (postprocessing)
+#-------------------------------------------------------------------------------------
+
+# plot in 3D requires rgl package
+if (plot.3d == TRUE) {
+  require(rgl)
+}
+
+# iterate over evalulation criteria (not shown in the paper)
+# (package sensitivity must be loaded)
+for (i in (1:length(sim.results.morris_SV2[,1])))
+{
+  # add simulation results (as vector) to morris object
+  tell(mo_SV, sim.results.morris_SV2[i,])
+ 
+  # # # ask user for pressing <Enter> for entering the plot
+  # if (plot.on.screen == TRUE) {
+  #   par(ask=TRUE)
+  # }
+  # 
+  # if (plot.3d == TRUE) {
+  #   # plot in 3D (µ, µ*, sigma) requires rgl package
+  #   plot3d.morris(mo)
+  # }
+  # else {
+  #   # plot results in 2D (µ*, sigma) 
+  #   plot(mo)
+  #   title(main=output.names[i])
+  # }
+  
+  # print value table for mu, mu.star, and sigma
+  print(output.names[i])
+  print(mo_SV)
+}
+
+```
+
+
+```{r Morris graphs 2 SV 2}
+# plots as shown in the paper
+# (package sensitivity must be loaded)
+for (i in (1:length(sim.results.morris_SV2[,1])))
+{
+  par(mfrow=c(1,2))
+  tell(mo_SV, sim.results.morris_SV2[i,])
+  mu <- apply(mo_SV$ee, 2, mean)
+  mu.star <- apply(mo_SV$ee, 2, function(x) mean(abs(x)))
+  sigma <- apply(mo_SV$ee, 2, sd)
+  
+  # mu* against mu
+  if (plot.on.screen == TRUE) {
+    par(ask=TRUE)
+  }
+  plot(mu.star, mu, pch = 1:5, col = 1:5, xlab = expression(paste(mu ^ "*")), 
+       ylab = expression(paste(mu)))
+  title(main=output.names[i])
+  text(x = mu.star, y = mu, labels = names(mu), pos = 4, col = 1:5)
+  # mu* against sigma
+  if (plot.on.screen == TRUE) {
+    par(ask=TRUE)
+  }
+  plot(mu.star, sigma, pch = 1:5, col = 1:5, xlab = expression(paste(mu ^ "*")), ylab = expression(sigma))
+  title(main=output.names[i])
+  text(x = mu.star, y = sigma, labels = names(mu), pos = 4, col = 1:5)
+}
+
+```
+With the new investment calculation and the increased values ranges for $\alpha$, $\beta$ and $\tau$ the results of the Morris screening have changed. 
+$\delta$ remains the most influential factor, at least in the first rounds. $\tau$ and $\alpha$ have become more important. While the effect of $\tau$ increases over time and is larger on infrastructure levels, $\alpha$ mainly drives the extraction inequality. Both effects are not surprising, since $\tau$ is part of the investment decision and $\alpha$ part of the extraction decision. The effect of $\alpha$ on extraction inequality is highly non-monotonic and also dependent on other parameters. For inequality, the expected main effect is almost neutral, which underscores the relevance of interactions and non-linearities.
+For inequality, almost all parameters have non-monotonic effects. The effect of $u_{min}$ decreases over time and is also very small. $\delta$, $\tau$ and $\alpha$ have the largest impact. In general, the effects of parameters strongly depend on other parameters settings.
+
+
+# Questions to Marco
+    
+    
+#### Answered questions
+
+
++ Utility function of Charness & Rabin (2002) is different from the one in Janssen & Baggio (2016). Can they mathematically converted into one another?!
+Charness & Rabin 2002: $$
+U_B = 
+  \begin{cases} 
+    (1 - \rho - \theta q) \pi_B + (\rho + \theta q) \pi_A       & \text{if } \pi_B \geq \pi_A \\ 
+    (1 - \sigma - \theta q) \pi_B + (\sigma + \theta q) \pi_A   & \text{if } \pi_B \leq \pi_A \end{cases}$$ 
+So they don't directly compare the differences in payoffs, but take take absolute payoffs instead.
+    + *Answer*: Yes, the utility functions can be converted and yield exactly the same equation as in the model ($\rho \widehat{=} \alpha; \sigma \widehat{=} \beta$), as can be shown by expanding the parentheses.
++ Should agents really suppose own harvest levels from the previous round even if they recalculate their decisions (= dissatisfied)?
+    * *Changed.*
++ Endogenize waterflow in investment decision? When calculating investment decision (see below), `i` does not only decrease income, but also raises infrastructure level, which could generate a greater water stream that would allow a larger extraction. In model terms, `harvest`  would have to be replaced with a dynamic calculation of water flows. That way, the trade-off between individual saving and group-level investment could be included.
+```
+while [i <= 10]
+[
+  ifelse 10 - i + harvest > earningsothers [
+        set utility 10 - i + harvest - alpha * (10 - i + harvest - earningsothers)
+  ][
+        set utility 10 - i + harvest + beta * (earningsothers - 10 + i - harvest)
+  ]
+  set list-utility lput utility list-utility
+  set totalutility totalutility + exp (mu * utility)
+  set i i + 1
+]
+```
+-> *implemented*
+    + Implementing that would require to convert several procedures into reporter procedures (`calcwaterflow`) --> *implemented*
++ Why are $\alpha$ and $\beta$ limited to [-1, 1]? Is there a reason for that in the literature? Higher values would generate a stronger impact of social values.
+    + Charness & Rabin (2002): $\alpha, \beta \leq 1; \beta \leq \alpha$  
+    + Fehr & Schmidt (1999): $- \beta_i \leq \alpha_i; -1 < \beta_i \leq 0$ (Note: Their formulation has been adapted to the way the utility function is specified here.)
+    + Arifovic & Ledyard (2001): $\beta_i \leq 0$, positive effect of group-level payout on individual utility.
+    + *Marco's answer*: There is no clear reason why values have to be within [-1, 1], yet greater effect sizes would be extreme scenarios. I should try out also extreme values to see what happens, yet Marco expects that simulation results will fall in [-1, 1].
++ Why are utilities modeled as exponential function? Does that really make a difference?
+    * *My answer*: It only matters when comparing the different utilities in the investment decision. And since the ultimate investment decision depends on `randomnumber`, it also matters *by how much* utility in-/decreases through investing another token. 
+    * *Marco's answer*: Exponential function is an established way in economics. If I want to set agents to fully rational for testing purposes, it may be recommendable to just include a switch that operates a if-then-else condition.
++ Water flow is not included in utility function (e.g. such that agents have an intrinsic preference for a higher infrastructure level, cf. "Social welfare preference" in Arifovic & Ledyard 2012). Thus, potential returns on investment aren't considered (e.g. in the above example they don't see the use of investing). Should that be included somehow?
++ In `calcutility` agents calculate utilities based on an equal distribution of the remaining water while in `invest` they base it on last round's previous extraction. Inconsistency?! 
+    * `calcutility`: 
+    ```
+    ifelse mewater > otherwater [
+        set util mewater - alpha * (mewater - otherwater)
+      ][
+        set util mewater + beta * (otherwater - mewater)
+    ]
+    ```
+    * `invest`:
+    ```
+    set earningsothers 10 - mean [inv-past] of other turtles + mean [harvest] of other turtles
+    ...
+    set earningsothers 10 - mean [inv-past] of other turtles + item 2 calcutility-values ;NEW!
+    ...
+    ifelse 10 - i + harvest > earningsothers [
+              set utility 10 - i + temp-harvest - alpha * (10 - i + temp-harvest - earningsothers)
+            ][
+              set utility 10 - i + temp-harvest + beta * (earningsothers - 10 + i - temp-harvest)
+            ]
+    ```
+    Note: `item 2 calcutility-values` = `otherwater`
+    * Ways out:
+        * Always assume equal sharing of the water: naive, but considers actually available water
+        * always assume extraction of previous amount: neglects current infrastructure level, but takes position into account
+    * *Marco*: Yes, this is somewhat inconsistent and assuming that the other agents distribute the remaining water equally among themselves is a reasonable abstraction (even though it is not perfect, because deviating slightly from equal distribution might lead to (Pareto) improvements). 
++ Assuming that agents will behave as in previous round neglects the current infrastructure level (and with it the "necessity to invest"): If in one round there is hardly any investment (because infrastructure is in good shape) and agents assume that in the next round the other agents will continue not investing, then it does not pay off for the agent itself to invest. Additionally, these strong fluctuations in investment (often from 10 to 0 and vice versa) do not correspond to the empirical finding that agents prefer small changes in their decisions.
+    * Ways out:
+        * Agents calculate their investment decision with respect to a target level of infrastructure (e.g. 66).
+        * Agents calculate a propensity to change their investment level (i.e. how strongly they want to deviate from the previous investment)
+        * Agents assume that other agents invest as much as oneself 
+    * *Marco*: It is reasonable to assume that agents have the expectation that others want to invest to full capacity (in order to get water flowing). However, that expectation may change over time due to learning (it may strengthen or weaken according to others' actual behavior). **Idea**: Copy over code on `lambda` from conditionalcooperation?!

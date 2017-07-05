@@ -1,0 +1,658 @@
+---
+title: "Code verification"
+output:
+  html_notebook:
+    toc: yes
+    toc_depth: 4
+---
+
+# Unit tests
+
+
+## Social-values
+
+
+### Investment decision
+
+#### Original version as in Janssen & Baggio 2016
+
+12 June 2017
+
+Here, we run the model with the parameters as specified below to further examine the utility function.
+
+
+Variable    | Model name | Value     
+----------- | ---------- | --------- 
+Behavioral theory | `scenario` | `social-values`
+Dummy for effect of limited vision | `visioneffect` | `false`
+Dummy for limited communication | `limcom` | `false`
+Strength of aversion to exploiting others $\alpha$ | `alpha` |	0.92
+Degree of cooperative tendency $β$	| `beta` | 0.79
+Weight for different utility values $τ$	| `mu` | 30
+Minimum utility to be satisfied $u_{min}$ | `umin` |  15.5
+Fraction of agents initially to be satisfied $δ$	| `psat` | 0.2
+
+Since NetLogo can only handle numbers up to approx. 1E308, there is a practical limitation to $\tau$. Hence, agents cannot be completely rational (but come relatively close). 
+
+```
+observer> random-seed 1402
+observer> setup go
+observer: "round 1"
+observer: "satisfied: [0 0 0 1 1], past-inv: [0 0 0 0 0], past-harvest: [0 0 0 0 0], infrastructure: 75"
+observer: "investments: [5 5 5 0 0], infrastructure after investing: 90"
+observer: "turnoff: [300 300 300 0 0], actual extraction: [300 310 300 0 0], harvest: [15 15 15 0 0]"
+observer: "actual utility: [15.399999999999999 15.399999999999999 15.399999999999999 15.925 15.925], satisfied: [0 0 0 1 1]"
+```
+In the first round, dissatisfied agents set their investment to 5 tokens by default; satisfied ones stick with their original strategy which is investing 0 tokens.
+
+```
+observer> go
+observer: "round 2"
+observer: "satisfied: [0 0 0 1 1], past-inv: [5 5 5 0 0], past-harvest: [15 15 15 0 0], infrastructure: 65"
+(turtle 2): "own harvest: 15, earningsothers: 15"
+(turtle 2): "randomnumber = 7.356577207134501E205, util: [7.171077600106592E205 6.505454827612369E204 5.9016154717776894E203 5.353824767007538E202 4.856880251331283E201 4.4060623577250134E200 3.9970895915836826E199 3.6260778686287306E198 3.289503627100411E197 2.9841703638863794E196 2.7071782767869983E195]"
+(turtle 2): "inv: 1, totalutility: 7.821623082867829E205"
+(turtle 1): "own harvest: 15, earningsothers: 15"
+(turtle 1): "randomnumber = 7.0161095728264915E205, util: [7.171077600106592E205 6.505454827612369E204 5.9016154717776894E203 5.353824767007538E202 4.856880251331283E201 4.4060623577250134E200 3.9970895915836826E199 3.6260778686287306E198 3.289503627100411E197 2.9841703638863794E196 2.7071782767869983E195]"
+(turtle 1): "inv: 0, totalutility: 7.171077600106592E205"
+(turtle 0): "own harvest: 15, earningsothers: 15"
+(turtle 0): "randomnumber = 2.1966366019248966E205, util: [7.171077600106592E205 6.505454827612369E204 5.9016154717776894E203 5.353824767007538E202 4.856880251331283E201 4.4060623577250134E200 3.9970895915836826E199 3.6260778686287306E198 3.289503627100411E197 2.9841703638863794E196 2.7071782767869983E195]"
+(turtle 0): "inv: 0, totalutility: 7.171077600106592E205"
+observer: "investments: [0 0 1 0 0], infrastructure after investing: 66"
+observer: "turnoff: [300 300 300 0 0], actual extraction: [300 310 300 0 0], harvest: [15 15 15 0 0]"
+observer: "actual utility: [17.87 17.87 18.02 18.69 18.69], satisfied: [1 1 1 1 1]"
+
+```
+In the second round, dissatisfied agents calculate their expected utility based on the function 
+$$ u_i = z_i - \alpha \max(z_i - \bar{z}_{-i, t-1}, 0) + \beta  \max(\bar{z}_{-i, t-1} - z_i, 0) \qquad \text{with} \quad z_i = 10 - I_i + h_{i, t-1} $$
+where $z_i$ represents the earnings of agent $i$ and $\bar{z}_{-i,t-1}$ depicts the other agents' average earnings from last round. $u_i$ values are calculated for earch investment option ($I_i \in \{0, 1, 2, \dots, 10 \}$).  
+However, for that calculation the agents assumes that the other agents maintain their behavior (e.g. current investment and extraction levels equal the ones from last round) and that also they themselves extract as much as in the last round. So, in round 2 each of the dissatisfied agents assumes that the other agents invest 2.5 tokens and harvest 7.5 tokens, yielding them 15 tokens in expected earnings (10 - 2.5 + 7.5 = 15).
+
+On the other hand, their own earnings are calculated based on 15 tokens harvested (10 - $I_i$ + 15). Because $\alpha < 1$, not investing in infrastructure (hence, free-riding on others) outweighs the aversion to exploit others (i.e. utility gain from not spending a token on infrastructure is larger than utility loss due to increased inequality). Therefore, not investing at all yields the highest possibility (turtle 2 invests 1 token because even with the given parameterization agents are not completely rational ($\tau$ cannot be set to a very high value, because the resulting utilities are too high to be handled by NetLogo).
+
+``` 
+observer> go
+observer: "round 3"
+observer: "satisfied: [1 1 1 1 1], past-inv: [0 0 1 0 0], past-harvest: [15 15 15 0 0], infrastructure: 41"
+observer: "investments: [0 0 1 0 0], infrastructure after investing: 42"
+observer: "turnoff: [300 300 300 0 0], actual extraction: [0 0 0 0 0], harvest: [0 0 0 0 0]"
+observer: "actual utility: [9.77 9.77 9.79 9.77 9.77], satisfied: [0 0 0 0 0]"
+```
+All agents were satisfied so they don't change their behavior, which leads to a drastic decline of instrastructure and no harvests. As a consequence, agents end up dissatisfied again.
+
+```
+observer> go
+observer: "round 4"
+observer: "satisfied: [0 0 0 0 0], past-inv: [0 0 1 0 0], past-harvest: [0 0 0 0 0], infrastructure: 17"
+(turtle 0): "own harvest: 0, earningsothers: 9.75"
+(turtle 0): "randomnumber = 3.806773504017139E126, util: [1.9575490181232946E127 9.530035747785128E124 1.750005016891488E122 3.2135425723421724E119 5.901043576777961E116 1.083611450949361E114 1.989840883821514E111 3.6539543204887226E108 6.709773773758969E105 1.232118963353708E103 2.2625459382742927E100]"
+(turtle 0): "inv: 0, totalutility: 1.9575490181232946E127"
+(turtle 1): "own harvest: 0, earningsothers: 9.75"
+(turtle 1): "randomnumber = 7.700774148336404E126, util: [1.9575490181232946E127 9.530035747785128E124 1.750005016891488E122 3.2135425723421724E119 5.901043576777961E116 1.083611450949361E114 1.989840883821514E111 3.6539543204887226E108 6.709773773758969E105 1.232118963353708E103 2.2625459382742927E100]"
+(turtle 1): "inv: 0, totalutility: 1.9575490181232946E127"
+(turtle 3): "own harvest: 0, earningsothers: 9.75"
+(turtle 3): "randomnumber = 1.0402511056656173E127, util: [1.9575490181232946E127 9.530035747785128E124 1.750005016891488E122 3.2135425723421724E119 5.901043576777961E116 1.083611450949361E114 1.989840883821514E111 3.6539543204887226E108 6.709773773758969E105 1.232118963353708E103 2.2625459382742927E100]"
+(turtle 3): "inv: 0, totalutility: 1.9575490181232946E127"
+(turtle 4): "own harvest: 0, earningsothers: 9.75"
+(turtle 4): "randomnumber = 1.2310251558617825E127, util: [1.9575490181232946E127 9.530035747785128E124 1.750005016891488E122 3.2135425723421724E119 5.901043576777961E116 1.083611450949361E114 1.989840883821514E111 3.6539543204887226E108 6.709773773758969E105 1.232118963353708E103 2.2625459382742927E100]"
+(turtle 4): "inv: 0, totalutility: 1.9575490181232946E127"
+(turtle 2): "own harvest: 0, earningsothers: 10"
+(turtle 2): "randomnumber = 2.8244074329097776E129, util: [1.9424263952412558E130 3.5668868686085173E127 6.549891395947424E124 1.2027596859399337E122 2.208633356909263E119 4.055723983997824E116 7.447545326125829E113 1.367596305950479E111 2.5113236296639225E108 4.61155557781725E105 8.468221537080262E102]"
+(turtle 2): "inv: 0, totalutility: 1.9424263952412558E130"
+observer: "investments: [0 0 0 0 0], infrastructure after investing: 17"
+observer: "turnoff: [0 0 0 0 0], actual extraction: [0 0 0 0 0], harvest: [0 0 0 0 0]"
+observer: "actual utility: [10 10 10 10 10], satisfied: [0 0 0 0 0]"
+```
+Here, agents only look at the earnings of others which are more or less equal to not investing and not harvesting at all. The do not see the benefit of investing. Logically, that also generates the highest utility and agents are locked in a state where nobody invests and the whole system breaks down.
+
+```
+observer> go
+observer: "round 5"
+observer: "satisfied: [0 0 0 0 0], past-inv: [0 0 0 0 0], past-harvest: [0 0 0 0 0], infrastructure: 0"
+(turtle 2): "own harvest: 0, earningsothers: 10"
+(turtle 2): "randomnumber = 1.1779977428201563E130, util: [1.9424263952412558E130 3.5668868686085173E127 6.549891395947424E124 1.2027596859399337E122 2.208633356909263E119 4.055723983997824E116 7.447545326125829E113 1.367596305950479E111 2.5113236296639225E108 4.61155557781725E105 8.468221537080262E102]"
+(turtle 2): "inv: 0, totalutility: 1.9424263952412558E130"
+(turtle 4): "own harvest: 0, earningsothers: 10"
+(turtle 4): "randomnumber = 8.252796406406929E129, util: [1.9424263952412558E130 3.5668868686085173E127 6.549891395947424E124 1.2027596859399337E122 2.208633356909263E119 4.055723983997824E116 7.447545326125829E113 1.367596305950479E111 2.5113236296639225E108 4.61155557781725E105 8.468221537080262E102]"
+(turtle 4): "inv: 0, totalutility: 1.9424263952412558E130"
+(turtle 3): "own harvest: 0, earningsothers: 10"
+(turtle 3): "randomnumber = 1.0557323974561204E130, util: [1.9424263952412558E130 3.5668868686085173E127 6.549891395947424E124 1.2027596859399337E122 2.208633356909263E119 4.055723983997824E116 7.447545326125829E113 1.367596305950479E111 2.5113236296639225E108 4.61155557781725E105 8.468221537080262E102]"
+(turtle 3): "inv: 0, totalutility: 1.9424263952412558E130"
+(turtle 1): "own harvest: 0, earningsothers: 10"
+(turtle 1): "randomnumber = 1.8739770692942677E130, util: [1.9424263952412558E130 3.5668868686085173E127 6.549891395947424E124 1.2027596859399337E122 2.208633356909263E119 4.055723983997824E116 7.447545326125829E113 1.367596305950479E111 2.5113236296639225E108 4.61155557781725E105 8.468221537080262E102]"
+(turtle 1): "inv: 0, totalutility: 1.9424263952412558E130"
+(turtle 0): "own harvest: 0, earningsothers: 10"
+(turtle 0): "randomnumber = 6.035846917404946E129, util: [1.9424263952412558E130 3.5668868686085173E127 6.549891395947424E124 1.2027596859399337E122 2.208633356909263E119 4.055723983997824E116 7.447545326125829E113 1.367596305950479E111 2.5113236296639225E108 4.61155557781725E105 8.468221537080262E102]"
+(turtle 0): "inv: 0, totalutility: 1.9424263952412558E130"
+observer: "investments: [0 0 0 0 0], infrastructure after investing: 0"
+observer: "turnoff: [0 0 0 0 0], actual extraction: [0 0 0 0 0], harvest: [0 0 0 0 0]"
+observer: "actual utility: [10 10 10 10 10], satisfied: [0 0 0 0 0]"
+```
+Infrastructure is completely destroyed and agents are locked in a state where nobody invests.
+
+
+
+#### Modified version: Endogenized waterflow
+
+14 June 2017
+
+The below console output was generated running the `social-values` scenario while trying to implement a more comprehensive utility function where agents don't just simply assume their harvest to be equal to the one of last round.
+
+```
+observer> random-seed 1402
+observer: "round 1"
+observer: "satisfied: [0 0 0 1 1], past-inv: [0 0 0 0 0], past-harvest: [0 0 0 0 0], infrastructure: 75"
+observer: "investments: [5 5 5 0 0], infrastructure after investing: 90"
+(turtle 2): "totalwater: 1500, i: 0, waterinput: 375, mewater: 0, otherwater: 18, util: 14.22"
+(turtle 2): "totalwater: 1500, i: 25, waterinput: 368, mewater: 0, otherwater: 18, util: 14.22"
+(turtle 2): "totalwater: 1500, i: 50, waterinput: 362, mewater: 0, otherwater: 18, util: 14.22"
+(turtle 2): "totalwater: 1500, i: 75, waterinput: 356, mewater: 0, otherwater: 18, util: 14.22"
+(turtle 2): "totalwater: 1500, i: 100, waterinput: 350, mewater: 0, otherwater: 18, util: 14.22"
+(turtle 2): "totalwater: 1500, i: 125, waterinput: 343, mewater: 0, otherwater: 15, util: 11.850000000000001"
+(turtle 2): "totalwater: 1500, i: 150, waterinput: 337, mewater: 1, otherwater: 15, util: 12.06"
+(turtle 2): "totalwater: 1500, i: 175, waterinput: 331, mewater: 1, otherwater: 15, util: 12.06"
+(turtle 2): "totalwater: 1500, i: 200, waterinput: 325, mewater: 4, otherwater: 15, util: 12.690000000000001"
+(turtle 2): "totalwater: 1500, i: 225, waterinput: 318, mewater: 4, otherwater: 15, util: 12.690000000000001"
+(turtle 2): "totalwater: 1500, i: 250, waterinput: 312, mewater: 10, otherwater: 15, util: 13.95"
+(turtle 2): "totalwater: 1500, i: 275, waterinput: 306, mewater: 10, otherwater: 15, util: 13.95"
+(turtle 2): "totalwater: 1500, i: 300, waterinput: 300, mewater: 15, otherwater: 15, util: 15"
+(turtle 2): "totalwater: 1500, i: 325, waterinput: 293, mewater: 15, otherwater: 10, util: 10.399999999999999"
+(turtle 2): "totalwater: 1500, i: 350, waterinput: 287, mewater: 18, otherwater: 10, util: 10.64"
+(turtle 2): "totalwater: 1500, i: 375, waterinput: 281, mewater: 18, otherwater: 10, util: 10.64"
+(turtle 2): "totalwater: 1500, i: 400, waterinput: 275, mewater: 19, otherwater: 10, util: 10.719999999999999"
+(turtle 2): "totalwater: 1500, i: 425, waterinput: 268, mewater: 19, otherwater: 10, util: 10.719999999999999"
+(turtle 2): "totalwater: 1500, i: 450, waterinput: 262, mewater: 19, otherwater: 10, util: 10.719999999999999"
+(turtle 2): "totalwater: 1500, i: 475, waterinput: 256, mewater: 19, otherwater: 10, util: 10.719999999999999"
+(turtle 2): "totalwater: 1500, i: 500, waterinput: 250, mewater: 20, otherwater: 10, util: 10.799999999999999"
+(turtle 2): "totalwater: 1500, i: 525, waterinput: 243, mewater: 20, otherwater: 4, util: 5.279999999999999"
+
+...
+[Turtles 0 and 1 analogously]
+...
+
+observer: "turnoff: [300 300 300 0 0], actual extraction: [300 310 300 0 0], harvest: [15 15 15 0 0]"
+observer: "actual utility: [15.399999999999999 15.399999999999999 15.399999999999999 15.925 15.925], satisfied: [0 0 0 1 1]"
+```
+In round 1, the previously dissatisfied agents extract 300 cfps of water and thus harvest 15 tokens. 
+
+```
+observer: "round 2"
+observer: "satisfied: [0 0 0 1 1], past-inv: [5 5 5 0 0], past-harvest: [15 15 15 0 0], infrastructure: 65"
+(turtle 2): "own harvest: 15, earningsothers: 15"
+(turtle 2): "totalwater: 1500, i: 0, waterinput: 375, mewater: 0, otherwater: 18, util: 14.22"
+(turtle 2): "totalwater: 1500, i: 25, waterinput: 368, mewater: 0, otherwater: 18, util: 14.22"
+(turtle 2): "totalwater: 1500, i: 50, waterinput: 362, mewater: 0, otherwater: 18, util: 14.22"
+(turtle 2): "totalwater: 1500, i: 75, waterinput: 356, mewater: 0, otherwater: 18, util: 14.22"
+(turtle 2): "totalwater: 1500, i: 100, waterinput: 350, mewater: 0, otherwater: 18, util: 14.22"
+(turtle 2): "totalwater: 1500, i: 125, waterinput: 343, mewater: 0, otherwater: 15, util: 11.850000000000001"
+(turtle 2): "totalwater: 1500, i: 150, waterinput: 337, mewater: 1, otherwater: 15, util: 12.06"
+(turtle 2): "totalwater: 1500, i: 175, waterinput: 331, mewater: 1, otherwater: 15, util: 12.06"
+(turtle 2): "totalwater: 1500, i: 200, waterinput: 325, mewater: 4, otherwater: 15, util: 12.690000000000001"
+(turtle 2): "totalwater: 1500, i: 225, waterinput: 318, mewater: 4, otherwater: 15, util: 12.690000000000001"
+(turtle 2): "totalwater: 1500, i: 250, waterinput: 312, mewater: 10, otherwater: 15, util: 13.95"
+(turtle 2): "totalwater: 1500, i: 275, waterinput: 306, mewater: 10, otherwater: 15, util: 13.95"
+(turtle 2): "totalwater: 1500, i: 300, waterinput: 300, mewater: 15, otherwater: 15, util: 15"
+(turtle 2): "totalwater: 1500, i: 325, waterinput: 293, mewater: 15, otherwater: 10, util: 10.399999999999999"
+(turtle 2): "totalwater: 1500, i: 350, waterinput: 287, mewater: 18, otherwater: 10, util: 10.64"
+(turtle 2): "totalwater: 1500, i: 375, waterinput: 281, mewater: 18, otherwater: 10, util: 10.64"
+(turtle 2): "totalwater: 1500, i: 400, waterinput: 275, mewater: 19, otherwater: 10, util: 10.719999999999999"
+(turtle 2): "totalwater: 1500, i: 425, waterinput: 268, mewater: 19, otherwater: 10, util: 10.719999999999999"
+(turtle 2): "totalwater: 1500, i: 450, waterinput: 262, mewater: 19, otherwater: 10, util: 10.719999999999999"
+(turtle 2): "totalwater: 1500, i: 475, waterinput: 256, mewater: 19, otherwater: 10, util: 10.719999999999999"
+(turtle 2): "totalwater: 1500, i: 500, waterinput: 250, mewater: 20, otherwater: 10, util: 10.799999999999999"
+(turtle 2): "totalwater: 1500, i: 525, waterinput: 243, mewater: 20, otherwater: 4, util: 5.279999999999999"
+(turtle 2): "i = 0, temp-capacity: 35, temp-watersupply: 30, temp-turnoff: 300, temp-harvest: 15"
+(turtle 2): "totalwater: 1500, i: 0, waterinput: 375, mewater: 0, otherwater: 18, util: 14.22"
+(turtle 2): "totalwater: 1500, i: 25, waterinput: 368, mewater: 0, otherwater: 18, util: 14.22"
+(turtle 2): "totalwater: 1500, i: 50, waterinput: 362, mewater: 0, otherwater: 18, util: 14.22"
+(turtle 2): "totalwater: 1500, i: 75, waterinput: 356, mewater: 0, otherwater: 18, util: 14.22"
+(turtle 2): "totalwater: 1500, i: 100, waterinput: 350, mewater: 0, otherwater: 18, util: 14.22"
+(turtle 2): "totalwater: 1500, i: 125, waterinput: 343, mewater: 0, otherwater: 15, util: 11.850000000000001"
+(turtle 2): "totalwater: 1500, i: 150, waterinput: 337, mewater: 1, otherwater: 15, util: 12.06"
+(turtle 2): "totalwater: 1500, i: 175, waterinput: 331, mewater: 1, otherwater: 15, util: 12.06"
+(turtle 2): "totalwater: 1500, i: 200, waterinput: 325, mewater: 4, otherwater: 15, util: 12.690000000000001"
+(turtle 2): "totalwater: 1500, i: 225, waterinput: 318, mewater: 4, otherwater: 15, util: 12.690000000000001"
+(turtle 2): "totalwater: 1500, i: 250, waterinput: 312, mewater: 10, otherwater: 15, util: 13.95"
+(turtle 2): "totalwater: 1500, i: 275, waterinput: 306, mewater: 10, otherwater: 15, util: 13.95"
+(turtle 2): "totalwater: 1500, i: 300, waterinput: 300, mewater: 15, otherwater: 15, util: 15"
+(turtle 2): "totalwater: 1500, i: 325, waterinput: 293, mewater: 15, otherwater: 10, util: 10.399999999999999"
+(turtle 2): "totalwater: 1500, i: 350, waterinput: 287, mewater: 18, otherwater: 10, util: 10.64"
+(turtle 2): "totalwater: 1500, i: 375, waterinput: 281, mewater: 18, otherwater: 10, util: 10.64"
+(turtle 2): "totalwater: 1500, i: 400, waterinput: 275, mewater: 19, otherwater: 10, util: 10.719999999999999"
+(turtle 2): "totalwater: 1500, i: 425, waterinput: 268, mewater: 19, otherwater: 10, util: 10.719999999999999"
+(turtle 2): "totalwater: 1500, i: 450, waterinput: 262, mewater: 19, otherwater: 10, util: 10.719999999999999"
+(turtle 2): "totalwater: 1500, i: 475, waterinput: 256, mewater: 19, otherwater: 10, util: 10.719999999999999"
+(turtle 2): "totalwater: 1500, i: 500, waterinput: 250, mewater: 20, otherwater: 10, util: 10.799999999999999"
+(turtle 2): "totalwater: 1500, i: 525, waterinput: 243, mewater: 20, otherwater: 4, util: 5.279999999999999"
+(turtle 2): "i = 1, temp-capacity: 35, temp-watersupply: 30, temp-turnoff: 300, temp-harvest: 15"
+(turtle 2): "totalwater: 1500, i: 0, waterinput: 375, mewater: 0, otherwater: 18, util: 14.22"
+(turtle 2): "totalwater: 1500, i: 25, waterinput: 368, mewater: 0, otherwater: 18, util: 14.22"
+(turtle 2): "totalwater: 1500, i: 50, waterinput: 362, mewater: 0, otherwater: 18, util: 14.22"
+(turtle 2): "totalwater: 1500, i: 75, waterinput: 356, mewater: 0, otherwater: 18, util: 14.22"
+(turtle 2): "totalwater: 1500, i: 100, waterinput: 350, mewater: 0, otherwater: 18, util: 14.22"
+(turtle 2): "totalwater: 1500, i: 125, waterinput: 343, mewater: 0, otherwater: 15, util: 11.850000000000001"
+(turtle 2): "totalwater: 1500, i: 150, waterinput: 337, mewater: 1, otherwater: 15, util: 12.06"
+(turtle 2): "totalwater: 1500, i: 175, waterinput: 331, mewater: 1, otherwater: 15, util: 12.06"
+(turtle 2): "totalwater: 1500, i: 200, waterinput: 325, mewater: 4, otherwater: 15, util: 12.690000000000001"
+(turtle 2): "totalwater: 1500, i: 225, waterinput: 318, mewater: 4, otherwater: 15, util: 12.690000000000001"
+(turtle 2): "totalwater: 1500, i: 250, waterinput: 312, mewater: 10, otherwater: 15, util: 13.95"
+(turtle 2): "totalwater: 1500, i: 275, waterinput: 306, mewater: 10, otherwater: 15, util: 13.95"
+(turtle 2): "totalwater: 1500, i: 300, waterinput: 300, mewater: 15, otherwater: 15, util: 15"
+(turtle 2): "totalwater: 1500, i: 325, waterinput: 293, mewater: 15, otherwater: 10, util: 10.399999999999999"
+(turtle 2): "totalwater: 1500, i: 350, waterinput: 287, mewater: 18, otherwater: 10, util: 10.64"
+(turtle 2): "totalwater: 1500, i: 375, waterinput: 281, mewater: 18, otherwater: 10, util: 10.64"
+(turtle 2): "totalwater: 1500, i: 400, waterinput: 275, mewater: 19, otherwater: 10, util: 10.719999999999999"
+(turtle 2): "totalwater: 1500, i: 425, waterinput: 268, mewater: 19, otherwater: 10, util: 10.719999999999999"
+(turtle 2): "totalwater: 1500, i: 450, waterinput: 262, mewater: 19, otherwater: 10, util: 10.719999999999999"
+(turtle 2): "totalwater: 1500, i: 475, waterinput: 256, mewater: 19, otherwater: 10, util: 10.719999999999999"
+(turtle 2): "totalwater: 1500, i: 500, waterinput: 250, mewater: 20, otherwater: 10, util: 10.799999999999999"
+(turtle 2): "totalwater: 1500, i: 525, waterinput: 243, mewater: 20, otherwater: 4, util: 5.279999999999999"
+(turtle 2): "i = 2, temp-capacity: 35, temp-watersupply: 30, temp-turnoff: 300, temp-harvest: 15"
+(turtle 2): "totalwater: 1500, i: 0, waterinput: 375, mewater: 0, otherwater: 18, util: 14.22"
+(turtle 2): "totalwater: 1500, i: 25, waterinput: 368, mewater: 0, otherwater: 18, util: 14.22"
+(turtle 2): "totalwater: 1500, i: 50, waterinput: 362, mewater: 0, otherwater: 18, util: 14.22"
+(turtle 2): "totalwater: 1500, i: 75, waterinput: 356, mewater: 0, otherwater: 18, util: 14.22"
+(turtle 2): "totalwater: 1500, i: 100, waterinput: 350, mewater: 0, otherwater: 18, util: 14.22"
+(turtle 2): "totalwater: 1500, i: 125, waterinput: 343, mewater: 0, otherwater: 15, util: 11.850000000000001"
+(turtle 2): "totalwater: 1500, i: 150, waterinput: 337, mewater: 1, otherwater: 15, util: 12.06"
+(turtle 2): "totalwater: 1500, i: 175, waterinput: 331, mewater: 1, otherwater: 15, util: 12.06"
+(turtle 2): "totalwater: 1500, i: 200, waterinput: 325, mewater: 4, otherwater: 15, util: 12.690000000000001"
+(turtle 2): "totalwater: 1500, i: 225, waterinput: 318, mewater: 4, otherwater: 15, util: 12.690000000000001"
+(turtle 2): "totalwater: 1500, i: 250, waterinput: 312, mewater: 10, otherwater: 15, util: 13.95"
+(turtle 2): "totalwater: 1500, i: 275, waterinput: 306, mewater: 10, otherwater: 15, util: 13.95"
+(turtle 2): "totalwater: 1500, i: 300, waterinput: 300, mewater: 15, otherwater: 15, util: 15"
+(turtle 2): "totalwater: 1500, i: 325, waterinput: 293, mewater: 15, otherwater: 10, util: 10.399999999999999"
+(turtle 2): "totalwater: 1500, i: 350, waterinput: 287, mewater: 18, otherwater: 10, util: 10.64"
+(turtle 2): "totalwater: 1500, i: 375, waterinput: 281, mewater: 18, otherwater: 10, util: 10.64"
+(turtle 2): "totalwater: 1500, i: 400, waterinput: 275, mewater: 19, otherwater: 10, util: 10.719999999999999"
+(turtle 2): "totalwater: 1500, i: 425, waterinput: 268, mewater: 19, otherwater: 10, util: 10.719999999999999"
+(turtle 2): "totalwater: 1500, i: 450, waterinput: 262, mewater: 19, otherwater: 10, util: 10.719999999999999"
+(turtle 2): "totalwater: 1500, i: 475, waterinput: 256, mewater: 19, otherwater: 10, util: 10.719999999999999"
+(turtle 2): "totalwater: 1500, i: 500, waterinput: 250, mewater: 20, otherwater: 10, util: 10.799999999999999"
+(turtle 2): "totalwater: 1500, i: 525, waterinput: 243, mewater: 20, otherwater: 4, util: 5.279999999999999"
+(turtle 2): "i = 3, temp-capacity: 35, temp-watersupply: 30, temp-turnoff: 300, temp-harvest: 15"
+(turtle 2): "totalwater: 1500, i: 0, waterinput: 375, mewater: 0, otherwater: 18, util: 14.22"
+(turtle 2): "totalwater: 1500, i: 25, waterinput: 368, mewater: 0, otherwater: 18, util: 14.22"
+(turtle 2): "totalwater: 1500, i: 50, waterinput: 362, mewater: 0, otherwater: 18, util: 14.22"
+(turtle 2): "totalwater: 1500, i: 75, waterinput: 356, mewater: 0, otherwater: 18, util: 14.22"
+(turtle 2): "totalwater: 1500, i: 100, waterinput: 350, mewater: 0, otherwater: 18, util: 14.22"
+(turtle 2): "totalwater: 1500, i: 125, waterinput: 343, mewater: 0, otherwater: 15, util: 11.850000000000001"
+(turtle 2): "totalwater: 1500, i: 150, waterinput: 337, mewater: 1, otherwater: 15, util: 12.06"
+(turtle 2): "totalwater: 1500, i: 175, waterinput: 331, mewater: 1, otherwater: 15, util: 12.06"
+(turtle 2): "totalwater: 1500, i: 200, waterinput: 325, mewater: 4, otherwater: 15, util: 12.690000000000001"
+(turtle 2): "totalwater: 1500, i: 225, waterinput: 318, mewater: 4, otherwater: 15, util: 12.690000000000001"
+(turtle 2): "totalwater: 1500, i: 250, waterinput: 312, mewater: 10, otherwater: 15, util: 13.95"
+(turtle 2): "totalwater: 1500, i: 275, waterinput: 306, mewater: 10, otherwater: 15, util: 13.95"
+(turtle 2): "totalwater: 1500, i: 300, waterinput: 300, mewater: 15, otherwater: 15, util: 15"
+(turtle 2): "totalwater: 1500, i: 325, waterinput: 293, mewater: 15, otherwater: 10, util: 10.399999999999999"
+(turtle 2): "totalwater: 1500, i: 350, waterinput: 287, mewater: 18, otherwater: 10, util: 10.64"
+(turtle 2): "totalwater: 1500, i: 375, waterinput: 281, mewater: 18, otherwater: 10, util: 10.64"
+(turtle 2): "totalwater: 1500, i: 400, waterinput: 275, mewater: 19, otherwater: 10, util: 10.719999999999999"
+(turtle 2): "totalwater: 1500, i: 425, waterinput: 268, mewater: 19, otherwater: 10, util: 10.719999999999999"
+(turtle 2): "totalwater: 1500, i: 450, waterinput: 262, mewater: 19, otherwater: 10, util: 10.719999999999999"
+(turtle 2): "totalwater: 1500, i: 475, waterinput: 256, mewater: 19, otherwater: 10, util: 10.719999999999999"
+(turtle 2): "totalwater: 1500, i: 500, waterinput: 250, mewater: 20, otherwater: 10, util: 10.799999999999999"
+(turtle 2): "totalwater: 1500, i: 525, waterinput: 243, mewater: 20, otherwater: 4, util: 5.279999999999999"
+(turtle 2): "i = 4, temp-capacity: 35, temp-watersupply: 30, temp-turnoff: 300, temp-harvest: 15"
+(turtle 2): "totalwater: 1500, i: 0, waterinput: 375, mewater: 0, otherwater: 18, util: 14.22"
+(turtle 2): "totalwater: 1500, i: 25, waterinput: 368, mewater: 0, otherwater: 18, util: 14.22"
+(turtle 2): "totalwater: 1500, i: 50, waterinput: 362, mewater: 0, otherwater: 18, util: 14.22"
+(turtle 2): "totalwater: 1500, i: 75, waterinput: 356, mewater: 0, otherwater: 18, util: 14.22"
+(turtle 2): "totalwater: 1500, i: 100, waterinput: 350, mewater: 0, otherwater: 18, util: 14.22"
+(turtle 2): "totalwater: 1500, i: 125, waterinput: 343, mewater: 0, otherwater: 15, util: 11.850000000000001"
+(turtle 2): "totalwater: 1500, i: 150, waterinput: 337, mewater: 1, otherwater: 15, util: 12.06"
+(turtle 2): "totalwater: 1500, i: 175, waterinput: 331, mewater: 1, otherwater: 15, util: 12.06"
+(turtle 2): "totalwater: 1500, i: 200, waterinput: 325, mewater: 4, otherwater: 15, util: 12.690000000000001"
+(turtle 2): "totalwater: 1500, i: 225, waterinput: 318, mewater: 4, otherwater: 15, util: 12.690000000000001"
+(turtle 2): "totalwater: 1500, i: 250, waterinput: 312, mewater: 10, otherwater: 15, util: 13.95"
+(turtle 2): "totalwater: 1500, i: 275, waterinput: 306, mewater: 10, otherwater: 15, util: 13.95"
+(turtle 2): "totalwater: 1500, i: 300, waterinput: 300, mewater: 15, otherwater: 15, util: 15"
+(turtle 2): "totalwater: 1500, i: 325, waterinput: 293, mewater: 15, otherwater: 10, util: 10.399999999999999"
+(turtle 2): "totalwater: 1500, i: 350, waterinput: 287, mewater: 18, otherwater: 10, util: 10.64"
+(turtle 2): "totalwater: 1500, i: 375, waterinput: 281, mewater: 18, otherwater: 10, util: 10.64"
+(turtle 2): "totalwater: 1500, i: 400, waterinput: 275, mewater: 19, otherwater: 10, util: 10.719999999999999"
+(turtle 2): "totalwater: 1500, i: 425, waterinput: 268, mewater: 19, otherwater: 10, util: 10.719999999999999"
+(turtle 2): "totalwater: 1500, i: 450, waterinput: 262, mewater: 19, otherwater: 10, util: 10.719999999999999"
+(turtle 2): "totalwater: 1500, i: 475, waterinput: 256, mewater: 19, otherwater: 10, util: 10.719999999999999"
+(turtle 2): "totalwater: 1500, i: 500, waterinput: 250, mewater: 20, otherwater: 10, util: 10.799999999999999"
+(turtle 2): "totalwater: 1500, i: 525, waterinput: 243, mewater: 20, otherwater: 4, util: 5.279999999999999"
+(turtle 2): "i = 5, temp-capacity: 35, temp-watersupply: 30, temp-turnoff: 300, temp-harvest: 15"
+(turtle 2): "totalwater: 1500, i: 0, waterinput: 375, mewater: 0, otherwater: 18, util: 14.22"
+(turtle 2): "totalwater: 1500, i: 25, waterinput: 368, mewater: 0, otherwater: 18, util: 14.22"
+(turtle 2): "totalwater: 1500, i: 50, waterinput: 362, mewater: 0, otherwater: 18, util: 14.22"
+(turtle 2): "totalwater: 1500, i: 75, waterinput: 356, mewater: 0, otherwater: 18, util: 14.22"
+(turtle 2): "totalwater: 1500, i: 100, waterinput: 350, mewater: 0, otherwater: 18, util: 14.22"
+(turtle 2): "totalwater: 1500, i: 125, waterinput: 343, mewater: 0, otherwater: 15, util: 11.850000000000001"
+(turtle 2): "totalwater: 1500, i: 150, waterinput: 337, mewater: 1, otherwater: 15, util: 12.06"
+(turtle 2): "totalwater: 1500, i: 175, waterinput: 331, mewater: 1, otherwater: 15, util: 12.06"
+(turtle 2): "totalwater: 1500, i: 200, waterinput: 325, mewater: 4, otherwater: 15, util: 12.690000000000001"
+(turtle 2): "totalwater: 1500, i: 225, waterinput: 318, mewater: 4, otherwater: 15, util: 12.690000000000001"
+(turtle 2): "totalwater: 1500, i: 250, waterinput: 312, mewater: 10, otherwater: 15, util: 13.95"
+(turtle 2): "totalwater: 1500, i: 275, waterinput: 306, mewater: 10, otherwater: 15, util: 13.95"
+(turtle 2): "totalwater: 1500, i: 300, waterinput: 300, mewater: 15, otherwater: 15, util: 15"
+(turtle 2): "totalwater: 1500, i: 325, waterinput: 293, mewater: 15, otherwater: 10, util: 10.399999999999999"
+(turtle 2): "totalwater: 1500, i: 350, waterinput: 287, mewater: 18, otherwater: 10, util: 10.64"
+(turtle 2): "totalwater: 1500, i: 375, waterinput: 281, mewater: 18, otherwater: 10, util: 10.64"
+(turtle 2): "totalwater: 1500, i: 400, waterinput: 275, mewater: 19, otherwater: 10, util: 10.719999999999999"
+(turtle 2): "totalwater: 1500, i: 425, waterinput: 268, mewater: 19, otherwater: 10, util: 10.719999999999999"
+(turtle 2): "totalwater: 1500, i: 450, waterinput: 262, mewater: 19, otherwater: 10, util: 10.719999999999999"
+(turtle 2): "totalwater: 1500, i: 475, waterinput: 256, mewater: 19, otherwater: 10, util: 10.719999999999999"
+(turtle 2): "totalwater: 1500, i: 500, waterinput: 250, mewater: 20, otherwater: 10, util: 10.799999999999999"
+(turtle 2): "totalwater: 1500, i: 525, waterinput: 243, mewater: 20, otherwater: 4, util: 5.279999999999999"
+(turtle 2): "i = 6, temp-capacity: 40, temp-watersupply: 30, temp-turnoff: 300, temp-harvest: 15"
+(turtle 2): "totalwater: 1500, i: 0, waterinput: 375, mewater: 0, otherwater: 18, util: 14.22"
+(turtle 2): "totalwater: 1500, i: 25, waterinput: 368, mewater: 0, otherwater: 18, util: 14.22"
+(turtle 2): "totalwater: 1500, i: 50, waterinput: 362, mewater: 0, otherwater: 18, util: 14.22"
+(turtle 2): "totalwater: 1500, i: 75, waterinput: 356, mewater: 0, otherwater: 18, util: 14.22"
+(turtle 2): "totalwater: 1500, i: 100, waterinput: 350, mewater: 0, otherwater: 18, util: 14.22"
+(turtle 2): "totalwater: 1500, i: 125, waterinput: 343, mewater: 0, otherwater: 15, util: 11.850000000000001"
+(turtle 2): "totalwater: 1500, i: 150, waterinput: 337, mewater: 1, otherwater: 15, util: 12.06"
+(turtle 2): "totalwater: 1500, i: 175, waterinput: 331, mewater: 1, otherwater: 15, util: 12.06"
+(turtle 2): "totalwater: 1500, i: 200, waterinput: 325, mewater: 4, otherwater: 15, util: 12.690000000000001"
+(turtle 2): "totalwater: 1500, i: 225, waterinput: 318, mewater: 4, otherwater: 15, util: 12.690000000000001"
+(turtle 2): "totalwater: 1500, i: 250, waterinput: 312, mewater: 10, otherwater: 15, util: 13.95"
+(turtle 2): "totalwater: 1500, i: 275, waterinput: 306, mewater: 10, otherwater: 15, util: 13.95"
+(turtle 2): "totalwater: 1500, i: 300, waterinput: 300, mewater: 15, otherwater: 15, util: 15"
+(turtle 2): "totalwater: 1500, i: 325, waterinput: 293, mewater: 15, otherwater: 10, util: 10.399999999999999"
+(turtle 2): "totalwater: 1500, i: 350, waterinput: 287, mewater: 18, otherwater: 10, util: 10.64"
+(turtle 2): "totalwater: 1500, i: 375, waterinput: 281, mewater: 18, otherwater: 10, util: 10.64"
+(turtle 2): "totalwater: 1500, i: 400, waterinput: 275, mewater: 19, otherwater: 10, util: 10.719999999999999"
+(turtle 2): "totalwater: 1500, i: 425, waterinput: 268, mewater: 19, otherwater: 10, util: 10.719999999999999"
+(turtle 2): "totalwater: 1500, i: 450, waterinput: 262, mewater: 19, otherwater: 10, util: 10.719999999999999"
+(turtle 2): "totalwater: 1500, i: 475, waterinput: 256, mewater: 19, otherwater: 10, util: 10.719999999999999"
+(turtle 2): "totalwater: 1500, i: 500, waterinput: 250, mewater: 20, otherwater: 10, util: 10.799999999999999"
+(turtle 2): "totalwater: 1500, i: 525, waterinput: 243, mewater: 20, otherwater: 4, util: 5.279999999999999"
+(turtle 2): "i = 7, temp-capacity: 40, temp-watersupply: 30, temp-turnoff: 300, temp-harvest: 15"
+(turtle 2): "totalwater: 1500, i: 0, waterinput: 375, mewater: 0, otherwater: 18, util: 14.22"
+(turtle 2): "totalwater: 1500, i: 25, waterinput: 368, mewater: 0, otherwater: 18, util: 14.22"
+(turtle 2): "totalwater: 1500, i: 50, waterinput: 362, mewater: 0, otherwater: 18, util: 14.22"
+(turtle 2): "totalwater: 1500, i: 75, waterinput: 356, mewater: 0, otherwater: 18, util: 14.22"
+(turtle 2): "totalwater: 1500, i: 100, waterinput: 350, mewater: 0, otherwater: 18, util: 14.22"
+(turtle 2): "totalwater: 1500, i: 125, waterinput: 343, mewater: 0, otherwater: 15, util: 11.850000000000001"
+(turtle 2): "totalwater: 1500, i: 150, waterinput: 337, mewater: 1, otherwater: 15, util: 12.06"
+(turtle 2): "totalwater: 1500, i: 175, waterinput: 331, mewater: 1, otherwater: 15, util: 12.06"
+(turtle 2): "totalwater: 1500, i: 200, waterinput: 325, mewater: 4, otherwater: 15, util: 12.690000000000001"
+(turtle 2): "totalwater: 1500, i: 225, waterinput: 318, mewater: 4, otherwater: 15, util: 12.690000000000001"
+(turtle 2): "totalwater: 1500, i: 250, waterinput: 312, mewater: 10, otherwater: 15, util: 13.95"
+(turtle 2): "totalwater: 1500, i: 275, waterinput: 306, mewater: 10, otherwater: 15, util: 13.95"
+(turtle 2): "totalwater: 1500, i: 300, waterinput: 300, mewater: 15, otherwater: 15, util: 15"
+(turtle 2): "totalwater: 1500, i: 325, waterinput: 293, mewater: 15, otherwater: 10, util: 10.399999999999999"
+(turtle 2): "totalwater: 1500, i: 350, waterinput: 287, mewater: 18, otherwater: 10, util: 10.64"
+(turtle 2): "totalwater: 1500, i: 375, waterinput: 281, mewater: 18, otherwater: 10, util: 10.64"
+(turtle 2): "totalwater: 1500, i: 400, waterinput: 275, mewater: 19, otherwater: 10, util: 10.719999999999999"
+(turtle 2): "totalwater: 1500, i: 425, waterinput: 268, mewater: 19, otherwater: 10, util: 10.719999999999999"
+(turtle 2): "totalwater: 1500, i: 450, waterinput: 262, mewater: 19, otherwater: 10, util: 10.719999999999999"
+(turtle 2): "totalwater: 1500, i: 475, waterinput: 256, mewater: 19, otherwater: 10, util: 10.719999999999999"
+(turtle 2): "totalwater: 1500, i: 500, waterinput: 250, mewater: 20, otherwater: 10, util: 10.799999999999999"
+(turtle 2): "totalwater: 1500, i: 525, waterinput: 243, mewater: 20, otherwater: 4, util: 5.279999999999999"
+(turtle 2): "i = 8, temp-capacity: 40, temp-watersupply: 30, temp-turnoff: 300, temp-harvest: 15"
+(turtle 2): "totalwater: 1500, i: 0, waterinput: 375, mewater: 0, otherwater: 18, util: 14.22"
+(turtle 2): "totalwater: 1500, i: 25, waterinput: 368, mewater: 0, otherwater: 18, util: 14.22"
+(turtle 2): "totalwater: 1500, i: 50, waterinput: 362, mewater: 0, otherwater: 18, util: 14.22"
+(turtle 2): "totalwater: 1500, i: 75, waterinput: 356, mewater: 0, otherwater: 18, util: 14.22"
+(turtle 2): "totalwater: 1500, i: 100, waterinput: 350, mewater: 0, otherwater: 18, util: 14.22"
+(turtle 2): "totalwater: 1500, i: 125, waterinput: 343, mewater: 0, otherwater: 15, util: 11.850000000000001"
+(turtle 2): "totalwater: 1500, i: 150, waterinput: 337, mewater: 1, otherwater: 15, util: 12.06"
+(turtle 2): "totalwater: 1500, i: 175, waterinput: 331, mewater: 1, otherwater: 15, util: 12.06"
+(turtle 2): "totalwater: 1500, i: 200, waterinput: 325, mewater: 4, otherwater: 15, util: 12.690000000000001"
+(turtle 2): "totalwater: 1500, i: 225, waterinput: 318, mewater: 4, otherwater: 15, util: 12.690000000000001"
+(turtle 2): "totalwater: 1500, i: 250, waterinput: 312, mewater: 10, otherwater: 15, util: 13.95"
+(turtle 2): "totalwater: 1500, i: 275, waterinput: 306, mewater: 10, otherwater: 15, util: 13.95"
+(turtle 2): "totalwater: 1500, i: 300, waterinput: 300, mewater: 15, otherwater: 15, util: 15"
+(turtle 2): "totalwater: 1500, i: 325, waterinput: 293, mewater: 15, otherwater: 10, util: 10.399999999999999"
+(turtle 2): "totalwater: 1500, i: 350, waterinput: 287, mewater: 18, otherwater: 10, util: 10.64"
+(turtle 2): "totalwater: 1500, i: 375, waterinput: 281, mewater: 18, otherwater: 10, util: 10.64"
+(turtle 2): "totalwater: 1500, i: 400, waterinput: 275, mewater: 19, otherwater: 10, util: 10.719999999999999"
+(turtle 2): "totalwater: 1500, i: 425, waterinput: 268, mewater: 19, otherwater: 10, util: 10.719999999999999"
+(turtle 2): "totalwater: 1500, i: 450, waterinput: 262, mewater: 19, otherwater: 10, util: 10.719999999999999"
+(turtle 2): "totalwater: 1500, i: 475, waterinput: 256, mewater: 19, otherwater: 10, util: 10.719999999999999"
+(turtle 2): "totalwater: 1500, i: 500, waterinput: 250, mewater: 20, otherwater: 10, util: 10.799999999999999"
+(turtle 2): "totalwater: 1500, i: 525, waterinput: 243, mewater: 20, otherwater: 4, util: 5.279999999999999"
+(turtle 2): "i = 9, temp-capacity: 40, temp-watersupply: 30, temp-turnoff: 300, temp-harvest: 15"
+(turtle 2): "totalwater: 1500, i: 0, waterinput: 375, mewater: 0, otherwater: 18, util: 14.22"
+(turtle 2): "totalwater: 1500, i: 25, waterinput: 368, mewater: 0, otherwater: 18, util: 14.22"
+(turtle 2): "totalwater: 1500, i: 50, waterinput: 362, mewater: 0, otherwater: 18, util: 14.22"
+(turtle 2): "totalwater: 1500, i: 75, waterinput: 356, mewater: 0, otherwater: 18, util: 14.22"
+(turtle 2): "totalwater: 1500, i: 100, waterinput: 350, mewater: 0, otherwater: 18, util: 14.22"
+(turtle 2): "totalwater: 1500, i: 125, waterinput: 343, mewater: 0, otherwater: 15, util: 11.850000000000001"
+(turtle 2): "totalwater: 1500, i: 150, waterinput: 337, mewater: 1, otherwater: 15, util: 12.06"
+(turtle 2): "totalwater: 1500, i: 175, waterinput: 331, mewater: 1, otherwater: 15, util: 12.06"
+(turtle 2): "totalwater: 1500, i: 200, waterinput: 325, mewater: 4, otherwater: 15, util: 12.690000000000001"
+(turtle 2): "totalwater: 1500, i: 225, waterinput: 318, mewater: 4, otherwater: 15, util: 12.690000000000001"
+(turtle 2): "totalwater: 1500, i: 250, waterinput: 312, mewater: 10, otherwater: 15, util: 13.95"
+(turtle 2): "totalwater: 1500, i: 275, waterinput: 306, mewater: 10, otherwater: 15, util: 13.95"
+(turtle 2): "totalwater: 1500, i: 300, waterinput: 300, mewater: 15, otherwater: 15, util: 15"
+(turtle 2): "totalwater: 1500, i: 325, waterinput: 293, mewater: 15, otherwater: 10, util: 10.399999999999999"
+(turtle 2): "totalwater: 1500, i: 350, waterinput: 287, mewater: 18, otherwater: 10, util: 10.64"
+(turtle 2): "totalwater: 1500, i: 375, waterinput: 281, mewater: 18, otherwater: 10, util: 10.64"
+(turtle 2): "totalwater: 1500, i: 400, waterinput: 275, mewater: 19, otherwater: 10, util: 10.719999999999999"
+(turtle 2): "totalwater: 1500, i: 425, waterinput: 268, mewater: 19, otherwater: 10, util: 10.719999999999999"
+(turtle 2): "totalwater: 1500, i: 450, waterinput: 262, mewater: 19, otherwater: 10, util: 10.719999999999999"
+(turtle 2): "totalwater: 1500, i: 475, waterinput: 256, mewater: 19, otherwater: 10, util: 10.719999999999999"
+(turtle 2): "totalwater: 1500, i: 500, waterinput: 250, mewater: 20, otherwater: 10, util: 10.799999999999999"
+(turtle 2): "totalwater: 1500, i: 525, waterinput: 243, mewater: 20, otherwater: 4, util: 5.279999999999999"
+(turtle 2): "i = 10, temp-capacity: 40, temp-watersupply: 30, temp-turnoff: 300, temp-harvest: 15"
+(turtle 2): "randomnumber = 4.414126288406174E205, util: [7.171077600106592E205 6.505454827612369E204 5.9016154717776894E203 5.353824767007538E202 4.856880251331283E201 4.4060623577250134E200 3.9970895915836826E199 3.6260778686287306E198 3.289503627100411E197 2.9841703638863794E196 2.7071782767869983E195]"
+(turtle 2): "inv: 0, totalutility: 7.171077600106592E205"
+
+...
+[Turtle 0 and 1 analogously]
+...
+
+(turtle 0): "own harvest: 15, earningsothers: 15"
+(turtle 0): "i = 0, temp-capacity: 35, temp-watersupply: 30, temp-turnoff: 300, temp-harvest: 15"
+(turtle 0): "i = 1, temp-capacity: 35, temp-watersupply: 30, temp-turnoff: 300, temp-harvest: 15"
+(turtle 0): "i = 2, temp-capacity: 35, temp-watersupply: 30, temp-turnoff: 300, temp-harvest: 15"
+(turtle 0): "i = 3, temp-capacity: 35, temp-watersupply: 30, temp-turnoff: 300, temp-harvest: 15"
+(turtle 0): "i = 4, temp-capacity: 35, temp-watersupply: 30, temp-turnoff: 300, temp-harvest: 15"
+(turtle 0): "i = 5, temp-capacity: 35, temp-watersupply: 30, temp-turnoff: 300, temp-harvest: 15"
+(turtle 0): "i = 6, temp-capacity: 40, temp-watersupply: 30, temp-turnoff: 300, temp-harvest: 15"
+(turtle 0): "i = 7, temp-capacity: 40, temp-watersupply: 30, temp-turnoff: 300, temp-harvest: 15"
+(turtle 0): "i = 8, temp-capacity: 40, temp-watersupply: 30, temp-turnoff: 300, temp-harvest: 15"
+(turtle 0): "i = 9, temp-capacity: 40, temp-watersupply: 30, temp-turnoff: 300, temp-harvest: 15"
+(turtle 0): "i = 10, temp-capacity: 40, temp-watersupply: 30, temp-turnoff: 300, temp-harvest: 15"
+(turtle 0): "randomnumber = 2.0382635568235872E204, util: [7.171077600106592E205 6.505454827612369E204 5.9016154717776894E203 5.353824767007538E202 4.856880251331283E201 4.4060623577250134E200 3.9970895915836826E199 3.6260778686287306E198 3.289503627100411E197 2.9841703638863794E196 2.7071782767869983E195]"
+(turtle 0): "inv: 0, totalutility: 7.171077600106592E205"
+
+(turtle 1): "own harvest: 15, earningsothers: 15"
+(turtle 1): "i = 0, temp-capacity: 35, temp-watersupply: 30, temp-turnoff: 300, temp-harvest: 15"
+(turtle 1): "i = 1, temp-capacity: 35, temp-watersupply: 30, temp-turnoff: 300, temp-harvest: 15"
+(turtle 1): "i = 2, temp-capacity: 35, temp-watersupply: 30, temp-turnoff: 300, temp-harvest: 15"
+(turtle 1): "i = 3, temp-capacity: 35, temp-watersupply: 30, temp-turnoff: 300, temp-harvest: 15"
+(turtle 1): "i = 4, temp-capacity: 35, temp-watersupply: 30, temp-turnoff: 300, temp-harvest: 15"
+(turtle 1): "i = 5, temp-capacity: 35, temp-watersupply: 30, temp-turnoff: 300, temp-harvest: 15"
+(turtle 1): "i = 6, temp-capacity: 40, temp-watersupply: 30, temp-turnoff: 300, temp-harvest: 15"
+(turtle 1): "i = 7, temp-capacity: 40, temp-watersupply: 30, temp-turnoff: 300, temp-harvest: 15"
+(turtle 1): "i = 8, temp-capacity: 40, temp-watersupply: 30, temp-turnoff: 300, temp-harvest: 15"
+(turtle 1): "i = 9, temp-capacity: 40, temp-watersupply: 30, temp-turnoff: 300, temp-harvest: 15"
+(turtle 1): "i = 10, temp-capacity: 40, temp-watersupply: 30, temp-turnoff: 300, temp-harvest: 15"
+(turtle 1): "randomnumber = 3.606753871180737E205, util: [7.171077600106592E205 6.505454827612369E204 5.9016154717776894E203 5.353824767007538E202 4.856880251331283E201 4.4060623577250134E200 3.9970895915836826E199 3.6260778686287306E198 3.289503627100411E197 2.9841703638863794E196 2.7071782767869983E195]"
+(turtle 1): "inv: 0, totalutility: 7.171077600106592E205"
+observer: "investments: [0 0 0 0 0], infrastructure after investing: 65"
+```
+As agents expect that other would invest as much as in last round ([5 5 5 0 0]), when, in fact, they invested less ([0 0 0 0 0]), infrastructure is lower than expected (65 instead of 66). This leads to a lower overall amount of available water (1250 instead of 1500).
+
+```
+(turtle 0): "totalwater: 1250, i: 0, waterinput: 312, mewater: 0, otherwater: 15, util: 11.850000000000001"
+(turtle 0): "totalwater: 1250, i: 25, waterinput: 306, mewater: 0, otherwater: 15, util: 11.850000000000001"
+(turtle 0): "totalwater: 1250, i: 50, waterinput: 300, mewater: 0, otherwater: 15, util: 11.850000000000001"
+(turtle 0): "totalwater: 1250, i: 75, waterinput: 293, mewater: 0, otherwater: 10, util: 7.9"
+(turtle 0): "totalwater: 1250, i: 100, waterinput: 287, mewater: 0, otherwater: 10, util: 7.9"
+(turtle 0): "totalwater: 1250, i: 125, waterinput: 281, mewater: 0, otherwater: 10, util: 7.9"
+(turtle 0): "totalwater: 1250, i: 150, waterinput: 275, mewater: 1, otherwater: 10, util: 8.11"
+(turtle 0): "totalwater: 1250, i: 175, waterinput: 268, mewater: 1, otherwater: 10, util: 8.11"
+(turtle 0): "totalwater: 1250, i: 200, waterinput: 262, mewater: 4, otherwater: 10, util: 8.74"
+(turtle 0): "totalwater: 1250, i: 225, waterinput: 256, mewater: 4, otherwater: 10, util: 8.74"
+(turtle 0): "totalwater: 1250, i: 250, waterinput: 250, mewater: 10, otherwater: 10, util: 10"
+(turtle 0): "totalwater: 1250, i: 275, waterinput: 243, mewater: 10, otherwater: 4, util: 4.4799999999999995"
+(turtle 0): "totalwater: 1250, i: 300, waterinput: 237, mewater: 15, otherwater: 4, util: 4.879999999999999"
+(turtle 0): "totalwater: 1250, i: 325, waterinput: 231, mewater: 15, otherwater: 4, util: 4.879999999999999"
+(turtle 0): "totalwater: 1250, i: 350, waterinput: 225, mewater: 18, otherwater: 4, util: 5.119999999999999"
+(turtle 0): "totalwater: 1250, i: 375, waterinput: 218, mewater: 18, otherwater: 4, util: 5.119999999999999"
+(turtle 0): "totalwater: 1250, i: 400, waterinput: 212, mewater: 19, otherwater: 4, util: 5.199999999999999"
+(turtle 0): "totalwater: 1250, i: 425, waterinput: 206, mewater: 19, otherwater: 4, util: 5.199999999999999"
+(turtle 0): "totalwater: 1250, i: 450, waterinput: 200, mewater: 19, otherwater: 4, util: 5.199999999999999"
+(turtle 0): "totalwater: 1250, i: 475, waterinput: 193, mewater: 19, otherwater: 1, util: 2.4399999999999977"
+(turtle 0): "totalwater: 1250, i: 500, waterinput: 187, mewater: 20, otherwater: 1, util: 2.5199999999999996"
+(turtle 0): "totalwater: 1250, i: 525, waterinput: 181, mewater: 20, otherwater: 1, util: 2.5199999999999996"
+
+...
+[Turtle 0 and 1 analogously]
+...
+
+observer: "turnoff: [0 0 0 0 0], actual extraction: [0 0 0 0 0], harvest: [0 0 0 0 0]"
+observer: "actual utility: [10 10 10 10 10], satisfied: [0 0 0 0 0]"
+```
+Here, it shows that if $\beta$ is set too high, agents get a higher utility form not extracting and letting the others split the harvest among themselves. However, since every agents thinks like that, nobody actually extracts.
+
+```
+observer: "round 3"
+observer: "satisfied: [0 0 0 0 0], past-inv: [0 0 0 0 0], past-harvest: [0 0 0 0 0], infrastructure: 40"
+```
+Infrastructure level is too low to actually get any water flowing. 
+```
+(turtle 4): "own harvest: 0, earningsothers: 10"
+(turtle 4): "i = 0, temp-capacity: 0, temp-watersupply: 0, temp-turnoff: 0, temp-harvest: 0"
+(turtle 4): "i = 1, temp-capacity: 0, temp-watersupply: 0, temp-turnoff: 0, temp-harvest: 0"
+(turtle 4): "i = 2, temp-capacity: 0, temp-watersupply: 0, temp-turnoff: 0, temp-harvest: 0"
+(turtle 4): "i = 3, temp-capacity: 0, temp-watersupply: 0, temp-turnoff: 0, temp-harvest: 0"
+(turtle 4): "i = 4, temp-capacity: 0, temp-watersupply: 0, temp-turnoff: 0, temp-harvest: 0"
+(turtle 4): "i = 5, temp-capacity: 0, temp-watersupply: 0, temp-turnoff: 0, temp-harvest: 0"
+(turtle 4): "totalwater: 250, i: 0, waterinput: 62, mewater: 0, otherwater: 0, util: 0"
+(turtle 4): "totalwater: 250, i: 25, waterinput: 56, mewater: 0, otherwater: 0, util: 0"
+(turtle 4): "totalwater: 250, i: 50, waterinput: 50, mewater: 0, otherwater: 0, util: 0"
+(turtle 4): "totalwater: 250, i: 75, waterinput: 43, mewater: 0, otherwater: 0, util: 0"
+(turtle 4): "totalwater: 250, i: 100, waterinput: 37, mewater: 0, otherwater: 0, util: 0"
+(turtle 4): "totalwater: 250, i: 125, waterinput: 31, mewater: 0, otherwater: 0, util: 0"
+(turtle 4): "totalwater: 250, i: 150, waterinput: 25, mewater: 1, otherwater: 0, util: 0.07999999999999996"
+(turtle 4): "totalwater: 250, i: 175, waterinput: 18, mewater: 1, otherwater: 0, util: 0.07999999999999996"
+(turtle 4): "totalwater: 250, i: 200, waterinput: 12, mewater: 4, otherwater: 0, util: 0.31999999999999984"
+(turtle 4): "totalwater: 250, i: 225, waterinput: 6, mewater: 4, otherwater: 0, util: 0.31999999999999984"
+(turtle 4): "i = 6, temp-capacity: 5, temp-watersupply: 5, temp-turnoff: 200, temp-harvest: 4"
+(turtle 4): "totalwater: 250, i: 0, waterinput: 62, mewater: 0, otherwater: 0, util: 0"
+(turtle 4): "totalwater: 250, i: 25, waterinput: 56, mewater: 0, otherwater: 0, util: 0"
+(turtle 4): "totalwater: 250, i: 50, waterinput: 50, mewater: 0, otherwater: 0, util: 0"
+(turtle 4): "totalwater: 250, i: 75, waterinput: 43, mewater: 0, otherwater: 0, util: 0"
+(turtle 4): "totalwater: 250, i: 100, waterinput: 37, mewater: 0, otherwater: 0, util: 0"
+(turtle 4): "totalwater: 250, i: 125, waterinput: 31, mewater: 0, otherwater: 0, util: 0"
+(turtle 4): "totalwater: 250, i: 150, waterinput: 25, mewater: 1, otherwater: 0, util: 0.07999999999999996"
+(turtle 4): "totalwater: 250, i: 175, waterinput: 18, mewater: 1, otherwater: 0, util: 0.07999999999999996"
+(turtle 4): "totalwater: 250, i: 200, waterinput: 12, mewater: 4, otherwater: 0, util: 0.31999999999999984"
+(turtle 4): "totalwater: 250, i: 225, waterinput: 6, mewater: 4, otherwater: 0, util: 0.31999999999999984"
+(turtle 4): "i = 7, temp-capacity: 5, temp-watersupply: 5, temp-turnoff: 200, temp-harvest: 4"
+(turtle 4): "totalwater: 250, i: 0, waterinput: 62, mewater: 0, otherwater: 0, util: 0"
+(turtle 4): "totalwater: 250, i: 25, waterinput: 56, mewater: 0, otherwater: 0, util: 0"
+(turtle 4): "totalwater: 250, i: 50, waterinput: 50, mewater: 0, otherwater: 0, util: 0"
+(turtle 4): "totalwater: 250, i: 75, waterinput: 43, mewater: 0, otherwater: 0, util: 0"
+(turtle 4): "totalwater: 250, i: 100, waterinput: 37, mewater: 0, otherwater: 0, util: 0"
+(turtle 4): "totalwater: 250, i: 125, waterinput: 31, mewater: 0, otherwater: 0, util: 0"
+(turtle 4): "totalwater: 250, i: 150, waterinput: 25, mewater: 1, otherwater: 0, util: 0.07999999999999996"
+(turtle 4): "totalwater: 250, i: 175, waterinput: 18, mewater: 1, otherwater: 0, util: 0.07999999999999996"
+(turtle 4): "totalwater: 250, i: 200, waterinput: 12, mewater: 4, otherwater: 0, util: 0.31999999999999984"
+(turtle 4): "totalwater: 250, i: 225, waterinput: 6, mewater: 4, otherwater: 0, util: 0.31999999999999984"
+(turtle 4): "i = 8, temp-capacity: 5, temp-watersupply: 5, temp-turnoff: 200, temp-harvest: 4"
+(turtle 4): "totalwater: 250, i: 0, waterinput: 62, mewater: 0, otherwater: 0, util: 0"
+(turtle 4): "totalwater: 250, i: 25, waterinput: 56, mewater: 0, otherwater: 0, util: 0"
+(turtle 4): "totalwater: 250, i: 50, waterinput: 50, mewater: 0, otherwater: 0, util: 0"
+(turtle 4): "totalwater: 250, i: 75, waterinput: 43, mewater: 0, otherwater: 0, util: 0"
+(turtle 4): "totalwater: 250, i: 100, waterinput: 37, mewater: 0, otherwater: 0, util: 0"
+(turtle 4): "totalwater: 250, i: 125, waterinput: 31, mewater: 0, otherwater: 0, util: 0"
+(turtle 4): "totalwater: 250, i: 150, waterinput: 25, mewater: 1, otherwater: 0, util: 0.07999999999999996"
+(turtle 4): "totalwater: 250, i: 175, waterinput: 18, mewater: 1, otherwater: 0, util: 0.07999999999999996"
+(turtle 4): "totalwater: 250, i: 200, waterinput: 12, mewater: 4, otherwater: 0, util: 0.31999999999999984"
+(turtle 4): "totalwater: 250, i: 225, waterinput: 6, mewater: 4, otherwater: 0, util: 0.31999999999999984"
+(turtle 4): "i = 9, temp-capacity: 5, temp-watersupply: 5, temp-turnoff: 200, temp-harvest: 4"
+(turtle 4): "totalwater: 250, i: 0, waterinput: 62, mewater: 0, otherwater: 0, util: 0"
+(turtle 4): "totalwater: 250, i: 25, waterinput: 56, mewater: 0, otherwater: 0, util: 0"
+(turtle 4): "totalwater: 250, i: 50, waterinput: 50, mewater: 0, otherwater: 0, util: 0"
+(turtle 4): "totalwater: 250, i: 75, waterinput: 43, mewater: 0, otherwater: 0, util: 0"
+(turtle 4): "totalwater: 250, i: 100, waterinput: 37, mewater: 0, otherwater: 0, util: 0"
+(turtle 4): "totalwater: 250, i: 125, waterinput: 31, mewater: 0, otherwater: 0, util: 0"
+(turtle 4): "totalwater: 250, i: 150, waterinput: 25, mewater: 1, otherwater: 0, util: 0.07999999999999996"
+(turtle 4): "totalwater: 250, i: 175, waterinput: 18, mewater: 1, otherwater: 0, util: 0.07999999999999996"
+(turtle 4): "totalwater: 250, i: 200, waterinput: 12, mewater: 4, otherwater: 0, util: 0.31999999999999984"
+(turtle 4): "totalwater: 250, i: 225, waterinput: 6, mewater: 4, otherwater: 0, util: 0.31999999999999984"
+(turtle 4): "i = 10, temp-capacity: 5, temp-watersupply: 5, temp-turnoff: 200, temp-harvest: 4"
+(turtle 4): "randomnumber = 9.848536663119107E129, util: [1.9424263952412558E130 3.5668868686085173E127 6.549891395947424E124 1.2027596859399337E122 2.208633356909263E119 4.055723983997824E116 6.549891395947424E124 1.2027596859399337E122 2.208633356909263E119 4.055723983997824E116 7.447545326125829E113]"
+(turtle 4): "inv: 0, totalutility: 1.9424263952412558E130"
+```
+Investing at least 6 tokens into infrastructure would yield a harvest of only 4 tokens. Therefore, the agents don't invest.
+```
+...
+[Turtles 0  to 3 analogously]
+...
+
+(turtle 2): "own harvest: 0, earningsothers: 10"
+(turtle 2): "i = 0, temp-capacity: 0, temp-watersupply: 0, temp-turnoff: 0, temp-harvest: 0"
+(turtle 2): "i = 1, temp-capacity: 0, temp-watersupply: 0, temp-turnoff: 0, temp-harvest: 0"
+(turtle 2): "i = 2, temp-capacity: 0, temp-watersupply: 0, temp-turnoff: 0, temp-harvest: 0"
+(turtle 2): "i = 3, temp-capacity: 0, temp-watersupply: 0, temp-turnoff: 0, temp-harvest: 0"
+(turtle 2): "i = 4, temp-capacity: 0, temp-watersupply: 0, temp-turnoff: 0, temp-harvest: 0"
+(turtle 2): "i = 5, temp-capacity: 0, temp-watersupply: 0, temp-turnoff: 0, temp-harvest: 0"
+(turtle 2): "i = 6, temp-capacity: 5, temp-watersupply: 5, temp-turnoff: 200, temp-harvest: 4"
+(turtle 2): "i = 7, temp-capacity: 5, temp-watersupply: 5, temp-turnoff: 200, temp-harvest: 4"
+(turtle 2): "i = 8, temp-capacity: 5, temp-watersupply: 5, temp-turnoff: 200, temp-harvest: 4"
+(turtle 2): "i = 9, temp-capacity: 5, temp-watersupply: 5, temp-turnoff: 200, temp-harvest: 4"
+(turtle 2): "i = 10, temp-capacity: 5, temp-watersupply: 5, temp-turnoff: 200, temp-harvest: 4"
+(turtle 2): "randomnumber = 1.2190455194839601E130, util: [1.9424263952412558E130 3.5668868686085173E127 6.549891395947424E124 1.2027596859399337E122 2.208633356909263E119 4.055723983997824E116 6.549891395947424E124 1.2027596859399337E122 2.208633356909263E119 4.055723983997824E116 7.447545326125829E113]"
+(turtle 2): "inv: 0, totalutility: 1.9424263952412558E130"
+
+(turtle 0): "own harvest: 0, earningsothers: 10"
+(turtle 0): "i = 0, temp-capacity: 0, temp-watersupply: 0, temp-turnoff: 0, temp-harvest: 0"
+(turtle 0): "i = 1, temp-capacity: 0, temp-watersupply: 0, temp-turnoff: 0, temp-harvest: 0"
+(turtle 0): "i = 2, temp-capacity: 0, temp-watersupply: 0, temp-turnoff: 0, temp-harvest: 0"
+(turtle 0): "i = 3, temp-capacity: 0, temp-watersupply: 0, temp-turnoff: 0, temp-harvest: 0"
+(turtle 0): "i = 4, temp-capacity: 0, temp-watersupply: 0, temp-turnoff: 0, temp-harvest: 0"
+(turtle 0): "i = 5, temp-capacity: 0, temp-watersupply: 0, temp-turnoff: 0, temp-harvest: 0"
+(turtle 0): "i = 6, temp-capacity: 5, temp-watersupply: 5, temp-turnoff: 200, temp-harvest: 4"
+(turtle 0): "i = 7, temp-capacity: 5, temp-watersupply: 5, temp-turnoff: 200, temp-harvest: 4"
+(turtle 0): "i = 8, temp-capacity: 5, temp-watersupply: 5, temp-turnoff: 200, temp-harvest: 4"
+(turtle 0): "i = 9, temp-capacity: 5, temp-watersupply: 5, temp-turnoff: 200, temp-harvest: 4"
+(turtle 0): "i = 10, temp-capacity: 5, temp-watersupply: 5, temp-turnoff: 200, temp-harvest: 4"
+(turtle 0): "randomnumber = 4.8573173631670266E129, util: [1.9424263952412558E130 3.5668868686085173E127 6.549891395947424E124 1.2027596859399337E122 2.208633356909263E119 4.055723983997824E116 6.549891395947424E124 1.2027596859399337E122 2.208633356909263E119 4.055723983997824E116 7.447545326125829E113]"
+(turtle 0): "inv: 0, totalutility: 1.9424263952412558E130"
+
+(turtle 1): "own harvest: 0, earningsothers: 10"
+(turtle 1): "i = 0, temp-capacity: 0, temp-watersupply: 0, temp-turnoff: 0, temp-harvest: 0"
+(turtle 1): "i = 1, temp-capacity: 0, temp-watersupply: 0, temp-turnoff: 0, temp-harvest: 0"
+(turtle 1): "i = 2, temp-capacity: 0, temp-watersupply: 0, temp-turnoff: 0, temp-harvest: 0"
+(turtle 1): "i = 3, temp-capacity: 0, temp-watersupply: 0, temp-turnoff: 0, temp-harvest: 0"
+(turtle 1): "i = 4, temp-capacity: 0, temp-watersupply: 0, temp-turnoff: 0, temp-harvest: 0"
+(turtle 1): "i = 5, temp-capacity: 0, temp-watersupply: 0, temp-turnoff: 0, temp-harvest: 0"
+(turtle 1): "i = 6, temp-capacity: 5, temp-watersupply: 5, temp-turnoff: 200, temp-harvest: 4"
+(turtle 1): "i = 7, temp-capacity: 5, temp-watersupply: 5, temp-turnoff: 200, temp-harvest: 4"
+(turtle 1): "i = 8, temp-capacity: 5, temp-watersupply: 5, temp-turnoff: 200, temp-harvest: 4"
+(turtle 1): "i = 9, temp-capacity: 5, temp-watersupply: 5, temp-turnoff: 200, temp-harvest: 4"
+(turtle 1): "i = 10, temp-capacity: 5, temp-watersupply: 5, temp-turnoff: 200, temp-harvest: 4"
+(turtle 1): "randomnumber = 4.029093198017696E129, util: [1.9424263952412558E130 3.5668868686085173E127 6.549891395947424E124 1.2027596859399337E122 2.208633356909263E119 4.055723983997824E116 6.549891395947424E124 1.2027596859399337E122 2.208633356909263E119 4.055723983997824E116 7.447545326125829E113]"
+(turtle 1): "inv: 0, totalutility: 1.9424263952412558E130"
+
+(turtle 3): "own harvest: 0, earningsothers: 10"
+(turtle 3): "i = 0, temp-capacity: 0, temp-watersupply: 0, temp-turnoff: 0, temp-harvest: 0"
+(turtle 3): "i = 1, temp-capacity: 0, temp-watersupply: 0, temp-turnoff: 0, temp-harvest: 0"
+(turtle 3): "i = 2, temp-capacity: 0, temp-watersupply: 0, temp-turnoff: 0, temp-harvest: 0"
+(turtle 3): "i = 3, temp-capacity: 0, temp-watersupply: 0, temp-turnoff: 0, temp-harvest: 0"
+(turtle 3): "i = 4, temp-capacity: 0, temp-watersupply: 0, temp-turnoff: 0, temp-harvest: 0"
+(turtle 3): "i = 5, temp-capacity: 0, temp-watersupply: 0, temp-turnoff: 0, temp-harvest: 0"
+(turtle 3): "i = 6, temp-capacity: 5, temp-watersupply: 5, temp-turnoff: 200, temp-harvest: 4"
+(turtle 3): "i = 7, temp-capacity: 5, temp-watersupply: 5, temp-turnoff: 200, temp-harvest: 4"
+(turtle 3): "i = 8, temp-capacity: 5, temp-watersupply: 5, temp-turnoff: 200, temp-harvest: 4"
+(turtle 3): "i = 9, temp-capacity: 5, temp-watersupply: 5, temp-turnoff: 200, temp-harvest: 4"
+(turtle 3): "i = 10, temp-capacity: 5, temp-watersupply: 5, temp-turnoff: 200, temp-harvest: 4"
+(turtle 3): "randomnumber = 4.7552241216771886E129, util: [1.9424263952412558E130 3.5668868686085173E127 6.549891395947424E124 1.2027596859399337E122 2.208633356909263E119 4.055723983997824E116 6.549891395947424E124 1.2027596859399337E122 2.208633356909263E119 4.055723983997824E116 7.447545326125829E113]"
+(turtle 3): "inv: 0, totalutility: 1.9424263952412558E130"
+observer: "investments: [0 0 0 0 0], infrastructure after investing: 40"
+observer: "turnoff: [0 0 0 0 0], actual extraction: [0 0 0 0 0], harvest: [0 0 0 0 0]"
+observer: "actual utility: [10 10 10 10 10], satisfied: [0 0 0 0 0]"
+```
+
+#### Open issues/questions
+
++ Agents neglect their position along the river (they simply assume that they can extract any amount of water)
++ Assuming that the other agents split remaining water in equal shares underestimates their average harvest (because extraction and harvest are non-linear). There may be smarter ways to distribute the water given the steps in the `calharvest` function E.g.: a total amount of 1000 cfps may be shared equally among the rest, which leads to 250 cfps/person (-> average harvest = 10); but if the agents extract ([350 350 300 0 0]), harvests would be [18 18 15 0 0] (-> avg harvest = 12.75).
+    * Is it reasonable that this error will be small because with a more inequal water distribution there will be winners and losers that will balance each other more or less?
++ Assuming that agents will behave as in previous round introduces too strong fluctuations: If in one round there is hardly any investment (because infrastructure is in good shape) and agents assume that in the next round the other agents will continue not investing, then it does not pay off for the agent itself to invest. Additionally, these strong fluctuations in investment (often from 10 to 0 and vice versa) do not correspond to the empirical finding that agents prefer small changes in their decisions.
+    * Ways out:
+        * Agents calculate their investment decision with respect to a target level of infrastructure (e.g. 66).
+        * Agents calculate a propensity to change their investment level (i.e. how strongly they want to deviate from the previous investment)
++ Let agents assume that others would simply behave in the same way as oneself. -> **implement**!
