@@ -2091,3 +2091,626 @@ Warnmeldungen:
 1: package 'rJava' was built under R version 3.3.2 
 2: In `[<-`(`*tmp*`, nl.obj, value = list(nl.sm13 = <S4 object of class "jobjRef">)) :
   implicit list embedding of S4 objects is deprecated
+starting worker pid=5448 on localhost:11566 at 15:06:49.587
+starting worker pid=6340 on localhost:11566 at 15:06:49.820
+starting worker pid=6712 on localhost:11566 at 15:06:50.062
+starting worker pid=4028 on localhost:11566 at 15:06:50.299
+Loading required package: rJava
+Loading required package: rJava
+Loading required package: rJava
+Loading required package: rJava
+Loading required package: igraph
+Loading required package: igraph
+
+Attaching package: 'igraph'
+
+The following objects are masked from 'package:stats':
+
+    decompose, spectrum
+
+The following object is masked from 'package:base':
+
+    union
+
+
+Attaching package: 'igraph'
+
+The following objects are masked from 'package:stats':
+
+    decompose, spectrum
+
+The following object is masked from 'package:base':
+
+    union
+
+Loading required package: igraph
+
+Attaching package: 'igraph'
+
+The following objects are masked from 'package:stats':
+
+    decompose, spectrum
+
+The following object is masked from 'package:base':
+
+    union
+
+Loading required package: igraph
+
+Attaching package: 'igraph'
+
+The following objects are masked from 'package:stats':
+
+    decompose, spectrum
+
+The following object is masked from 'package:base':
+
+    union
+
+[1] "Java-Object{No closing bracket for this open bracket. at position 14255 in }"
+[1] "Java-Object{No closing bracket for this open bracket. at position 14255 in }"
+[1] "Java-Object{No closing bracket for this open bracket. at position 14255 in }"
+[1] "Java-Object{No closing bracket for this open bracket. at position 14255 in }"
+starting worker pid=3612 on localhost:11566 at 15:08:48.684
+starting worker pid=5248 on localhost:11566 at 15:08:48.934
+starting worker pid=4764 on localhost:11566 at 15:08:49.184
+starting worker pid=3552 on localhost:11566 at 15:08:49.422
+Loading required package: rJava
+Loading required package: rJava
+Loading required package: rJava
+Loading required package: rJava
+Loading required package: igraph
+Loading required package: igraph
+
+Attaching package: 'igraph'
+
+The following objects are masked from 'package:stats':
+
+    decompose, spectrum
+
+The following object is masked from 'package:base':
+
+    union
+
+
+Attaching package: 'igraph'
+
+The following objects are masked from 'package:stats':
+
+    decompose, spectrum
+
+The following object is masked from 'package:base':
+
+    union
+
+Loading required package: igraph
+
+Attaching package: 'igraph'
+
+The following objects are masked from 'package:stats':
+
+    decompose, spectrum
+
+The following object is masked from 'package:base':
+
+    union
+
+Loading required package: igraph
+
+Attaching package: 'igraph'
+
+The following objects are masked from 'package:stats':
+
+    decompose, spectrum
+
+The following object is masked from 'package:base':
+
+    union
+
+[1] "Java-Object{No closing bracket for this open bracket. at position 14255 in }"
+[1] "Java-Object{No closing bracket for this open bracket. at position 14255 in }"
+[1] "Java-Object{No closing bracket for this open bracket. at position 14255 in }"
+[1] "Java-Object{No closing bracket for this open bracket. at position 14255 in }"
+Warnmeldungen:
+1: package 'rJava' was built under R version 3.3.2 
+2: In `[<-`(`*tmp*`, nl.obj, value = list(nl.sm13 = <S4 object of class "jobjRef">)) :
+  implicit list embedding of S4 objects is deprecated
+Warnmeldungen:
+1: package 'rJava' was built under R version 3.3.2 
+2: In `[<-`(`*tmp*`, nl.obj, value = list(nl.sm13 = <S4 object of class "jobjRef">)) :
+  implicit list embedding of S4 objects is deprecated
+Warnmeldungen:
+1: package 'rJava' was built under R version 3.3.2 
+2: In `[<-`(`*tmp*`, nl.obj, value = list(nl.sm13 = <S4 object of class "jobjRef">)) :
+  implicit list embedding of S4 objects is deprecated
+Warnmeldungen:
+1: package 'rJava' was built under R version 3.3.2 
+2: In `[<-`(`*tmp*`, nl.obj, value = list(nl.sm13 = <S4 object of class "jobjRef">)) :
+  implicit list embedding of S4 objects is deprecated
+starting worker pid=1440 on localhost:11566 at 15:13:51.672
+starting worker pid=1184 on localhost:11566 at 15:13:51.908
+starting worker pid=4224 on localhost:11566 at 15:13:52.111
+starting worker pid=2792 on localhost:11566 at 15:13:52.316
+Loading required package: rJava
+Loading required package: rJava
+Loading required package: rJava
+Loading required package: rJava
+Loading required package: igraph
+
+Attaching package: 'igraph'
+
+The following objects are masked from 'package:stats':
+
+    decompose, spectrum
+
+The following object is masked from 'package:base':
+
+    union
+
+Loading required package: igraph
+Loading required package: igraph
+
+Attaching package: 'igraph'
+
+The following objects are masked from 'package:stats':
+
+    decompose, spectrum
+
+The following object is masked from 'package:base':
+
+    union
+
+Loading required package: igraph
+
+Attaching package: 'igraph'
+
+The following objects are masked from 'package:stats':
+
+    decompose, spectrum
+
+The following object is masked from 'package:base':
+
+    union
+
+
+Attaching package: 'igraph'
+
+The following objects are masked from 'package:stats':
+
+    decompose, spectrum
+
+The following object is masked from 'package:base':
+
+    union
+
+[1] "Java-Object{No closing bracket for this open bracket. at position 14255 in }"
+[1] "Java-Object{No closing bracket for this open bracket. at position 14255 in }"
+[1] "Java-Object{No closing bracket for this open bracket. at position 14255 in }"
+[1] "Java-Object{No closing bracket for this open bracket. at position 14255 in }"
+starting worker pid=5304 on localhost:11566 at 15:21:10.856
+starting worker pid=4376 on localhost:11566 at 15:21:11.090
+starting worker pid=1704 on localhost:11566 at 15:21:11.377
+starting worker pid=4768 on localhost:11566 at 15:21:11.615
+Loading required package: rJava
+Loading required package: rJava
+Loading required package: rJava
+Loading required package: rJava
+Loading required package: igraph
+
+Attaching package: 'igraph'
+
+The following objects are masked from 'package:stats':
+
+    decompose, spectrum
+
+The following object is masked from 'package:base':
+
+    union
+
+Loading required package: igraph
+Loading required package: igraph
+Loading required package: igraph
+
+Attaching package: 'igraph'
+
+The following objects are masked from 'package:stats':
+
+    decompose, spectrum
+
+The following object is masked from 'package:base':
+
+    union
+
+
+Attaching package: 'igraph'
+
+The following objects are masked from 'package:stats':
+
+    decompose, spectrum
+
+The following object is masked from 'package:base':
+
+    union
+
+
+Attaching package: 'igraph'
+
+The following objects are masked from 'package:stats':
+
+    decompose, spectrum
+
+The following object is masked from 'package:base':
+
+    union
+
+[1] "processed (Morris): 0.333333333333333%"
+[1] "processed (Morris): 0.333333333333333%"
+[1] "processed (Morris): 0.333333333333333%"
+[1] "processed (Morris): 0.333333333333333%"
+[1] "processed (Morris): 0.666666666666667%"
+[1] "processed (Morris): 0.666666666666667%"
+[1] "processed (Morris): 0.666666666666667%"
+[1] "processed (Morris): 0.666666666666667%"
+[1] "processed (Morris): 1%"
+[1] "processed (Morris): 1%"
+[1] "processed (Morris): 1%"
+[1] "processed (Morris): 1.33333333333333%"
+[1] "processed (Morris): 1%"
+[1] "processed (Morris): 1.33333333333333%"
+[1] "processed (Morris): 1.66666666666667%"
+[1] "processed (Morris): 1.33333333333333%"
+[1] "processed (Morris): 1.33333333333333%"
+[1] "processed (Morris): 1.66666666666667%"
+[1] "processed (Morris): 2%"
+[1] "processed (Morris): 1.66666666666667%"
+[1] "processed (Morris): 1.66666666666667%"
+[1] "processed (Morris): 2%"
+[1] "processed (Morris): 2.33333333333333%"
+[1] "processed (Morris): 2.33333333333333%"
+[1] "processed (Morris): 2%"
+[1] "processed (Morris): 2%"
+[1] "processed (Morris): 2.66666666666667%"
+[1] "processed (Morris): 2.66666666666667%"
+[1] "processed (Morris): 3%"
+[1] "processed (Morris): 2.33333333333333%"
+[1] "processed (Morris): 2.33333333333333%"
+[1] "processed (Morris): 3%"
+[1] "processed (Morris): 2.66666666666667%"
+[1] "processed (Morris): 3.33333333333333%"
+[1] "processed (Morris): 3.33333333333333%"
+[1] "processed (Morris): 2.66666666666667%"
+[1] "processed (Morris): 3.66666666666667%"
+[1] "processed (Morris): 3%"
+[1] "processed (Morris): 3.66666666666667%"
+[1] "processed (Morris): 3%"
+[1] "processed (Morris): 4%"
+[1] "processed (Morris): 4%"
+[1] "processed (Morris): 3.33333333333333%"
+[1] "processed (Morris): 3.33333333333333%"
+[1] "processed (Morris): 4.33333333333333%"
+[1] "processed (Morris): 4.33333333333333%"
+[1] "processed (Morris): 4.66666666666667%"
+[1] "processed (Morris): 3.66666666666667%"
+[1] "processed (Morris): 3.66666666666667%"
+[1] "processed (Morris): 4.66666666666667%"
+[1] "processed (Morris): 5%"
+[1] "processed (Morris): 4%"
+[1] "processed (Morris): 4%"
+[1] "processed (Morris): 5%"
+[1] "processed (Morris): 5.33333333333333%"
+[1] "processed (Morris): 5.66666666666667%"
+[1] "processed (Morris): 5.33333333333333%"
+[1] "processed (Morris): 4.33333333333333%"
+[1] "processed (Morris): 4.33333333333333%"
+[1] "processed (Morris): 6%"
+[1] "processed (Morris): 5.66666666666667%"
+[1] "processed (Morris): 4.66666666666667%"
+[1] "processed (Morris): 4.66666666666667%"
+[1] "processed (Morris): 6.33333333333333%"
+[1] "processed (Morris): 6%"
+[1] "processed (Morris): 5%"
+[1] "processed (Morris): 5%"
+[1] "processed (Morris): 6.66666666666667%"
+[1] "processed (Morris): 6.33333333333333%"
+[1] "processed (Morris): 7%"
+[1] "processed (Morris): 5.33333333333333%"
+[1] "processed (Morris): 5.33333333333333%"
+[1] "processed (Morris): 6.66666666666667%"
+[1] "processed (Morris): 7.33333333333333%"
+[1] "processed (Morris): 5.66666666666667%"
+[1] "processed (Morris): 7%"
+[1] "processed (Morris): 5.66666666666667%"
+[1] "processed (Morris): 7.66666666666667%"
+[1] "processed (Morris): 7.33333333333333%"
+[1] "processed (Morris): 6%"
+[1] "processed (Morris): 6%"
+[1] "processed (Morris): 8%"
+[1] "processed (Morris): 7.66666666666667%"
+[1] "processed (Morris): 6.33333333333333%"
+[1] "processed (Morris): 6.33333333333333%"
+[1] "processed (Morris): 8.33333333333333%"
+[1] "processed (Morris): 8%"
+[1] "processed (Morris): 6.66666666666667%"
+[1] "processed (Morris): 6.66666666666667%"
+[1] "processed (Morris): 8.66666666666667%"
+[1] "processed (Morris): 8.33333333333333%"
+[1] "processed (Morris): 7%"
+[1] "processed (Morris): 9%"
+[1] "processed (Morris): 7%"
+[1] "processed (Morris): 8.66666666666667%"
+[1] "processed (Morris): 9.33333333333333%"
+[1] "processed (Morris): 9%"
+[1] "processed (Morris): 7.33333333333333%"
+[1] "processed (Morris): 7.33333333333333%"
+[1] "processed (Morris): 9.66666666666667%"
+[1] "processed (Morris): 9.33333333333333%"
+[1] "processed (Morris): 7.66666666666667%"
+[1] "processed (Morris): 10%"
+[1] "processed (Morris): 7.66666666666667%"
+[1] "processed (Morris): 9.66666666666667%"
+[1] "processed (Morris): 10.3333333333333%"
+[1] "processed (Morris): 8%"
+[1] "processed (Morris): 8%"
+[1] "processed (Morris): 10.6666666666667%"
+[1] "processed (Morris): 10%"
+[1] "processed (Morris): 8.33333333333333%"
+[1] "processed (Morris): 10.3333333333333%"
+[1] "processed (Morris): 8.33333333333333%"
+[1] "processed (Morris): 11%"
+[1] "processed (Morris): 11.3333333333333%"
+[1] "processed (Morris): 10.6666666666667%"
+[1] "processed (Morris): 8.66666666666667%"
+[1] "processed (Morris): 8.66666666666667%"
+[1] "processed (Morris): 11.6666666666667%"
+[1] "processed (Morris): 11%"
+[1] "processed (Morris): 9%"
+[1] "processed (Morris): 9%"
+[1] "processed (Morris): 12%"
+[1] "processed (Morris): 11.3333333333333%"
+[1] "processed (Morris): 9.33333333333333%"
+[1] "processed (Morris): 12.3333333333333%"
+[1] "processed (Morris): 9.33333333333333%"
+[1] "processed (Morris): 11.6666666666667%"
+[1] "processed (Morris): 12.6666666666667%"
+[1] "processed (Morris): 9.66666666666667%"
+[1] "processed (Morris): 12%"
+[1] "processed (Morris): 13%"
+[1] "processed (Morris): 9.66666666666667%"
+[1] "processed (Morris): 13.3333333333333%"
+[1] "processed (Morris): 10%"
+[1] "processed (Morris): 12.3333333333333%"
+[1] "processed (Morris): 10%"
+[1] "processed (Morris): 13.6666666666667%"
+[1] "processed (Morris): 12.6666666666667%"
+[1] "processed (Morris): 10.3333333333333%"
+[1] "processed (Morris): 10.3333333333333%"
+[1] "processed (Morris): 14%"
+[1] "processed (Morris): 13%"
+[1] "processed (Morris): 10.6666666666667%"
+[1] "processed (Morris): 14.3333333333333%"
+[1] "processed (Morris): 10.6666666666667%"
+[1] "processed (Morris): 13.3333333333333%"
+[1] "processed (Morris): 14.6666666666667%"
+[1] "processed (Morris): 11%"
+[1] "processed (Morris): 11%"
+[1] "processed (Morris): 15%"
+[1] "processed (Morris): 13.6666666666667%"
+[1] "processed (Morris): 11.3333333333333%"
+[1] "processed (Morris): 14%"
+[1] "processed (Morris): 15.3333333333333%"
+[1] "processed (Morris): 11.3333333333333%"
+[1] "processed (Morris): 11.6666666666667%"
+[1] "processed (Morris): 14.3333333333333%"
+[1] "processed (Morris): 15.6666666666667%"
+[1] "processed (Morris): 11.6666666666667%"
+[1] "processed (Morris): 16%"
+[1] "processed (Morris): 12%"
+[1] "processed (Morris): 14.6666666666667%"
+[1] "processed (Morris): 12%"
+[1] "processed (Morris): 16.3333333333333%"
+[1] "processed (Morris): 12.3333333333333%"
+[1] "processed (Morris): 15%"
+[1] "processed (Morris): 12.3333333333333%"
+[1] "processed (Morris): 16.6666666666667%"
+[1] "processed (Morris): 15.3333333333333%"
+[1] "processed (Morris): 12.6666666666667%"
+[1] "processed (Morris): 17%"
+[1] "processed (Morris): 12.6666666666667%"
+[1] "processed (Morris): 15.6666666666667%"
+[1] "processed (Morris): 17.3333333333333%"
+[1] "processed (Morris): 13%"
+[1] "processed (Morris): 17.6666666666667%"
+[1] "processed (Morris): 16%"
+[1] "processed (Morris): 13%"
+[1] "processed (Morris): 16.3333333333333%"
+[1] "processed (Morris): 13.3333333333333%"
+[1] "processed (Morris): 13.3333333333333%"
+[1] "processed (Morris): 18%"
+[1] "processed (Morris): 16.6666666666667%"
+[1] "processed (Morris): 13.6666666666667%"
+[1] "processed (Morris): 13.6666666666667%"
+[1] "processed (Morris): 17%"
+[1] "processed (Morris): 18.3333333333333%"
+[1] "processed (Morris): 14%"
+[1] "processed (Morris): 17.3333333333333%"
+[1] "processed (Morris): 14%"
+[1] "processed (Morris): 18.6666666666667%"
+[1] "processed (Morris): 14.3333333333333%"
+[1] "processed (Morris): 17.6666666666667%"
+[1] "processed (Morris): 19%"
+[1] "processed (Morris): 14.3333333333333%"
+[1] "processed (Morris): 14.6666666666667%"
+[1] "processed (Morris): 18%"
+[1] "processed (Morris): 19.3333333333333%"
+[1] "processed (Morris): 14.6666666666667%"
+[1] "processed (Morris): 15%"
+[1] "processed (Morris): 18.3333333333333%"
+[1] "processed (Morris): 15%"
+[1] "processed (Morris): 19.6666666666667%"
+[1] "processed (Morris): 18.6666666666667%"
+[1] "processed (Morris): 15.3333333333333%"
+[1] "processed (Morris): 15.3333333333333%"
+[1] "processed (Morris): 19%"
+[1] "processed (Morris): 20%"
+[1] "processed (Morris): 15.6666666666667%"
+[1] "processed (Morris): 15.6666666666667%"
+[1] "processed (Morris): 19.3333333333333%"
+[1] "processed (Morris): 20.3333333333333%"
+[1] "processed (Morris): 16%"
+[1] "processed (Morris): 20.6666666666667%"
+[1] "processed (Morris): 19.6666666666667%"
+[1] "processed (Morris): 16%"
+[1] "processed (Morris): 16.3333333333333%"
+[1] "processed (Morris): 21%"
+[1] "processed (Morris): 20%"
+[1] "processed (Morris): 16.3333333333333%"
+[1] "processed (Morris): 16.6666666666667%"
+[1] "processed (Morris): 21.3333333333333%"
+[1] "processed (Morris): 20.3333333333333%"
+[1] "processed (Morris): 16.6666666666667%"
+[1] "processed (Morris): 17%"
+[1] "processed (Morris): 21.6666666666667%"
+[1] "processed (Morris): 20.6666666666667%"
+[1] "processed (Morris): 17%"
+[1] "processed (Morris): 17.3333333333333%"
+[1] "processed (Morris): 21%"
+[1] "processed (Morris): 22%"
+[1] "processed (Morris): 17.3333333333333%"
+[1] "processed (Morris): 17.6666666666667%"
+[1] "processed (Morris): 22.3333333333333%"
+[1] "processed (Morris): 21.3333333333333%"
+[1] "processed (Morris): 22.6666666666667%"
+[1] "processed (Morris): 17.6666666666667%"
+[1] "processed (Morris): 18%"
+[1] "processed (Morris): 21.6666666666667%"
+[1] "processed (Morris): 23%"
+[1] "processed (Morris): 18.3333333333333%"
+[1] "processed (Morris): 22%"
+[1] "processed (Morris): 18%"
+[1] "processed (Morris): 22.3333333333333%"
+[1] "processed (Morris): 23.3333333333333%"
+[1] "processed (Morris): 18.6666666666667%"
+[1] "processed (Morris): 18.3333333333333%"
+[1] "processed (Morris): 22.6666666666667%"
+[1] "processed (Morris): 23.6666666666667%"
+[1] "processed (Morris): 19%"
+[1] "processed (Morris): 18.6666666666667%"
+[1] "processed (Morris): 24%"
+[1] "processed (Morris): 23%"
+[1] "processed (Morris): 24.3333333333333%"
+[1] "processed (Morris): 19.3333333333333%"
+[1] "processed (Morris): 19%"
+[1] "processed (Morris): 24.6666666666667%"
+[1] "processed (Morris): 23.3333333333333%"
+[1] "processed (Morris): 19.6666666666667%"
+[1] "processed (Morris): 19.3333333333333%"
+[1] "processed (Morris): 25%"
+[1] "processed (Morris): 23.6666666666667%"
+[1] "processed (Morris): 20%"
+[1] "processed (Morris): 24%"
+[1] "processed (Morris): 19.6666666666667%"
+[1] "processed (Morris): 20.3333333333333%"
+[1] "processed (Morris): 24.3333333333333%"
+[1] "processed (Morris): 20%"
+[1] "processed (Morris): 20.6666666666667%"
+[1] "processed (Morris): 24.6666666666667%"
+[1] "processed (Morris): 20.3333333333333%"
+[1] "processed (Morris): 21%"
+[1] "processed (Morris): 25%"
+[1] "processed (Morris): 20.6666666666667%"
+[1] "processed (Morris): 21.3333333333333%"
+[1] "processed (Morris): 21%"
+[1] "processed (Morris): 21.6666666666667%"
+[1] "processed (Morris): 21.3333333333333%"
+[1] "processed (Morris): 22%"
+[1] "processed (Morris): 21.6666666666667%"
+[1] "processed (Morris): 22.3333333333333%"
+[1] "processed (Morris): 22%"
+[1] "processed (Morris): 22.6666666666667%"
+[1] "processed (Morris): 22.3333333333333%"
+[1] "processed (Morris): 23%"
+[1] "processed (Morris): 22.6666666666667%"
+[1] "processed (Morris): 23.3333333333333%"
+[1] "processed (Morris): 23%"
+[1] "processed (Morris): 23.6666666666667%"
+[1] "processed (Morris): 23.3333333333333%"
+[1] "processed (Morris): 24%"
+[1] "processed (Morris): 23.6666666666667%"
+[1] "processed (Morris): 24.3333333333333%"
+[1] "processed (Morris): 24%"
+[1] "processed (Morris): 24.6666666666667%"
+[1] "processed (Morris): 24.3333333333333%"
+[1] "processed (Morris): 25%"
+[1] "processed (Morris): 24.6666666666667%"
+[1] "processed (Morris): 25%"
+Warnmeldungen:
+1: package 'rJava' was built under R version 3.3.2 
+2: In `[<-`(`*tmp*`, nl.obj, value = list(nl.sm13 = <S4 object of class "jobjRef">)) :
+  implicit list embedding of S4 objects is deprecated
+Warnmeldungen:
+Warnmeldungen:
+Warnmeldungen:
+1: package 'rJava' was built under R version 3.3.2 
+1: package 'rJava' was built under R version 3.3.2 
+2: 2: 2: In `[<-`(`*tmp*`, nl.obj, value = list(nl.sm13 = <S4 object of class "jobjRef">)) :
+ In `[<-`(`*tmp*`, nl.obj, value = list(nl.sm13 = <S4 object of class "jobjRef">)) : implicit list embedding of S4 objects is deprecated
+
+ In `[<-`(`*tmp*`, nl.obj, value = list(nl.sm13 = <S4 object of class "jobjRef">)) : implicit list embedding of S4 objects is deprecated
+
+  implicit list embedding of S4 objects is deprecated
+Fehler in unserialize(node$con) : Lesefehler aus Verbindung
+Ruft auf: <Anonymous> ... doTryCatch -> recvData -> recvData.SOCKnode -> unserialize
+Zusätzlich: Warnmeldungen:
+1: package 'rJava' was built under R version 3.3.2 
+2: In `[<-`(`*tmp*`, nl.obj, value = list(nl.sm13 = <S4 object of class "jobjRef">)) :
+  implicit list embedding of S4 objects is deprecated
+Ausführung angehalten
+Fehler in unserialize(node$con) : Lesefehler aus Verbindung
+Ruft auf: <Anonymous> ... doTryCatch -> recvData -> recvData.SOCKnode -> unserialize
+Zusätzlich: Warnmeldungen:
+1: package 'rJava' was built under R version 3.3.2 
+2: In `[<-`(`*tmp*`, nl.obj, value = list(nl.sm13 = <S4 object of class "jobjRef">)) :
+  implicit list embedding of S4 objects is deprecated
+Ausführung angehalten
+Fehler in unserialize(node$con) : Lesefehler aus Verbindung
+Ruft auf: <Anonymous> ... doTryCatch -> recvData -> recvData.SOCKnode -> unserialize
+Zusätzlich: Warnmeldungen:
+1: package 'rJava' was built under R version 3.3.2 
+2: In `[<-`(`*tmp*`, nl.obj, value = list(nl.sm13 = <S4 object of class "jobjRef">)) :
+  implicit list embedding of S4 objects is deprecated
+Ausführung angehalten
+Fehler in unserialize(node$con) : Lesefehler aus Verbindung
+Ruft auf: <Anonymous> ... doTryCatch -> recvData -> recvData.SOCKnode -> unserialize
+Zusätzlich: Warnmeldungen:
+1: package 'rJava' was built under R version 3.3.2 
+2: In `[<-`(`*tmp*`, nl.obj, value = list(nl.sm13 = <S4 object of class "jobjRef">)) :
+  implicit list embedding of S4 objects is deprecated
+Ausführung angehalten
+Fehler in unserialize(node$con) : Lesefehler aus Verbindung
+Ruft auf: <Anonymous> ... doTryCatch -> recvData -> recvData.SOCKnode -> unserialize
+Zusätzlich: Warnmeldungen:
+1: package 'rJava' was built under R version 3.3.2 
+2: In `[<-`(`*tmp*`, nl.obj, value = list(nl.sm13 = <S4 object of class "jobjRef">)) :
+  implicit list embedding of S4 objects is deprecated
+Ausführung angehalten
+Fehler in unserialize(node$con) : Lesefehler aus Verbindung
+Ruft auf: <Anonymous> ... doTryCatch -> recvData -> recvData.SOCKnode -> unserialize
+Zusätzlich: Warnmeldungen:
+1: package 'rJava' was built under R version 3.3.2 
+2: In `[<-`(`*tmp*`, nl.obj, value = list(nl.sm13 = <S4 object of class "jobjRef">)) :
+  implicit list embedding of S4 objects is deprecated
+Ausführung angehalten
+Fehler in unserialize(node$con) : Lesefehler aus Verbindung
+Ruft auf: <Anonymous> ... doTryCatch -> recvData -> recvData.SOCKnode -> unserialize
+Zusätzlich: Warnmeldungen:
+1: package 'rJava' was built under R version 3.3.2 
+2: In `[<-`(`*tmp*`, nl.obj, value = list(nl.sm13 = <S4 object of class "jobjRef">)) :
+  implicit list embedding of S4 objects is deprecated
+Ausführung angehalten
+Fehler in unserialize(node$con) : Lesefehler aus Verbindung
+Ruft auf: <Anonymous> ... doTryCatch -> recvData -> recvData.SOCKnode -> unserialize
+Zusätzlich: Warnmeldungen:
+1: package 'rJava' was built under R version 3.3.2 
+2: In `[<-`(`*tmp*`, nl.obj, value = list(nl.sm13 = <S4 object of class "jobjRef">)) :
+  implicit list embedding of S4 objects is deprecated
+Ausführung angehalten

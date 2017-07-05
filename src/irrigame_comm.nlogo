@@ -1,7 +1,9 @@
 ;;;;; CHANGELOG: ;;;;;;;;
-; - social-values: parameter introduced that measures how strongly agents deviate from fair investment
-; - social-values: expectations on how others behave depend on past behavior and fair investment, moderated by kappa
-; - calcapacity: ifelse infrastructure-level <= 51 -> ifelse infrastructure-level < 52
+; - commented out console output for debugging
+; - commented new code
+; - highlighted new code with ";FJ NEW CODE"
+; - reduce upper limit of mu to 25 (values of ~ 30 can yield very large utilities that NL interprets as infinity)
+
 ;;;;; TO-DOS: ;;;;;;;;;;;
 
 
@@ -266,7 +268,7 @@ to go
     ; updateparams ; resets parameters to values from interface
   ]
 
-  show (word "round " (ticks + 1))
+;  show (word "round " (ticks + 1))
 
 ;  createdata ; MJ: translate data list to time series of data
 
@@ -300,10 +302,10 @@ to go
     ]
   ]
 
-  show (word "past-inv: " map [[inv] of ?] sort turtles ", past-harvest: " map [[harvest] of ?] sort turtles ", infrastructure: " infrastructure)
-  show (word "satisfied: " map [[satisfied] of ?] sort turtles ", kappa: " map [[kappa] of ?] sort turtles ", maintenance: " maintenance ", infrastructure: " infrastructure)
+;  show (word "past-inv: " map [[inv] of ?] sort turtles ", past-harvest: " map [[harvest] of ?] sort turtles ", infrastructure: " infrastructure)
+;  show (word "satisfied: " map [[satisfied] of ?] sort turtles ", kappa: " map [[kappa] of ?] sort turtles ", maintenance: " maintenance ", infrastructure: " infrastructure)
   invest
-  show (word "investments: " map [[inv] of ?] sort turtles ", infrastructure after investing: " infrastructure)
+;  show (word "investments: " map [[inv] of ?] sort turtles ", infrastructure after investing: " infrastructure)
 
   ; update expected cooperation from observed investment levels (only for conditionalcooperation)
   if scenario = "conditionalcooperation" [
@@ -319,10 +321,11 @@ to go
   set actualwatersupply calcwaterflow capacity
   if scenario = "social-values" [
     ask turtles [if satisfied < 1 [ ; if agent is not satisfied evaluate which level of water maximize utility given the expected water collected of others (
-      show (word "capacity: " capacity "; actualwatersupply: " actualwatersupply)
-      let calcutility-values calcutility actualwatersupply
-      set turnoff item 0 calcutility-values
-      show (word "real extraction (turnoff - mewater - otherwater): " calcutility-values)]
+;        show (word "capacity: " capacity "; actualwatersupply: " actualwatersupply)
+        let calcutility-values calcutility actualwatersupply
+        set turnoff item 0 calcutility-values
+;        show (word "real extraction (turnoff - mewater - otherwater): " calcutility-values)
+      ]
     ]
   ]
   extract ; agents extract water
@@ -336,9 +339,9 @@ to go
 
   ; after the round calculate the actual utilities (only for social-values)
   if scenario = "social-values" [
-    show (word "turnoff: " map [[turnoff] of ?] sort turtles ", actual extraction: " map [[watercol] of ?] sort turtles ", harvest: " map [[harvest] of ?] sort turtles)
+;    show (word "turnoff: " map [[turnoff] of ?] sort turtles ", actual extraction: " map [[watercol] of ?] sort turtles ", harvest: " map [[harvest] of ?] sort turtles)
     calcactualutility
-    show (word "actual utility: " map [[actualutility] of ?] sort turtles ", satisfied: " map [[satisfied] of ?] sort turtles)
+;    show (word "actual utility: " map [[actualutility] of ?] sort turtles ", satisfied: " map [[satisfied] of ?] sort turtles)
   ]
   ; calculate the metrics
   calcgini
@@ -368,12 +371,14 @@ to calcinfrastructuredecline
 end
 
 to invest ; this is how investment decisions are made
+  ;FJ NEW CODE BLOCK
   let fairinv 0
   ifelse infrastructure < 66 [
     set fairinv maintenance / 5
   ][
     set fairinv 0
   ]
+
   set pastinfrastructure infrastructure
   ask turtles [set inv-past inv]
 
@@ -478,21 +483,21 @@ to invest ; this is how investment decisions are made
               set earningsothers 10 - mean [inv-past] of other turtles + mean [harvest] of other turtles
             ]
           ]
-          show (word "own harvest: " harvest ", earningsothers: " earningsothers)
+;          show (word "own harvest: " harvest ", earningsothers: " earningsothers)
 
           while [i <= 10]
           [
             ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-            ; NEW CODE BLOCK to endogenize positive effects of investments in infrastructure
-            let temp-invothers kappa * 4 / 5 * maintenance + (1 - kappa) * sum [inv-past] of other turtles
-            let temp-capacity calcapacity (infrastructure + temp-invothers + i) ; calculate capacity based on own investment i, assuming that others invest as in last round
+            ;FJ NEW CODE BLOCK to endogenize positive effects of investments in infrastructure
+            let temp-invothers kappa * 4 / 5 * maintenance + (1 - kappa) * sum [inv-past] of other turtles ; expectation of others' behavior
+            let temp-capacity calcapacity (infrastructure + temp-invothers + i) ; calculate capacity based on own investment i and assumed investments of others
             let temp-watersupply calcwaterflow temp-capacity ; calculate corresponding watersupply in cfps in the canal
             let calcutility-values calcutility temp-watersupply ; calculate optimal turnoff
             let temp-turnoff item 0 calcutility-values
             let temp-harvest calharvest temp-turnoff
             set earningsothers 10 - kappa * fairinv - (1 - kappa) * mean [inv-past] of other turtles + item 2 calcutility-values
-            show (word "calcutility (turnoff - mewater - otherwater): " calcutility-values ", temp-invothers: " (kappa * fairinv - (1 - kappa) * mean [inv-past] of other turtles) "; temp-earningsothers: " earningsothers)
-            show (word "i = " i ", infra: " (infrastructure + temp-invothers + i) ", temp-capacity: " temp-capacity ", temp-watersupply: " temp-watersupply "; harvest: " temp-harvest "; earnings: " (10 - i + temp-harvest) )
+;            show (word "calcutility (turnoff - mewater - otherwater): " calcutility-values ", temp-invothers: " (kappa * fairinv - (1 - kappa) * mean [inv-past] of other turtles) "; temp-earningsothers: " earningsothers)
+;            show (word "i = " i ", infra: " (infrastructure + temp-invothers + i) ", temp-capacity: " temp-capacity ", temp-watersupply: " temp-watersupply "; harvest: " temp-harvest "; earnings: " (10 - i + temp-harvest) )
             ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
             ifelse 10 - i + harvest > earningsothers [
@@ -509,7 +514,7 @@ to invest ; this is how investment decisions are made
           let randomnumber random-float totalutility
           set i 0
           set totalutility exp (mu * item 0 list-utility)
-          show (word "randomnumber = " randomnumber ", util: " map [exp (mu * ?)] list-utility)
+;          show (word "randomnumber = " randomnumber ", util: " map [exp (mu * ?)] list-utility)
           while [i <= 10]
           [
             ifelse randomnumber < totalutility [
@@ -520,7 +525,7 @@ to invest ; this is how investment decisions are made
               set totalutility totalutility + exp (mu * item i list-utility)
             ]
           ]
-          show (word "inv: " inv ", totalutility: " totalutility)
+;          show (word "inv: " inv ", totalutility: " totalutility)
         ]
       ][set inv inv-past] ; agents repeat from the past round if they are satisfied
     ]
@@ -531,16 +536,18 @@ to invest ; this is how investment decisions are made
   if infrastructure > 100 [set infrastructure 100]
   set capacity calcapacity infrastructure
 
+  ;FJ NEW CODE BLOCK
+  ; update kappa
   if scenario = "social-values" [
     ask turtles [
       ifelse fairinv < 0.5 [
-        set kappa 1
+        set kappa 1 ; threshold of relevance: if others have to invest less than 0.5 tokens on avg, ignore the need to invest
       ][
         set kappa 1 - (fairinv - mean [inv] of other turtles) / fairinv
         if kappa > 1 [set kappa 1]
       ]
     ]
-    show (word "fairinv: " fairinv "; kappa: " map [[kappa] of ?] sort turtles)
+;    show (word "fairinv: " fairinv "; kappa: " map [[kappa] of ?] sort turtles)
   ]
 end ; end of invest procedure
 
@@ -1424,7 +1431,7 @@ stdev-random
 stdev-random
 0
 10
-1
+0.35
 0.01
 1
 NIL
@@ -1492,7 +1499,7 @@ lambda-inv
 lambda-inv
 0
 1
-0.6
+0.3
 0.01
 1
 NIL
@@ -1507,7 +1514,7 @@ lambda
 lambda
 0
 1
-0.8
+0.44
 0.01
 1
 NIL
@@ -1522,7 +1529,7 @@ lambda-ext
 lambda-ext
 0
 1
-0.8
+0.54
 0.01
 1
 NIL
@@ -1537,7 +1544,7 @@ mean-expC
 mean-expC
 0
 1
-0.9
+0.54
 0.01
 1
 NIL
@@ -1642,7 +1649,7 @@ gammawatercol
 gammawatercol
 0
 20
-11
+6.9
 0.01
 1
 NIL
@@ -2339,7 +2346,7 @@ NetLogo 5.2.1
       <value value="0.09"/>
     </enumeratedValueSet>
   </experiment>
-  <experiment name="CoV - condcoop-F-baseline" repetitions="500" runMetricsEveryStep="true">
+  <experiment name="CoV - socval-F-baseline" repetitions="10000" runMetricsEveryStep="true">
     <setup>setup</setup>
     <go>go</go>
     <metric>infrastructure</metric>
@@ -2357,7 +2364,7 @@ NetLogo 5.2.1
       <value value="0.06"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="scenario">
-      <value value="&quot;conditionalcooperation&quot;"/>
+      <value value="&quot;social-values&quot;"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="lambda">
       <value value="0.44"/>

@@ -471,7 +471,7 @@ Here too, $\gamma_W$ and $\lambda_E$ show the strongest dependence on other vari
 
 # Behavioral type 'social-values' 
 
-07 June 2017
+04 July 2017
 
 ## Check for inter-run variability 
 
@@ -480,14 +480,14 @@ In order to assess the number of variations needed to obtain a representative ou
 
 
 ```{r read CoV data SV}
-CoV_data_SV <- read.csv("../data/output/CoV_socval-F-baseline.csv", header = T, skip = 6)
+CoV_data_SV <- read.csv("../data/output/CoV_socval-F-baseline_endogwaterflow.csv", header = T, skip = 6)
 names(CoV_data_SV)[c(1, 21)] <- c("runID", "round")
 summary(CoV_data_SV)
 ```
 
 ```{r calculate CoV SV}
 # indicate the sample sizes and rounds to be calculated here
-sample.sizes <- seq(from = 5, to = 500, by = 5)
+sample.sizes <- seq(from = 5, to = 3000, by = 5)
 sampled.rounds <- c(1:10)
 CoV_array_SV <- sampleCoV(CoV_data_SV, sample.sizes, sampled.rounds)
 
@@ -804,6 +804,8 @@ The effect of $\tau$ is increasing over time for both infrastructure and inequal
 
 ## Morris screening "endogenized water flow"
 
+04 July 2017
+
 After changing the investment procedure in the model, we re-run the Morris screening. This time, we also adjust the factor levels: $\alpha, \beta$ can now also have negative values and $\tau$ ranges up to 30 to allow for more rational agents.
 
 As for 'conditionalcooperation' we carry out the Morris screening following the routine laid out by Thiele et al. 2014. We follow the steps as described above, this time varying the following 5 relevant parameters with 50 repetitions and 5 factor levels:
@@ -812,17 +814,18 @@ Variable    | Model name | Range     | Experimental design
 ----------- | ---------- | --------- | ----------
 Strength of aversion to exploiting others $\alpha$ | `alpha` |	[-1, 1]	|	-1, -0.5, 0, 0.5, 1
 Degree of cooperative tendency $β$	| `beta` | [-1, 1]	| -1, -0.5, 0, 0.5, 1
-Weight for different utility values $τ$	| `mu` | [0, 30]	| 0, 7.5, 15, 22.5, 30
+Weight for different utility values $τ$	| `mu` | [0, 25]	| 0, 6.25, 12.5, 18.755, 25
 Minimum utility to be satisfied $u_{min}$ | `umin` |  [0, 30]     | 0, 7.5, 15, 22.5, 30
 Fraction of agents initially to be satisfied $δ$	| `psat` | [0, 1]	|	0, 0.25, 0.5, 0.75, 1
 
 
 Morris screening was carried out for the 5 relevant parameters with 50 repetitions and 5 factor levels. However, setting up the experiment with the `morris()` of the `sensitivity` package creates the sample of all parameter combinations beforehand, based on on the indicated number of repetitions (`no.repetitions_SV`). In our case, generating `r no.repetitions_SV` variations for `r length(input.values_SV)` parameters and running each parameter set `r no.repeated.sim_SV` times, that yielded `r iter.length_SV * no.repeated.sim_SV` runs. 
 
-In this configuration, running the simulation takes about 18 minutes on the Toshiba laptop, running on four cores in parallel. 
+In this configuration, running the simulation takes about 23 minutes on the Toshiba laptop, running on four cores in parallel. 
 
 ```{r run Morris screening SV 2}
 
+print(Sys.time())
 #-------------------------------------------------------------------------------------
 # I. Prerequirements
 #-------------------------------------------------------------------------------------
@@ -852,13 +855,13 @@ fix.params_SV <- list(
   'phase2?'       = "false"
 )      
 
-fix.param.names_SV <- names(fix.params)
+fix.param.names_SV <- names(fix.params_SV)
 
 # TODO: give the value for each input factor, min. and max. values for the inputs      
 input.values_SV <- list(
                'alpha'     = list(min = -1.0, max = 1.0),
                'beta'  = list(min = -1.0, max = 1.0),
-               'mu' = list(min = 0.0, max = 30.0),
+               'mu' = list(min = 0.0, max = 25.0),
                'umin'        = list(min = 0.0, max = 30.0),
                'psat'    = list(min = 0.0, max = 1.0)
 )
@@ -1083,9 +1086,8 @@ for (i in (1:length(sim.results.morris_SV2[,1])))
 
 ```
 With the new investment calculation and the increased values ranges for $\alpha$, $\beta$ and $\tau$ the results of the Morris screening have changed. 
-$\delta$ remains the most influential factor, yet $\tau$ and $\alpha$ have become more important. The effect of $\alpha$ is highly non-monotonic (presumably depending on its sign).
-For inequality, $\delta$ and $\alpha$ have the largest negative impact. For $\alpha$ this seems implausible, because it means that the larger the aversion to exploit others is the higher will be the inequality in extraction. 
-In general, the effects of parameters strongly depend on other parameters settings.
+$\delta$ remains the most influential factor, at least in the first rounds. $\tau$ and $\alpha$ have become more important. While the effect of $\tau$ increases over time and is larger on infrastructure levels, $\alpha$ mainly drives the extraction inequality. Both effects are not surprising, since $\tau$ is part of the investment decision and $\alpha$ part of the extraction decision. The effect of $\alpha$ on extraction inequality is highly non-monotonic and also dependent on other parameters. For inequality, the expected main effect is almost neutral, which underscores the relevance of interactions and non-linearities.
+For inequality, almost all parameters have non-monotonic effects. The effect of $u_{min}$ decreases over time and is also very small. $\delta$, $\tau$ and $\alpha$ have the largest impact. In general, the effects of parameters strongly depend on other parameters settings.
 
 
 # Questions to Marco
